@@ -15,6 +15,13 @@ describe("auth forms", () => {
     expect(safeReturnPath("/")).toBe("/");
     expect(safeReturnPath("/topics")).toBe("/topics");
     expect(safeReturnPath("/topics/abc")).toBe("/topics/abc");
+    expect(safeReturnPath("/problems")).toBe("/problems");
+    expect(safeReturnPath("/problems/11111111-1111-4111-8111-111111111111")).toBe(
+      "/problems/11111111-1111-4111-8111-111111111111",
+    );
+    expect(safeReturnPath("/problems/11111111-1111-4111-8111-111111111111/edit")).toBe(
+      "/problems/11111111-1111-4111-8111-111111111111/edit",
+    );
     expect(safeReturnPath("//evil")).toBeUndefined();
     expect(safeReturnPath("https://evil.test")).toBeUndefined();
     expect(safeReturnPath("/account?x=1")).toBe("/account");

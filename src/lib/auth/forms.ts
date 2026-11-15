@@ -17,6 +17,7 @@ export function isPublicAuthPath(pathname: string): boolean {
 function isAllowedAppPath(path: string): boolean {
   if (path === "/" || path === "/account" || path.startsWith("/account/")) return true;
   if (path === "/topics" || path.startsWith("/topics/")) return true;
+  if (path === "/problems" || path.startsWith("/problems/")) return true;
   return false;
 }
 

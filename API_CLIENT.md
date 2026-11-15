@@ -10,6 +10,10 @@ All backend calls go through `src/lib/api/client.ts`. Feature API modules own en
 
 `modules/topics.api.ts` wraps list/create/rename/delete on `/topics` with `recoverAuth: true`. Use a session-capable product client from the app auth boundary; UI wiring arrives in Phase 5.4.
 
+`modules/problems.api.ts` wraps list/create/get/update/delete on `/problems` with `recoverAuth: true`. List query supports Phase 7 search/filters (`q`, `status`, `platform`, `topicIds`, `untagged`, `sort`, `order`, `page`, `pageSize`). The library route encodes browse state in the URL via `lib/problems/browse-query.ts` (same keys as OpenAPI). Use `setStatus(id, status)` or `update({ status })` for completion (FR-03). Use `auth.productClient` from the app auth boundary; library and CRUD UI live under `/problems`.
+
+`modules/progress.api.ts` wraps `GET /progress` (`getSummaries`) with `recoverAuth: true`. Progress counts reflect the full library, not active list filters (FR-05). UI wiring arrives in Phase 7.7.
+
 ```ts
 import { createApiClient } from './src/lib/api';
 import { createSystemApi } from './src/lib/api/modules/system.api';

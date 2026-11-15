@@ -19,16 +19,21 @@ export function AuthNav() {
           </>
         }
       >
-        <a class="text-brand underline-offset-4 hover:underline" href={paths.topics()}>
+        <a class="text-brand underline-offset-4 hover:underline" href={paths.problems()}>
+          Library
+        </a>
+        <a class="text-muted underline-offset-4 hover:underline" href={paths.topics()}>
           Topics
         </a>
         <a class="text-muted underline-offset-4 hover:underline" href={paths.account()}>
           Account
         </a>
       </Show>
-      <a class="text-muted underline-offset-4 hover:underline" href={paths.users()}>
-        Template examples
-      </a>
+      <Show when={import.meta.env.DEV}>
+        <a class="text-muted underline-offset-4 hover:underline" href={paths.users()}>
+          Template examples
+        </a>
+      </Show>
     </div>
   );
 }

@@ -12,16 +12,30 @@ import { Button } from "../../components/ui/Button";
 import { Panel } from "../../components/ui/Panel";
 import { ApiError } from "../../lib/api/errors";
 import { useAuth } from "../../lib/auth/context";
+import { createProgressApi, type TopicProgress } from "../../lib/api/modules/progress.api";
 import { createTopicsApi, type TopicResponse } from "../../lib/api/modules/topics.api";
+import { progressMessage } from "../../lib/problems/messages";
+import {
+  formatTopicProgress,
+  topicProgressById,
+} from "../../lib/problems/progress-display";
 import { topicFieldErrors, topicFormMessage } from "../../lib/topics/messages";
+import { paths } from "../../router";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
 
 export default function TopicsIndex() {
   const auth = useAuth();
   const api = createTopicsApi(auth.productClient);
+  const progressApi = createProgressApi(auth.productClient);
 
   const [items, setItems] = createSignal<TopicResponse[]>([]);
+  const [topicProgress, setTopicProgress] = createSignal<Map<string, TopicProgress>>(
+    new Map(),
+  );
+  const [progressLoadMessage, setProgressLoadMessage] = createSignal<
+    string | undefined
+  >();
   const [listStatus, setListStatus] = createSignal<ListStatus>("idle");
   const [listMessage, setListMessage] = createSignal<string | undefined>();
   const [truncatedTotal, setTruncatedTotal] = createSignal(false);
@@ -45,6 +59,17 @@ export default function TopicsIndex() {
   const [deletePending, setDeletePending] = createSignal(false);
   let deleteDialogRef: HTMLDialogElement | undefined;
 
+  async function loadProgress() {
+    setProgressLoadMessage(undefined);
+    try {
+      const data = await progressApi.getSummaries();
+      setTopicProgress(topicProgressById(data.topics));
+    } catch (error) {
+      setTopicProgress(new Map());
+      setProgressLoadMessage(progressMessage(error));
+    }
+  }
+
   async function loadList() {
     setListStatus("loading");
     setListMessage(undefined);
@@ -61,7 +86,10 @@ export default function TopicsIndex() {
   }
 
   onSettled(() => {
-    if (auth.status() === "authenticated") void loadList();
+    if (auth.status() === "authenticated") {
+      void loadList();
+      void loadProgress();
+    }
   });
 
   createEffect(
@@ -86,6 +114,7 @@ export default function TopicsIndex() {
       await api.create({ name });
       setCreateName("");
       await loadList();
+      await loadProgress();
     } catch (error) {
       if (error instanceof ApiError && error.details)
         setCreateFieldErrors(topicFieldErrors(error.details));
@@ -145,6 +174,7 @@ export default function TopicsIndex() {
       await api.delete(topic.id);
       setDeleteTarget(undefined);
       await loadList();
+      await loadProgress();
     } catch (error) {
       setListMessage(topicFormMessage(error));
       setDeleteTarget(undefined);
@@ -200,6 +230,11 @@ export default function TopicsIndex() {
         </Panel>
 
         <Panel title="Topic list" description="Rename or remove topics you no longer need.">
+          <Show when={progressLoadMessage()}>
+            <p class="mb-4 text-sm text-muted" role="status">
+              {progressLoadMessage()}
+            </p>
+          </Show>
           <Switch>
             <Match when={listStatus() === "loading" || listStatus() === "idle"}>
               <p class="text-muted" role="status">
@@ -231,7 +266,21 @@ export default function TopicsIndex() {
                         when={editingId() === topic.id}
                         fallback={
                           <div class="flex flex-wrap items-center justify-between gap-3">
-                            <span class="text-body font-medium">{topic.name}</span>
+                            <div class="min-w-0 space-y-1">
+                              <a
+                                class="text-body font-medium text-brand underline-offset-4 hover:underline"
+                                href={`${paths.problems()}?topicId=${topic.id}`}
+                              >
+                                {topic.name}
+                              </a>
+                              <Show when={topicProgress().get(topic.id)}>
+                                {(row) => (
+                                  <p class="text-sm text-muted tabular-nums">
+                                    {formatTopicProgress(row())}
+                                  </p>
+                                )}
+                              </Show>
+                            </div>
                             <div class="flex flex-wrap gap-2">
                               <Button variant="secondary" onClick={() => startRename(topic)}>
                                 Rename
@@ -315,7 +364,7 @@ export default function TopicsIndex() {
         <p class="mt-3 text-sm text-muted">
           This removes the topic{" "}
           <span class="font-medium text-body">{deleteTarget()?.name}</span> from your library.
-          Problem records are unchanged (no problems are stored yet in this release).
+          Saved problems stay in your library; only their links to this topic are removed.
         </p>
         <div class="mt-6 flex flex-wrap gap-3">
           <Button disabled={deletePending()} onClick={() => void confirmDelete()}>

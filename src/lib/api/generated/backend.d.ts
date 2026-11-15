@@ -160,6 +160,54 @@ export interface paths {
         patch: operations["TopicsController_rename"];
         trace?: never;
     };
+    "/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProblemsController_list"];
+        put?: never;
+        post: operations["ProblemsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/problems/{problemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProblemsController_getOne"];
+        put?: never;
+        post?: never;
+        delete: operations["ProblemsController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["ProblemsController_update"];
+        trace?: never;
+    };
+    "/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProgressController_getSummaries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -639,6 +687,360 @@ export interface operations {
                         createdAt: string;
                         /** Format: date-time */
                         updatedAt: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProblemsController_list: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                q?: string;
+                status?: "unsolved" | "solved";
+                platform?: "codeforces" | "leetcode" | "codechef";
+                /** @description Filter to problems linked to any of these owned topics. */
+                topicIds?: string[];
+                topicId?: string;
+                untagged?: "true";
+                sort?: "title" | "createdAt" | "solvedAt";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            url: string;
+                            platformProblemId: string | null;
+                            difficulty: string | null;
+                            rating: number | null;
+                            notes: string | null;
+                            /** @enum {string} */
+                            status: "unsolved" | "solved";
+                            /** Format: date-time */
+                            solvedAt: string | null;
+                            topics: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        }[];
+                        meta: {
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProblemsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                    url: string;
+                    /** @default [] */
+                    topicIds?: string[];
+                    platformProblemId?: string;
+                    difficulty?: string;
+                    rating?: number;
+                    notes?: string;
+                    /**
+                     * @default unsolved
+                     * @enum {string}
+                     */
+                    status?: "unsolved" | "solved";
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        title: string;
+                        url: string;
+                        platformProblemId: string | null;
+                        difficulty: string | null;
+                        rating: number | null;
+                        notes: string | null;
+                        /** @enum {string} */
+                        status: "unsolved" | "solved";
+                        /** Format: date-time */
+                        solvedAt: string | null;
+                        topics: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProblemsController_getOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        title: string;
+                        url: string;
+                        platformProblemId: string | null;
+                        difficulty: string | null;
+                        rating: number | null;
+                        notes: string | null;
+                        /** @enum {string} */
+                        status: "unsolved" | "solved";
+                        /** Format: date-time */
+                        solvedAt: string | null;
+                        topics: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProblemsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Problem deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProblemsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title?: string;
+                    url?: string;
+                    topicIds?: string[];
+                    platformProblemId?: string | null;
+                    difficulty?: string | null;
+                    rating?: number | null;
+                    notes?: string | null;
+                    /** @enum {string} */
+                    status?: "unsolved" | "solved";
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        title: string;
+                        url: string;
+                        platformProblemId: string | null;
+                        difficulty: string | null;
+                        rating: number | null;
+                        notes: string | null;
+                        /** @enum {string} */
+                        status: "unsolved" | "solved";
+                        /** Format: date-time */
+                        solvedAt: string | null;
+                        topics: {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProgressController_getSummaries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description Full library counts for the owner. Each problem is counted once (not per topic). */
+                        overall: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                        };
+                        /** @description Every owned topic, including empty topics. Counts reflect the full library, not active list filters. */
+                        topics: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @description Rounded solved/total*100; 0 when total is 0. */
+                            percentComplete: number;
+                        }[];
                     };
                 };
             };

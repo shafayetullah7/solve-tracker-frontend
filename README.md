@@ -6,7 +6,7 @@ Authentication implementation reference: [Auth and refresh conventions](./AUTH_C
 
 Read [FRONTEND_CONVENTIONS.md](./FRONTEND_CONVENTIONS.md) for the UI scheme and installed-version Solid patterns. Run `pnpm dev` to view the UI foundation at `http://localhost:3001`. The frontend uses Solid 2 RC with Vite Start mode and Tailwind 4.3.5, without a separate `@solidjs/start` package.
 
-**Product UI:** after sign-in, open **Topics** (`/topics`) to create, rename, and delete your topic labels (Phase 5).
+**Product UI:** after sign-in, open **Library** (`/problems`) to browse saved problems; **Topics** (`/topics`) to create, rename, and delete topic labels.
 
 **Phase 4.7 auth verification:** start the Nest backend on port **3000** and `pnpm dev` on **3001**; first time run `pnpm exec playwright install chromium`; then `pnpm verify:phase-4.7` (unit tests, API races, Playwright E2E). See [AGENTS.md](./AGENTS.md).
 

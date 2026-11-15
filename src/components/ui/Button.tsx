@@ -6,6 +6,7 @@ export type ButtonProps = ParentProps<{
   onClick?: () => void;
   class?: string;
   "aria-pressed"?: boolean;
+  "aria-busy"?: boolean;
 }>;
 export function Button(props: ButtonProps) {
   return (
@@ -19,6 +20,13 @@ export function Button(props: ButtonProps) {
         props["aria-pressed"] === undefined
           ? undefined
           : props["aria-pressed"]
+            ? "true"
+            : "false"
+      }
+      aria-busy={
+        props["aria-busy"] === undefined
+          ? undefined
+          : props["aria-busy"]
             ? "true"
             : "false"
       }
