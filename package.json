@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:reset": "rm -rf node_modules/.vite && vite",
     "build": "vite build",
     "serve": "vite preview",
     "test": "vitest",

@@ -19,7 +19,10 @@ export function AuthNav() {
           </>
         }
       >
-        <a class="text-brand underline-offset-4 hover:underline" href={paths.account()}>
+        <a class="text-brand underline-offset-4 hover:underline" href={paths.topics()}>
+          Topics
+        </a>
+        <a class="text-muted underline-offset-4 hover:underline" href={paths.account()}>
           Account
         </a>
       </Show>

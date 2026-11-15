@@ -6,6 +6,8 @@ Authentication implementation reference: [Auth and refresh conventions](./AUTH_C
 
 Read [FRONTEND_CONVENTIONS.md](./FRONTEND_CONVENTIONS.md) for the UI scheme and installed-version Solid patterns. Run `pnpm dev` to view the UI foundation at `http://localhost:3001`. The frontend uses Solid 2 RC with Vite Start mode and Tailwind 4.3.5, without a separate `@solidjs/start` package.
 
+**Product UI:** after sign-in, open **Topics** (`/topics`) to create, rename, and delete your topic labels (Phase 5).
+
 **Phase 4.7 auth verification:** start the Nest backend on port **3000** and `pnpm dev` on **3001**; first time run `pnpm exec playwright install chromium`; then `pnpm verify:phase-4.7` (unit tests, API races, Playwright E2E). See [AGENTS.md](./AGENTS.md).
 
 ## Solid `with-tailwindcss` template
@@ -41,10 +43,17 @@ In the project directory, you can run:
 
 ### `pnpm run dev`
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Runs the app in development mode on **port 3001** ([http://localhost:3001](http://localhost:3001)). Run only **one** dev server at a time (a second instance can bind another loopback address and break module loading).
 
 The page will reload if you make edits.<br>
+
+**Blank page / “disallowed MIME type” on `node_modules/.vite/deps`:** Vite returned `504 Outdated Optimize Dep` (empty body). Stop every process on port 3001, then:
+
+```bash
+pnpm dev:reset
+```
+
+Hard-refresh the browser (Ctrl+Shift+R). Avoid running `pnpm build` or `pnpm test` while `pnpm dev` is running if the app stops loading scripts.
 
 ### `pnpm run build`
 
