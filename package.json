@@ -10,10 +10,14 @@
     "test": "vitest",
     "lint": "oxlint src",
     "api:generate": "pnpm --dir ../backend api:types",
-    "api:check": "pnpm --dir ../backend api:types:check"
+    "api:check": "pnpm --dir ../backend api:types:check",
+    "verify:phase-4.1": "node scripts/verify-phase-4.1.mjs",
+    "verify:phase-4.7": "node scripts/verify-phase-4.7.mjs",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts"
   },
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "1.51.0",
     "@solidjs/diagnostics": "^2.0.0-rc.21",
     "@solidjs/testing-library": "^1.0.0-rc.2",
     "@solidjs/vite-plugin": "^3.0.0-next.57",

@@ -28,6 +28,7 @@ export default defineConfig(({ command, mode, isPreview }) => ({
     environment: "jsdom",
     globals: false,
     setupFiles: ["./vitest-setup.ts"],
+    exclude: ["**/node_modules/**", "e2e/**"],
     // if you have few tests, try commenting this
     // out to improve performance:
     isolate: false,

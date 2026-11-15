@@ -32,7 +32,7 @@ Cookie attributes follow [MDN cookie guidance](https://developer.mozilla.org/en-
 
 Create an auth provider per application root, with typed context exposing session state, safe user metadata, and login/logout/ensure-session operations. Components read context; they never call the refresh endpoint themselves.
 
-Use explicit states: `checking`, `authenticated`, `anonymous`, and `unavailable` for a network/server failure that does not establish logout. Render them with `Switch`/`Match` or `Show`. Do not flash protected content or redirect to login while the session is still being checked. Auth route guards are UX only; Nest must authorize every data request.
+Use explicit states: `checking`, `authenticated`, `anonymous`, and `unavailable` for a network/server failure that does not establish logout. Render them with `Switch`/`Match` or `Show`. Do not flash protected content or redirect to login while the session is still being checked. Auth route guards are UX only; Nest must authorize every data request. Wrap protected route content in [`RequireSession`](../src/components/auth/RequireSession.tsx) (or a layout that uses it); only `anonymous` redirects to login with a validated `?next=`.
 
 Bootstrap once in browser lifecycle code using the installed Solid 2 `onSettled` pattern. Do not start authentication in component JSX, a reactive memo, every route component, or at module import time. `onSettled` callbacks may run again: use an explicit once-per-provider bootstrap guard and cleanup. Use Solid 2's two-function `createEffect` only where an effect is actually needed, and keep writes out of compute callbacks. Do not import React hooks, Next middleware, Solid 1.x `onMount`/`createResource`, or an unrelated auth framework.
 
@@ -60,7 +60,7 @@ Differentiate access expiry from revocation/invalid signatures and ordinary perm
 2. Acquire an origin-wide exclusive Web Lock, e.g. `practice:auth-session`, before refresh. Login, logout, and session-changing operations must use the same coordination policy. `navigator.locks` must only be accessed in browser code and requires a supported secure context.
 3. **After obtaining the lock, probe the session again.** A different tab may already have refreshed and replaced the shared HttpOnly access cookie. If access is valid, use that session and do not rotate again. A lock without this recheck merely serializes duplicate refreshes.
 4. If the probe explicitly permits recovery, check the auth epoch is still current and issue exactly one refresh through raw fetch. Hold the lock until the response and its cookie update have completed. Recheck the session if needed before releasing waiting requests.
-5. Broadcast only safe invalidation events through `BroadcastChannel`: `session-changed` or `logged-out`. Peers revalidate metadata; no token/user payload is needed. Messages are hints, not proof of authentication or authorization. The cookies remain browser-managed and shared.
+5. Broadcast only safe invalidation events through `BroadcastChannel` **`practice:auth-events`**: `session-changed` or `logged-out` (plus a `tabId` for echo filtering only). Peers revalidate via [`resolveBootstrapSession`](src/lib/auth/session-state.ts) / `GET /api/auth/session`; no token/user payload is sent on the channel. On `logged-out`, the coordinator suppresses automatic refresh until the probe completes ([`cross-tab.ts`](src/lib/auth/cross-tab.ts)).
 6. Each waiting request retries at most once after successful recovery, using the latest cookie. If another late 401 arrives after recovery, the session recheck should reuse the valid session rather than refresh again.
 
 Web Locks provide same-origin mutual exclusion; BroadcastChannel provides notifications, not a mutex. This combination and the read-only probe are project coordination rules built on [Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API) and [BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API). All frontend tabs must use the same public origin and coordinator; locks do not coordinate unrelated origins or server processes.
@@ -100,7 +100,7 @@ Do not implement SSR infrastructure or its tests while the application remains C
 
 ## Implementation locations and acceptance tests
 
-When implementing, use `src/lib/auth/` for the browser coordinator/transport, `src/lib/api/` for request handling, and a root auth provider/context for reactive UI. Keep modules import-safe during static shell generation. Link this document from API/auth implementations and keep backend cookie/error contracts aligned.
+When implementing, use `src/lib/auth/` for the browser coordinator/transport, `src/lib/api/` for request handling, and a root auth provider/context for reactive UI. The app root mounts `AuthProvider` from `src/lib/auth/context.tsx`; routes and forms read session through `useAuth()` (status, `productClient`, `authApi`, `coordinator`). Keep modules import-safe during static shell generation. Link this document from API/auth implementations and keep backend cookie/error contracts aligned.
 
 Required tests, with real multi-tab browser coverage where applicable:
 

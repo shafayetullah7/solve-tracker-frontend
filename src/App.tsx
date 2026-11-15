@@ -1,9 +1,12 @@
 import { Title } from "@solidjs/meta";
 import { Loading } from "solid-js";
+import { AuthNav } from "./components/auth/AuthNav";
+import { AuthProvider } from "./lib/auth/context";
 import { paths, Router } from "./router";
 import "./App.css";
 export default function App() {
   return (
+    <AuthProvider>
     <Router>
       {(props) => (
         <>
@@ -25,12 +28,7 @@ export default function App() {
               >
                 practice<span class="text-muted">.</span>
               </a>
-              <a
-                class="text-sm text-muted underline-offset-4 hover:underline"
-                href={paths.users()}
-              >
-                Template examples
-              </a>
+              <AuthNav />
             </div>
           </nav>
           <div id="main-content" tabindex="-1">
@@ -47,5 +45,6 @@ export default function App() {
         </>
       )}
     </Router>
+    </AuthProvider>
   );
 }

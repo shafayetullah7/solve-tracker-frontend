@@ -4,7 +4,11 @@ All backend calls go through `src/lib/api/client.ts`. Feature API modules own en
 
 ## Current implemented API
 
-`modules/system.api.ts` wraps the real scaffold greeting and references the generated OpenAPI response type. It is not connected to the product homepage and does not claim auth/topic/problem endpoints exist.
+`modules/system.api.ts` wraps the real scaffold greeting and references the generated OpenAPI response type. It is not connected to the product homepage.
+
+`modules/auth.api.ts` wraps the seven auth endpoints with `recoverAuth: false` (use a recovery-disabled client instance).
+
+`modules/topics.api.ts` wraps list/create/rename/delete on `/topics` with `recoverAuth: true`. Use a session-capable product client from the app auth boundary; UI wiring arrives in Phase 5.4.
 
 ```ts
 import { createApiClient } from './src/lib/api';
@@ -31,7 +35,9 @@ Create the browser client at the app composition boundary when real consumers ne
 
 `createApiClient` accepts optional `recoverSession: () => Promise<boolean>` and `getAuthEpoch: () => number`. Recovery also requires explicit `recoverAuth: true` on the operation. It is disabled by default.
 
-Only 401 with code `AUTH_REFRESH_REQUIRED` invokes recovery; successful recovery permits one retry. Other statuses, arbitrary 401s, network failures, and a second rejection are not retried. The later coordinator—not this client—owns single-flight, Web Locks, session rechecks, and epoch changes. It must use raw/recovery-disabled transport to avoid recursion. Cancellation of a waiting caller does not cancel shared recovery, and stale-account responses are rejected using the epoch.
+Only 401 with code `AUTH_REFRESH_REQUIRED` invokes recovery; successful recovery permits one retry. Other statuses, arbitrary 401s, network failures, and a second rejection are not retried. The coordinator in `src/lib/auth/` owns single-flight, Web Locks, session rechecks, and epoch changes. It must use raw/recovery-disabled transport to avoid recursion. Cancellation of a waiting caller does not cancel shared recovery, and stale-account responses are rejected using the epoch.
+
+For browser apps, prefer **`createAuthClients()`** from `src/lib/auth` (Step 4.2): it returns a recovery-disabled `authApi` on `rawClient` and a `productClient` wired to `coordinator.recoverSession()` / `getEpoch()`. Do not hand-wire `recoverSession` in routes.
 
 Do not enable recovery for login/reset operations or for a mutation unless the backend's auth rejection precedes all side effects. Upload streams and ambiguous network failures have no replay contract here. See [AUTH_CONVENTIONS.md](AUTH_CONVENTIONS.md) and [Phase 0](../docs/PHASE_0_DECISIONS.md).
 
@@ -65,4 +71,4 @@ These invoke the backend-owned generator and write/check `src/lib/api/generated/
 
 The pinned generator is openapi-typescript 7.13.0. Frontend TypeScript 7 lacks the compiler factory API this generator uses. Generation therefore runs in the backend's TypeScript 6.0.3 toolchain, with a narrowly documented pnpm peer-version exception because the generator declares TypeScript 5. Generation/checks verify this combination; recheck or replace the tool when either version changes. The application compilers were not downgraded.
 
-`modules/auth.api.ts` now wraps the seven implemented auth endpoints with generated input/output types, safe response decoding, and explicitly disabled auto-recovery. Use `createAuthApi` with the recovery-disabled auth transport in Phase 4. Topic/problem modules still arrive only with their actual backend APIs. Reuse the transport and generated operation/path types. Compose API functions with the installed Solid 2 Loading/Errored/async memo and mutation APIs; do not move component state into the transport or introduce React/Next query patterns.
+Problem modules still arrive only when their backend APIs exist. Reuse the transport and generated operation/path types. Compose API functions with the installed Solid 2 Loading/Errored/async memo and mutation APIs; do not move component state into the transport or introduce React/Next query patterns.

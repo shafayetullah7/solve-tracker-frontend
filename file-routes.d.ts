@@ -41,9 +41,39 @@ declare module "virtual:file-routes" {
       $$route: FileRouteEagerRef<Pick<typeof import("./src/routes/[...404]"), Extract<"route", keyof typeof import("./src/routes/[...404]")>>>;
     },
     {
+      path: "/account";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/account"), Extract<"default", keyof typeof import("./src/routes/account")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/forgot-password";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/forgot-password"), Extract<"default", keyof typeof import("./src/routes/forgot-password")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/index"), Extract<"default", keyof typeof import("./src/routes/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/login";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/login"), Extract<"default", keyof typeof import("./src/routes/login")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/register";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/register"), Extract<"default", keyof typeof import("./src/routes/register")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/reset-password";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/reset-password"), Extract<"default", keyof typeof import("./src/routes/reset-password")>>>;
       $$route?: undefined;
     },
     {
@@ -86,6 +116,14 @@ declare module "virtual:file-routes" {
       children?: undefined;
     },
     {
+      path: "/login";
+      id: "/login";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/login"), Extract<"default", keyof typeof import("./src/routes/login")>>>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
       path: "/users";
       id: "/users";
       page: true;
@@ -109,6 +147,38 @@ declare module "virtual:file-routes" {
           children?: undefined;
         }
       ];
+    },
+    {
+      path: "/account";
+      id: "/account";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/account"), Extract<"default", keyof typeof import("./src/routes/account")>>>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
+      path: "/register";
+      id: "/register";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/register"), Extract<"default", keyof typeof import("./src/routes/register")>>>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
+      path: "/reset-password";
+      id: "/reset-password";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/reset-password"), Extract<"default", keyof typeof import("./src/routes/reset-password")>>>;
+      $$route?: undefined;
+      children?: undefined;
+    },
+    {
+      path: "/forgot-password";
+      id: "/forgot-password";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/forgot-password"), Extract<"default", keyof typeof import("./src/routes/forgot-password")>>>;
+      $$route?: undefined;
+      children?: undefined;
     }
   ];
 }
