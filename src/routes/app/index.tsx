@@ -1,51 +1,122 @@
 import { Title } from "@solidjs/meta";
-import {
-  createSignal,
-  For,
-  Match,
-  onSettled,
-  Show,
-  Switch,
-} from "solid-js";
+import { createSignal, Match, onCleanup, onSettled, Switch } from "solid-js";
+import { DashboardOverallPanel } from "../../components/dashboard/DashboardOverallPanel";
+import { DashboardPageHeader } from "../../components/dashboard/DashboardPageHeader";
+import { DashboardPreviewGrid } from "../../components/dashboard/DashboardPreviewGrid";
+import { DashboardQuickLinks } from "../../components/dashboard/DashboardQuickLinks";
+import { DashboardActivitySection } from "../../components/dashboard/DashboardActivitySection";
+import { DashboardPlatformGrid } from "../../components/dashboard/DashboardPlatformGrid";
+import { DashboardTopicProgressList } from "../../components/dashboard/DashboardTopicProgressList";
 import { Button } from "../../components/ui/Button";
 import { LoadingPlaceholder } from "../../components/ui/LoadingPlaceholder";
-import { Panel } from "../../components/ui/Panel";
 import { useAuth } from "../../lib/auth/context";
 import {
   createProgressApi,
+  type PlatformProgress,
+  type ProgressActivityResponse,
   type ProgressCounts,
   type TopicProgress,
 } from "../../lib/api/modules/progress.api";
-import { progressMessage } from "../../lib/problems/messages";
+import { createProblemsApi } from "../../lib/api/modules/problems.api";
 import {
-  formatTopicProgress,
-  overallPercentComplete,
-} from "../../lib/problems/progress-display";
-import { problemNewPath } from "../../lib/problems/paths";
-import { paths } from "../../router";
+  loadDashboardPreviews,
+  type DashboardPreviews,
+} from "../../lib/dashboard/load-dashboard-previews";
+import { problemListMessage, progressMessage } from "../../lib/problems/messages";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
+type PreviewsStatus = "idle" | "loading" | "ready" | "error";
+type ActivityStatus = "idle" | "loading" | "ready" | "error";
+
+const ACTIVITY_WEEKS = 12;
 
 export default function DashboardPage() {
   const auth = useAuth();
   const progressApi = createProgressApi(auth.productClient);
+  const problemsApi = createProblemsApi(auth.productClient);
 
   const [loadStatus, setLoadStatus] = createSignal<LoadStatus>("idle");
   const [overall, setOverall] = createSignal<ProgressCounts | undefined>();
   const [topics, setTopics] = createSignal<TopicProgress[]>([]);
+  const [platforms, setPlatforms] = createSignal<PlatformProgress[]>([]);
   const [errorMessage, setErrorMessage] = createSignal<string | undefined>();
+
+  const [previewsStatus, setPreviewsStatus] = createSignal<PreviewsStatus>("idle");
+  const [previews, setPreviews] = createSignal<DashboardPreviews | undefined>();
+  const [previewsError, setPreviewsError] = createSignal<string | undefined>();
+
+  const [activityStatus, setActivityStatus] = createSignal<ActivityStatus>("idle");
+  const [activity, setActivity] = createSignal<ProgressActivityResponse | undefined>();
+  const [activityError, setActivityError] = createSignal<string | undefined>();
+
+  let previewsAbort: AbortController | undefined;
+  let activityAbort: AbortController | undefined;
+
+  async function loadPreviews() {
+    previewsAbort?.abort();
+    const controller = new AbortController();
+    previewsAbort = controller;
+    const { signal } = controller;
+
+    setPreviewsStatus("loading");
+    setPreviewsError(undefined);
+    try {
+      const data = await loadDashboardPreviews(problemsApi, signal);
+      if (signal.aborted) return;
+      setPreviews(data);
+      setPreviewsStatus("ready");
+    } catch (error) {
+      if (signal.aborted) return;
+      setPreviewsStatus("error");
+      setPreviewsError(problemListMessage(error));
+    }
+  }
+
+  async function loadActivity() {
+    activityAbort?.abort();
+    const controller = new AbortController();
+    activityAbort = controller;
+    const { signal } = controller;
+
+    setActivityStatus("loading");
+    setActivityError(undefined);
+    try {
+      const data = await progressApi.getActivity(ACTIVITY_WEEKS, signal);
+      if (signal.aborted) return;
+      setActivity(data);
+      setActivityStatus("ready");
+    } catch (error) {
+      if (signal.aborted) return;
+      setActivityStatus("error");
+      setActivityError(problemListMessage(error));
+    }
+  }
 
   async function loadProgress() {
     setLoadStatus("loading");
     setErrorMessage(undefined);
+    setPreviewsStatus("idle");
+    setPreviews(undefined);
+    setPreviewsError(undefined);
+    setActivityStatus("idle");
+    setActivity(undefined);
+    setActivityError(undefined);
     try {
       const data = await progressApi.getSummaries();
       setOverall(data.overall);
       setTopics(data.topics);
+      setPlatforms(data.platforms);
       setLoadStatus("ready");
+      void loadPreviews();
+      void loadActivity();
     } catch (error) {
       setOverall(undefined);
       setTopics([]);
+      setPlatforms([]);
+      setPreviewsStatus("idle");
+      setPreviews(undefined);
+      setActivityStatus("idle");
+      setActivity(undefined);
       setLoadStatus("error");
       setErrorMessage(progressMessage(error));
     }
@@ -55,101 +126,71 @@ export default function DashboardPage() {
     if (auth.status() === "authenticated") void loadProgress();
   });
 
+  onCleanup(() => {
+    previewsAbort?.abort();
+    activityAbort?.abort();
+  });
+
   return (
     <div class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
       <Title>Dashboard — Practice</Title>
-      <h1 class="text-page font-semibold tracking-tight">Your practice</h1>
 
-      <div class="mt-8 space-y-8">
-        <Switch>
-          <Match when={loadStatus() === "idle" || loadStatus() === "loading"}>
+      <Switch>
+        <Match when={loadStatus() === "idle" || loadStatus() === "loading"}>
+          <DashboardPageHeader />
+          <div class="mt-8">
             <LoadingPlaceholder variant="block" />
-          </Match>
-          <Match when={loadStatus() === "error"}>
-            <div class="space-y-4">
-              <p class="text-muted" role="status">
-                {errorMessage()}
-              </p>
-              <Button variant="secondary" onClick={() => void loadProgress()}>
-                Try again
-              </Button>
+          </div>
+        </Match>
+        <Match when={loadStatus() === "error"}>
+          <DashboardPageHeader />
+          <div class="mt-8 space-y-4">
+            <p class="text-muted" role="status">
+              {errorMessage()}
+            </p>
+            <Button variant="secondary" onClick={() => void loadProgress()}>
+              Try again
+            </Button>
+          </div>
+        </Match>
+        <Match when={loadStatus() === "ready" && overall()}>
+          {(counts) => (
+            <div class="space-y-8">
+              <DashboardPageHeader />
+              <div class="space-y-8">
+                <DashboardQuickLinks
+                  unsolvedCount={counts().unsolved}
+                  untaggedCount={
+                    previewsStatus() === "ready" ? previews()?.untaggedTotal : undefined
+                  }
+                />
+                <DashboardOverallPanel counts={counts()} />
+                <DashboardPreviewGrid
+                  status={previewsStatus()}
+                  focus={previews()?.focus ?? []}
+                  recentAdded={previews()?.recentAdded ?? []}
+                  recentSolved={previews()?.recentSolved ?? []}
+                  errorMessage={previewsError()}
+                  onRetry={() => void loadPreviews()}
+                />
+                <DashboardActivitySection
+                  status={activityStatus()}
+                  data={activity()}
+                  errorMessage={activityError()}
+                  onRetry={() => void loadActivity()}
+                />
+                <div
+                  class="space-y-8 border-t border-line pt-8"
+                  aria-label="Library breakdown"
+                >
+                  <DashboardTopicProgressList topics={topics()} />
+                  <DashboardPlatformGrid platforms={platforms()} />
+                </div>
+              </div>
             </div>
-          </Match>
-          <Match when={loadStatus() === "ready" && overall()}>
-            {(counts) => (
-              <>
-                <Panel title="Overall" description="Counts across your full library.">
-                  <p class="text-body tabular-nums">
-                    <span class="font-medium">{counts().total}</span> total ·{" "}
-                    <span class="font-medium">{counts().solved}</span> solved ·{" "}
-                    <span class="font-medium">{counts().unsolved}</span> unsolved ·{" "}
-                    <span class="font-medium">{overallPercentComplete(counts())}%</span>{" "}
-                    complete
-                  </p>
-                  <Show when={counts().total === 0}>
-                    <p class="mt-4 text-muted">
-                      You have not saved any problems yet.{" "}
-                      <a
-                        class="text-brand underline-offset-4 hover:underline"
-                        href={problemNewPath()}
-                      >
-                        Add a problem
-                      </a>{" "}
-                      or{" "}
-                      <a
-                        class="text-brand underline-offset-4 hover:underline"
-                        href={paths.app.topics()}
-                      >
-                        manage topics
-                      </a>{" "}
-                      to get started.
-                    </p>
-                  </Show>
-                </Panel>
-
-                <section aria-labelledby="dashboard-by-topic">
-                  <h2 id="dashboard-by-topic" class="text-section font-semibold">
-                    By topic
-                  </h2>
-                  <Show
-                    when={topics().length > 0}
-                    fallback={
-                      <p class="mt-4 text-muted">
-                        No topics yet.{" "}
-                        <a
-                          class="text-brand underline-offset-4 hover:underline"
-                          href={paths.app.topics()}
-                        >
-                          Create topics
-                        </a>{" "}
-                        to organize your library.
-                      </p>
-                    }
-                  >
-                    <ul class="mt-4 divide-y divide-line border border-line rounded-panel bg-surface">
-                      <For each={topics()}>
-                        {(row) => (
-                          <li class="flex flex-wrap items-baseline justify-between gap-2 px-5 py-4">
-                            <a
-                              class="text-body font-medium text-brand underline-offset-4 hover:underline"
-                              href={`${paths.app.problems()}?topicId=${row.id}`}
-                            >
-                              {row.name}
-                            </a>
-                            <span class="text-sm text-muted tabular-nums">
-                              {formatTopicProgress(row)}
-                            </span>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
-                  </Show>
-                </section>
-              </>
-            )}
-          </Match>
-        </Switch>
-      </div>
+          )}
+        </Match>
+      </Switch>
     </div>
   );
 }

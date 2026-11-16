@@ -192,6 +192,22 @@ export interface paths {
         patch: operations["ProblemsController_update"];
         trace?: never;
     };
+    "/progress/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProgressController_getActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/progress": {
         parameters: {
             query?: never;
@@ -1041,6 +1057,55 @@ export interface operations {
             };
         };
     };
+    ProgressController_getActivity: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        weeks: {
+                            /** @description ISO calendar date (YYYY-MM-DD) of Monday UTC for this bucket. */
+                            weekStart: string;
+                            added: number;
+                            solved: number;
+                        }[];
+                        streak: {
+                            /** @description Consecutive solve days ending on the most recent solve day, if that day is today or yesterday (UTC); otherwise 0. */
+                            currentDays: number;
+                            /** @description ISO date (UTC) of the latest day with at least one solve. */
+                            lastSolveDate: string | null;
+                        };
+                        /** @enum {string} */
+                        timezone: "UTC";
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
     ProgressController_getSummaries: {
         parameters: {
             query?: never;
@@ -1072,6 +1137,14 @@ export interface operations {
                             name: string;
                             /** @description Rounded solved/total*100; 0 when total is 0. */
                             percentComplete: number;
+                        }[];
+                        /** @description Per-platform counts (catalog slugs + other). Only platforms with at least one problem. */
+                        platforms: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                            slug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                            name: string;
                         }[];
                     };
                 };

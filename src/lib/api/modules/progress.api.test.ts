@@ -15,6 +15,15 @@ const payload = {
       percentComplete: 50,
     },
   ],
+  platforms: [
+    {
+      slug: "leetcode" as const,
+      name: "LeetCode",
+      total: 3,
+      solved: 1,
+      unsolved: 2,
+    },
+  ],
 };
 
 describe("typed progress API", () => {
@@ -33,19 +42,19 @@ describe("typed progress API", () => {
     const request = vi.fn().mockResolvedValue({
       overall: { total: 0, solved: 0, unsolved: 0 },
       topics: [],
+      platforms: [],
     });
-    await expect(createProgressApi({ request }).getSummaries()).resolves.toEqual(
-      {
-        overall: { total: 0, solved: 0, unsolved: 0 },
-        topics: [],
-      },
-    );
+    await expect(createProgressApi({ request }).getSummaries()).resolves.toEqual({
+      overall: { total: 0, solved: 0, unsolved: 0 },
+      topics: [],
+      platforms: [],
+    });
   });
 
   test("rejects invalid progress payloads", async () => {
     await expect(
       createProgressApi({
-        request: vi.fn().mockResolvedValue({ topics: [] }),
+        request: vi.fn().mockResolvedValue({ topics: [], platforms: [] }),
       }).getSummaries(),
     ).rejects.toMatchObject({ kind: "contract" });
     await expect(
@@ -53,6 +62,7 @@ describe("typed progress API", () => {
         request: vi.fn().mockResolvedValue({
           overall: { total: 1, solved: 0, unsolved: 2 },
           topics: [],
+          platforms: [],
         }),
       }).getSummaries(),
     ).rejects.toMatchObject({ kind: "contract" });
@@ -60,6 +70,7 @@ describe("typed progress API", () => {
       createProgressApi({
         request: vi.fn().mockResolvedValue({
           overall: { total: 1, solved: 0, unsolved: 1 },
+          platforms: [],
           topics: [
             {
               id: topicId,
@@ -73,5 +84,22 @@ describe("typed progress API", () => {
         }),
       }).getSummaries(),
     ).rejects.toMatchObject({ kind: "contract" });
+  });
+
+  test("getActivity decodes weekly buckets and streak", async () => {
+    const activity = {
+      weeks: [{ weekStart: "2026-06-08", added: 2, solved: 1 }],
+      streak: { currentDays: 3, lastSolveDate: "2026-06-18" },
+      timezone: "UTC" as const,
+    };
+    const request = vi.fn().mockResolvedValue(activity);
+    const result = await createProgressApi({ request }).getActivity(12);
+    expect(result).toEqual(activity);
+    expect(request).toHaveBeenCalledWith({
+      path: "/progress/activity",
+      query: { weeks: 12 },
+      signal: undefined,
+      recoverAuth: true,
+    });
   });
 });
