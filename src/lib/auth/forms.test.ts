@@ -53,10 +53,20 @@ describe("auth forms", () => {
     expect(isPublicAuthPath("/login")).toBe(false);
   });
 
-  test("mapAuthFieldErrors", () => {
+  test("mapAuthFieldErrors record details", () => {
     expect(mapAuthFieldErrors({ email: "Invalid email", name: ["Too long"] })).toEqual(
       { email: "Invalid email", name: "Too long" },
     );
+  });
+
+  test("mapAuthFieldErrors pipe issue array", () => {
+    expect(
+      mapAuthFieldErrors([
+        { path: ["password"], message: "Password must contain 15–128 characters" },
+      ]),
+    ).toEqual({
+      password: "Password must contain 15–128 characters",
+    });
   });
 
   test("authFormMessage kinds", () => {

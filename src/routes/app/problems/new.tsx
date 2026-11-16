@@ -4,21 +4,19 @@ import { createEffect, createSignal, Show } from "solid-js";
 import { ProblemFormFields } from "../../../components/problems/ProblemFormFields";
 import { Button } from "../../../components/ui/Button";
 import { Panel } from "../../../components/ui/Panel";
-import { ApiError } from "../../../lib/api/errors";
 import { createProblemsApi } from "../../../lib/api/modules/problems.api";
 import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
 import { useAuth } from "../../../lib/auth/context";
-import type { FieldErrors } from "../../../lib/auth/forms";
+import { applyProblemApiError } from "../../../lib/forms/apply-product-api-error";
+import type { FieldErrors } from "../../../lib/forms/field-errors";
+import { focusFirstInvalid } from "../../../lib/forms/focus-first-invalid";
+import { FORM_CLIENT_BANNER } from "../../../lib/forms/form-client-banner";
+import { validateProblemDraft } from "../../../lib/forms/validate-problem";
 import {
   buildCreateInput,
   topicIdFromSearch,
   toggleTopicId,
 } from "../../../lib/problems/form-state";
-import {
-  problemExistingIdFromError,
-  problemFieldErrors,
-  problemFormMessage,
-} from "../../../lib/problems/messages";
 import { problemDetailPath } from "../../../lib/problems/paths";
 import { paths } from "../../../router";
 
@@ -46,6 +44,7 @@ export default function ProblemNew() {
 
   const [pending, setPending] = createSignal(false);
   const [formError, setFormError] = createSignal<string | undefined>();
+  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
   const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
   const [existingProblemId, setExistingProblemId] = createSignal<string | undefined>();
 
@@ -77,10 +76,28 @@ export default function ProblemNew() {
   async function onSubmit(event: Event) {
     event.preventDefault();
     if (pending()) return;
+    const form = event.currentTarget as HTMLFormElement;
+    const clientErrors = validateProblemDraft({
+      title: title(),
+      url: url(),
+      platformProblemId: platformProblemId(),
+      difficulty: difficulty(),
+      rating: rating(),
+      notes: notes(),
+    });
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setFormError(FORM_CLIENT_BANNER);
+      setRetryAfter(undefined);
+      setExistingProblemId(undefined);
+      focusFirstInvalid(form);
+      return;
+    }
     setPending(true);
     setFormError(undefined);
     setFieldErrors({});
     setExistingProblemId(undefined);
+    setRetryAfter(undefined);
     try {
       const created = await problemsApi.create(
         buildCreateInput({
@@ -96,12 +113,13 @@ export default function ProblemNew() {
       );
       navigate(problemDetailPath(created.id));
     } catch (error) {
-      setFormError(problemFormMessage(error));
-      if (error instanceof ApiError && error.code === "VALIDATION_ERROR") {
-        setFieldErrors(problemFieldErrors(error.details));
-      }
-      const existingId = problemExistingIdFromError(error);
+      const { fieldErrors: nextFields, banner, retryAfter: retry, existingProblemId: existingId } =
+        applyProblemApiError(error);
+      setFieldErrors(nextFields);
+      setFormError(banner);
+      setRetryAfter(retry);
       if (existingId) setExistingProblemId(existingId);
+      focusFirstInvalid(form);
     } finally {
       setPending(false);
     }
@@ -118,7 +136,7 @@ export default function ProblemNew() {
       </header>
 
       <Panel title="Problem details" description="Required fields are title and URL.">
-        <form class="max-w-2xl space-y-4" onSubmit={onSubmit}>
+        <form class="max-w-2xl space-y-4" novalidate onSubmit={onSubmit}>
           <ProblemFormFields
             mode="create"
             formId={FORM_ID}
@@ -145,6 +163,7 @@ export default function ProblemNew() {
             topicsTruncated={topicsTruncated}
             fieldErrors={fieldErrors}
             formError={formError}
+            retryAfter={retryAfter}
             existingProblemId={existingProblemId}
             existingProblemHref={
               existingProblemId() ? problemDetailPath(existingProblemId()!) : undefined

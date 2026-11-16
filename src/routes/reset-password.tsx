@@ -2,12 +2,13 @@ import { useNavigate } from "@solidjs/router";
 import { createSignal, onSettled, Show } from "solid-js";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { Button } from "../components/ui/Button";
-import { ApiError } from "../lib/api/errors";
-import {
-  authFormMessage,
-  mapAuthFieldErrors,
-  parseResetTokenFromHash,
-} from "../lib/auth/forms";
+import { FormAlert } from "../components/ui/FormAlert";
+import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
+import { applyAuthApiError } from "../lib/forms/apply-auth-api-error";
+import { AUTH_PASSWORD_HINT } from "../lib/forms/auth-field-copy";
+import type { FieldErrors } from "../lib/forms/field-errors";
+import { AUTH_CLIENT_BANNER, validateReset } from "../lib/forms/validate-auth";
+import { parseResetTokenFromHash } from "../lib/auth/forms";
 import { useAuth } from "../lib/auth/context";
 import { paths } from "../router";
 
@@ -19,7 +20,8 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = createSignal("");
   const [pending, setPending] = createSignal(false);
   const [formError, setFormError] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<Record<string, string>>({});
+  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
+  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
   const [localError, setLocalError] = createSignal<string | undefined>();
 
   onSettled(() => {
@@ -33,21 +35,40 @@ export default function ResetPassword() {
     }
   });
 
+  function patchFieldErrors(key: string) {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
+
   async function onSubmit(event: Event) {
     event.preventDefault();
     if (pending()) return;
     const resetToken = token();
     if (!resetToken) {
       setLocalError("Open the password reset link from your email to continue.");
+      setFieldErrors({});
+      setFormError(undefined);
       return;
     }
-    if (password() !== confirm()) {
-      setLocalError("Passwords do not match.");
+    const clientErrors = validateReset({
+      password: password(),
+      confirm: confirm(),
+    });
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setFormError(AUTH_CLIENT_BANNER);
+      setLocalError(undefined);
+      setRetryAfter(undefined);
       return;
     }
     setPending(true);
     setFormError(undefined);
     setLocalError(undefined);
+    setRetryAfter(undefined);
     setFieldErrors({});
     const nextPassword = password();
     try {
@@ -58,13 +79,16 @@ export default function ResetPassword() {
       auth.notifyPeersLoggedOut();
       navigate(paths.login());
     } catch (error) {
-      if (error instanceof ApiError && error.details)
-        setFieldErrors(mapAuthFieldErrors(error.details));
-      setFormError(authFormMessage(error).message);
+      const applied = applyAuthApiError(error);
+      setFieldErrors(applied.fieldErrors);
+      setFormError(applied.banner);
+      setRetryAfter(applied.retryAfter);
     } finally {
       setPending(false);
     }
   }
+
+  const confirmError = () => fieldErrors().confirm;
 
   return (
     <AuthLayout
@@ -81,50 +105,56 @@ export default function ResetPassword() {
           </p>
         }
       >
-        <form class="space-y-4" onSubmit={onSubmit}>
-          <div>
-            <label class="mb-2 block text-sm font-medium" for="reset-password">
-              New password
-            </label>
+        <form class="space-y-4" novalidate onSubmit={onSubmit}>
+          <FormField
+            id="reset-password"
+            label="New password"
+            hint={AUTH_PASSWORD_HINT}
+            error={fieldErrors().password}
+          >
             <input
-              id="reset-password"
               class="ui-field"
               type="password"
               autocomplete="new-password"
+              {...formFieldControlAttrs({
+                id: "reset-password",
+                hint: AUTH_PASSWORD_HINT,
+                error: fieldErrors().password,
+              })}
               value={password()}
-              onInput={(event) => setPassword(event.currentTarget.value)}
-              aria-invalid={fieldErrors().password ? "true" : undefined}
-              aria-describedby="reset-password-hint reset-password-error"
+              onInput={(event) => {
+                setPassword(event.currentTarget.value);
+                patchFieldErrors("password");
+              }}
             />
-            <p id="reset-password-hint" class="mt-2 text-sm text-muted">15–128 characters.</p>
-            <Show when={fieldErrors().password}>
-              <p id="reset-password-error" class="mt-2 text-sm text-danger">
-                {fieldErrors().password}
-              </p>
-            </Show>
-          </div>
-          <div>
-            <label class="mb-2 block text-sm font-medium" for="reset-confirm">
-              Confirm password
-            </label>
+          </FormField>
+          <FormField
+            id="reset-confirm"
+            label="Confirm password"
+            error={confirmError()}
+          >
             <input
-              id="reset-confirm"
               class="ui-field"
               type="password"
               autocomplete="new-password"
+              {...formFieldControlAttrs({
+                id: "reset-confirm",
+                error: confirmError(),
+              })}
               value={confirm()}
-              onInput={(event) => setConfirm(event.currentTarget.value)}
+              onInput={(event) => {
+                setConfirm(event.currentTarget.value);
+                patchFieldErrors("confirm");
+              }}
             />
-          </div>
+          </FormField>
           <Show when={localError()}>
-            <p class="text-sm text-danger" role="alert">
-              {localError()}
-            </p>
+            <FormAlert variant="error">{localError()}</FormAlert>
           </Show>
           <Show when={formError()}>
-            <p class="text-sm text-danger" role="alert">
+            <FormAlert variant="error" retryAfter={retryAfter()}>
               {formError()}
-            </p>
+            </FormAlert>
           </Show>
           <Button type="submit" disabled={pending()}>
             {pending() ? "Saving…" : "Update password"}

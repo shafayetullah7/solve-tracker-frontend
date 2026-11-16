@@ -248,6 +248,23 @@ Follow [API_CLIENT.md](./API_CLIENT.md). All backend calls use the shared transp
 
 Follow [Phase 0 decisions](../docs/PHASE_0_DECISIONS.md) for the selected auth API/lifetimes and [AUTH_CONVENTIONS.md](./AUTH_CONVENTIONS.md) for JWT cookie transport, Solid 2 session state, shared refresh promises, cross-tab locking and rechecks, logout races, and future SSR isolation. Current architecture remains CSR; these conventions do not implement authentication.
 
+## 8.1 Form validation and errors
+
+Phased plan: [docs/FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_PLAN.md). **FORM-1–2** (done): mapping + `FormField` / `FormAlert` in [`src/lib/forms/`](../src/lib/forms/). **FORM-3** (done): [`validate-auth.ts`](../src/lib/forms/validate-auth.ts), [`apply-auth-api-error.ts`](../src/lib/forms/apply-auth-api-error.ts). **FORM-4** (done): [`validate-problem.ts`](../src/lib/forms/validate-problem.ts), [`validate-topic.ts`](../src/lib/forms/validate-topic.ts), [`apply-product-api-error.ts`](../src/lib/forms/apply-product-api-error.ts).
+
+**Submit pipeline (target for all forms):**
+
+1. Client validate (`validate-auth` / `validate-problem` / `validate-topic`).
+2. API call → `applyAuthApiError` or `applyProblemApiError` / `applyTopicApiError` (wraps `fieldErrorsFromApiError` + `resolveFormBanner`).
+3. Per field: wrap in `FormField`; spread `formFieldControlAttrs({ id, hint, error })` on the control (`class="ui-field"`).
+4. Form banner: `resolveFormBanner(error, fieldErrors, domain)` → render with `FormAlert` when non-empty (suppress banner for `VALIDATION_ERROR` when field errors exist).
+
+**Banner rule:** If mapped field errors exist for `VALIDATION_ERROR`, fields carry the message; use a form-level `FormAlert` only for credentials, conflicts, network, rate limits, etc.
+
+**Client validate:** All user submit forms use `novalidate` and [`FORM_CLIENT_BANNER`](../src/lib/forms/form-client-banner.ts) when preflight fails; call [`focusFirstInvalid`](../src/lib/forms/focus-first-invalid.ts) after client or server field errors.
+
+**Auth copy:** Use `AUTH_NAME_HINT` / `AUTH_PASSWORD_HINT` on register and reset — do not duplicate password rules in routes.
+
 ## 9. Accessibility and interaction
 
 - Use visible labels, logical headings, native buttons/links, and focus states. Connect help/errors using `aria-describedby` and invalid fields using `aria-invalid`.
@@ -266,6 +283,7 @@ Keep the version table, AGENTS guidance, theme tokens, and examples aligned when
 
 ## References
 
+- [FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_PLAN.md) — phased work to standardize client validation and error UI.
 - Installed `node_modules/solid-js/CHEATSHEET.md` and package declarations are the exact-version reference for the examples above.
 - [Solid 2 documentation](https://v2.solidjs.com/) — use this version, not unqualified Solid 1.x tutorials.
 - [Tailwind theme variables](https://tailwindcss.com/docs/theme) and [custom CSS layers](https://tailwindcss.com/docs/adding-custom-styles) — CSS-first Tailwind 4 configuration.

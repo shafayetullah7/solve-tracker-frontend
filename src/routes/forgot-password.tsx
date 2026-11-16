@@ -1,9 +1,12 @@
 import { createSignal, Show } from "solid-js";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { Button } from "../components/ui/Button";
-import { authFormMessage, mapAuthFieldErrors } from "../lib/auth/forms";
+import { FormAlert } from "../components/ui/FormAlert";
+import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
+import { applyAuthApiError } from "../lib/forms/apply-auth-api-error";
+import type { FieldErrors } from "../lib/forms/field-errors";
+import { AUTH_CLIENT_BANNER, validateForgot } from "../lib/forms/validate-auth";
 import { useAuth } from "../lib/auth/context";
-import { ApiError } from "../lib/api/errors";
 import { paths } from "../router";
 
 export default function ForgotPassword() {
@@ -12,22 +15,42 @@ export default function ForgotPassword() {
   const [pending, setPending] = createSignal(false);
   const [accepted, setAccepted] = createSignal<string | undefined>();
   const [formError, setFormError] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<Record<string, string>>({});
+  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
+  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
+
+  function patchFieldErrors(key: string) {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
 
   async function onSubmit(event: Event) {
     event.preventDefault();
     if (pending()) return;
+    const clientErrors = validateForgot({ email: email() });
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setFormError(AUTH_CLIENT_BANNER);
+      setRetryAfter(undefined);
+      setAccepted(undefined);
+      return;
+    }
     setPending(true);
     setFormError(undefined);
+    setRetryAfter(undefined);
     setFieldErrors({});
     setAccepted(undefined);
     try {
       const response = await auth.authApi.forgotPassword({ email: email().trim() });
       setAccepted(response.message);
     } catch (error) {
-      if (error instanceof ApiError && error.details)
-        setFieldErrors(mapAuthFieldErrors(error.details));
-      setFormError(authFormMessage(error).message);
+      const applied = applyAuthApiError(error);
+      setFieldErrors(applied.fieldErrors);
+      setFormError(applied.banner);
+      setRetryAfter(applied.retryAfter);
     } finally {
       setPending(false);
     }
@@ -39,30 +62,30 @@ export default function ForgotPassword() {
       description="Enter your email. We use the same response whether or not an account exists."
       pageTitle="Forgot password — Practice"
     >
-      <form class="space-y-4" onSubmit={onSubmit}>
-        <div>
-          <label class="mb-2 block text-sm font-medium" for="forgot-email">
-            Email
-          </label>
+      <form class="space-y-4" novalidate onSubmit={onSubmit}>
+        <FormField id="forgot-email" label="Email" error={fieldErrors().email}>
           <input
-            id="forgot-email"
             class="ui-field"
             type="email"
             autocomplete="email"
+            {...formFieldControlAttrs({
+              id: "forgot-email",
+              error: fieldErrors().email,
+            })}
             value={email()}
-            onInput={(event) => setEmail(event.currentTarget.value)}
-            aria-invalid={fieldErrors().email ? "true" : undefined}
+            onInput={(event) => {
+              setEmail(event.currentTarget.value);
+              patchFieldErrors("email");
+            }}
           />
-        </div>
+        </FormField>
         <Show when={accepted()}>
-          <p class="text-sm text-brand" role="status">
-            {accepted()}
-          </p>
+          <FormAlert variant="success">{accepted()}</FormAlert>
         </Show>
         <Show when={formError()}>
-          <p class="text-sm text-danger" role="alert">
+          <FormAlert variant="error" retryAfter={retryAfter()}>
             {formError()}
-          </p>
+          </FormAlert>
         </Show>
         <div class="flex flex-wrap gap-3">
           <Button type="submit" disabled={pending()}>

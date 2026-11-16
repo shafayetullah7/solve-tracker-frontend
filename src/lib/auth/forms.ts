@@ -1,6 +1,8 @@
 import { ApiError } from "../api/errors";
+import type { FieldErrors } from "../forms/field-errors";
+import { mapApiFieldErrors } from "../forms/map-api-field-errors";
 
-export type FieldErrors = Record<string, string>;
+export type { FieldErrors };
 
 const AUTH_ONLY_PATHS = new Set([
   "/login",
@@ -45,17 +47,11 @@ export function loginPathWithReturn(
   return `${loginPath}?${new URLSearchParams({ next: safe }).toString()}`;
 }
 
+/**
+ * @deprecated Use {@link mapApiFieldErrors} from `lib/forms/map-api-field-errors`.
+ */
 export function mapAuthFieldErrors(details: unknown): FieldErrors {
-  if (typeof details !== "object" || details === null) return {};
-  const out: FieldErrors = {};
-  for (const [key, value] of Object.entries(details)) {
-    if (typeof value === "string" && value.length > 0) out[key] = value;
-    else if (Array.isArray(value)) {
-      const first = value.find((item) => typeof item === "string");
-      if (typeof first === "string") out[key] = first;
-    }
-  }
-  return out;
+  return mapApiFieldErrors(details);
 }
 
 export type AuthFormMessage =
@@ -110,6 +106,4 @@ export function parseResetTokenFromHash(hash: string): string | undefined {
   return token;
 }
 
-export function codePointLength(value: string): number {
-  return Array.from(value).length;
-}
+export { codePointLength } from "../forms/unicode";

@@ -1,6 +1,6 @@
 import { type Accessor, For, Show } from "solid-js";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
-import type { FieldErrors } from "../../lib/auth/forms";
+import type { FieldErrors } from "../../lib/forms/field-errors";
 import {
   PROBLEM_DIFFICULTY_MAX,
   PROBLEM_NOTES_MAX,
@@ -12,6 +12,8 @@ import {
   PROBLEM_URL_HINT,
   PROBLEM_URL_MAX,
 } from "../../lib/problems/fields";
+import { FormAlert } from "../ui/FormAlert";
+import { FormField, formFieldControlAttrs } from "../ui/FormField";
 
 export type ProblemFormMode = "create" | "edit";
 
@@ -39,140 +41,149 @@ type ProblemFormFieldsProps = {
   topicsTruncated: Accessor<boolean>;
   fieldErrors: Accessor<FieldErrors>;
   formError: Accessor<string | undefined>;
+  retryAfter?: Accessor<string | undefined>;
   existingProblemId: Accessor<string | undefined>;
   existingProblemHref?: string;
 };
 
 export function ProblemFormFields(props: ProblemFormFieldsProps) {
   const isSelected = (id: string) => props.selectedTopicIds().has(id);
+  const titleId = () => `${props.formId}-title`;
+  const urlId = () => `${props.formId}-url`;
+  const platformId = () => `${props.formId}-platform-id`;
+  const difficultyId = () => `${props.formId}-difficulty`;
+  const ratingId = () => `${props.formId}-rating`;
+  const notesId = () => `${props.formId}-notes`;
+
+  const titleHint = () => `${PROBLEM_TITLE_MIN}–${PROBLEM_TITLE_MAX} characters.`;
+  const urlHint = () => `${PROBLEM_URL_HINT} Up to ${PROBLEM_URL_MAX} characters.`;
+  const platformHint = () => `Up to ${PROBLEM_PLATFORM_ID_MAX} characters.`;
+  const difficultyHint = () => `Up to ${PROBLEM_DIFFICULTY_MAX} characters.`;
+  const ratingHint = () =>
+    `Integer from ${PROBLEM_RATING_MIN.toLocaleString()} to ${PROBLEM_RATING_MAX.toLocaleString()}.`;
+  const notesHint = () => `Up to ${PROBLEM_NOTES_MAX.toLocaleString()} characters.`;
 
   return (
     <div class="space-y-4">
-      <div>
-        <label class="mb-2 block text-sm font-medium" for={`${props.formId}-title`}>
-          Title
-        </label>
+      <FormField
+        id={titleId()}
+        label="Title"
+        required
+        hint={titleHint()}
+        error={props.fieldErrors().title}
+      >
         <input
-          id={`${props.formId}-title`}
           class="ui-field"
           value={props.title()}
           onInput={(event) => props.onTitleInput(event.currentTarget.value)}
-          aria-invalid={props.fieldErrors().title ? "true" : undefined}
-          aria-describedby={`${props.formId}-title-hint ${props.formId}-title-error`}
-          required
+          {...formFieldControlAttrs({
+            id: titleId(),
+            hint: titleHint(),
+            error: props.fieldErrors().title,
+            required: true,
+          })}
         />
-        <p id={`${props.formId}-title-hint`} class="mt-2 text-sm text-muted">
-          {PROBLEM_TITLE_MIN}–{PROBLEM_TITLE_MAX} characters.
-        </p>
-        <Show when={props.fieldErrors().title}>
-          <p id={`${props.formId}-title-error`} class="mt-2 text-sm text-danger">
-            {props.fieldErrors().title}
-          </p>
-        </Show>
-      </div>
+      </FormField>
 
-      <div>
-        <label class="mb-2 block text-sm font-medium" for={`${props.formId}-url`}>
-          Problem URL
-        </label>
+      <FormField
+        id={urlId()}
+        label="Problem URL"
+        required
+        hint={urlHint()}
+        error={props.fieldErrors().url}
+      >
         <input
-          id={`${props.formId}-url`}
           class="ui-field"
           type="url"
           inputmode="url"
           autocomplete="url"
           value={props.url()}
           onInput={(event) => props.onUrlInput(event.currentTarget.value)}
-          aria-invalid={props.fieldErrors().url ? "true" : undefined}
-          aria-describedby={`${props.formId}-url-hint ${props.formId}-url-error`}
-          required
+          {...formFieldControlAttrs({
+            id: urlId(),
+            hint: urlHint(),
+            error: props.fieldErrors().url,
+            required: true,
+          })}
         />
-        <p id={`${props.formId}-url-hint`} class="mt-2 text-sm text-muted">
-          {PROBLEM_URL_HINT} Up to {PROBLEM_URL_MAX} characters.
-        </p>
-        <Show when={props.fieldErrors().url}>
-          <p id={`${props.formId}-url-error`} class="mt-2 text-sm text-danger">
-            {props.fieldErrors().url}
-          </p>
-        </Show>
-      </div>
+      </FormField>
 
       <div class="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label
-            class="mb-2 block text-sm font-medium"
-            for={`${props.formId}-platform-id`}
-          >
-            Platform problem ID <span class="text-muted">(optional)</span>
-          </label>
+        <FormField
+          id={platformId()}
+          label="Platform problem ID (optional)"
+          hint={platformHint()}
+          error={props.fieldErrors().platformProblemId}
+        >
           <input
-            id={`${props.formId}-platform-id`}
             class="ui-field"
             value={props.platformProblemId()}
-            onInput={(event) => props.onPlatformProblemIdInput(event.currentTarget.value)}
-            aria-invalid={props.fieldErrors().platformProblemId ? "true" : undefined}
-            aria-describedby={`${props.formId}-platform-hint`}
+            onInput={(event) =>
+              props.onPlatformProblemIdInput(event.currentTarget.value)
+            }
+            {...formFieldControlAttrs({
+              id: platformId(),
+              hint: platformHint(),
+              error: props.fieldErrors().platformProblemId,
+            })}
           />
-          <p id={`${props.formId}-platform-hint`} class="mt-2 text-sm text-muted">
-            Up to {PROBLEM_PLATFORM_ID_MAX} characters.
-          </p>
-        </div>
-        <div>
-          <label
-            class="mb-2 block text-sm font-medium"
-            for={`${props.formId}-difficulty`}
-          >
-            Difficulty <span class="text-muted">(optional)</span>
-          </label>
+        </FormField>
+        <FormField
+          id={difficultyId()}
+          label="Difficulty (optional)"
+          hint={difficultyHint()}
+          error={props.fieldErrors().difficulty}
+        >
           <input
-            id={`${props.formId}-difficulty`}
             class="ui-field"
             value={props.difficulty()}
             onInput={(event) => props.onDifficultyInput(event.currentTarget.value)}
-            aria-invalid={props.fieldErrors().difficulty ? "true" : undefined}
+            {...formFieldControlAttrs({
+              id: difficultyId(),
+              hint: difficultyHint(),
+              error: props.fieldErrors().difficulty,
+            })}
           />
-          <p class="mt-2 text-sm text-muted">Up to {PROBLEM_DIFFICULTY_MAX} characters.</p>
-        </div>
+        </FormField>
       </div>
 
-      <div>
-        <label class="mb-2 block text-sm font-medium" for={`${props.formId}-rating`}>
-          Rating <span class="text-muted">(optional)</span>
-        </label>
+      <FormField
+        id={ratingId()}
+        label="Rating (optional)"
+        hint={ratingHint()}
+        error={props.fieldErrors().rating}
+      >
         <input
-          id={`${props.formId}-rating`}
           class="ui-field"
           type="number"
           inputmode="numeric"
           value={props.rating()}
           onInput={(event) => props.onRatingInput(event.currentTarget.value)}
-          aria-invalid={props.fieldErrors().rating ? "true" : undefined}
+          {...formFieldControlAttrs({
+            id: ratingId(),
+            hint: ratingHint(),
+            error: props.fieldErrors().rating,
+          })}
         />
-        <p class="mt-2 text-sm text-muted">
-          Integer from {PROBLEM_RATING_MIN.toLocaleString()} to{" "}
-          {PROBLEM_RATING_MAX.toLocaleString()}.
-        </p>
-        <Show when={props.fieldErrors().rating}>
-          <p class="mt-2 text-sm text-danger">{props.fieldErrors().rating}</p>
-        </Show>
-      </div>
+      </FormField>
 
-      <div>
-        <label class="mb-2 block text-sm font-medium" for={`${props.formId}-notes`}>
-          Notes <span class="text-muted">(optional)</span>
-        </label>
+      <FormField
+        id={notesId()}
+        label="Notes (optional)"
+        hint={notesHint()}
+        error={props.fieldErrors().notes}
+      >
         <textarea
-          id={`${props.formId}-notes`}
           class="ui-field min-h-28"
           value={props.notes()}
           onInput={(event) => props.onNotesInput(event.currentTarget.value)}
-          aria-invalid={props.fieldErrors().notes ? "true" : undefined}
+          {...formFieldControlAttrs({
+            id: notesId(),
+            hint: notesHint(),
+            error: props.fieldErrors().notes,
+          })}
         />
-        <p class="mt-2 text-sm text-muted">Up to {PROBLEM_NOTES_MAX.toLocaleString()} characters.</p>
-        <Show when={props.fieldErrors().notes}>
-          <p class="mt-2 text-sm text-danger">{props.fieldErrors().notes}</p>
-        </Show>
-      </div>
+      </FormField>
 
       <fieldset class="space-y-3">
         <legend class="text-sm font-medium">Topics</legend>
@@ -226,9 +237,9 @@ export function ProblemFormFields(props: ProblemFormFieldsProps) {
       </Show>
 
       <Show when={props.formError()}>
-        <p class="text-sm text-danger" role="alert">
+        <FormAlert variant="error" retryAfter={props.retryAfter?.()}>
           {props.formError()}
-        </p>
+        </FormAlert>
       </Show>
 
       <Show when={props.existingProblemId() && props.existingProblemHref}>

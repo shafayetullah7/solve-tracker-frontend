@@ -1,8 +1,11 @@
 import { ApiError } from "../api/errors";
-import { mapAuthFieldErrors, type FieldErrors } from "../auth/forms";
+import type { FieldErrors } from "../forms/field-errors";
+import { mapApiFieldErrors } from "../forms/map-api-field-errors";
+
+export type { FieldErrors };
 
 export function topicFieldErrors(details: unknown): FieldErrors {
-  return mapAuthFieldErrors(details);
+  return mapApiFieldErrors(details);
 }
 
 export function topicFormMessage(error: unknown): string {

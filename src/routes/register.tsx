@@ -2,8 +2,12 @@ import { useNavigate } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { Button } from "../components/ui/Button";
-import { ApiError } from "../lib/api/errors";
-import { authFormMessage, mapAuthFieldErrors } from "../lib/auth/forms";
+import { FormAlert } from "../components/ui/FormAlert";
+import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
+import { applyAuthApiError } from "../lib/forms/apply-auth-api-error";
+import { AUTH_NAME_HINT, AUTH_PASSWORD_HINT } from "../lib/forms/auth-field-copy";
+import type { FieldErrors } from "../lib/forms/field-errors";
+import { AUTH_CLIENT_BANNER, validateRegister } from "../lib/forms/validate-auth";
 import { useAuth } from "../lib/auth/context";
 import { useRedirectIfAuthenticated } from "../lib/auth/guest-auth-page";
 import { paths } from "../router";
@@ -17,13 +21,35 @@ export default function Register() {
   const [password, setPassword] = createSignal("");
   const [pending, setPending] = createSignal(false);
   const [formError, setFormError] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<Record<string, string>>({});
+  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
+  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
+
+  function patchFieldErrors(key: string) {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
 
   async function onSubmit(event: Event) {
     event.preventDefault();
     if (pending()) return;
+    const clientErrors = validateRegister({
+      name: name(),
+      email: email(),
+      password: password(),
+    });
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setFormError(AUTH_CLIENT_BANNER);
+      setRetryAfter(undefined);
+      return;
+    }
     setPending(true);
     setFormError(undefined);
+    setRetryAfter(undefined);
     setFieldErrors({});
     const pwd = password();
     try {
@@ -35,11 +61,10 @@ export default function Register() {
       setPassword("");
       navigate(`${paths.login()}?registered=1`);
     } catch (error) {
-      setPassword("");
-      if (error instanceof ApiError && error.details)
-        setFieldErrors(mapAuthFieldErrors(error.details));
-      const message = authFormMessage(error);
-      setFormError(message.message);
+      const applied = applyAuthApiError(error);
+      setFieldErrors(applied.fieldErrors);
+      setFormError(applied.banner);
+      setRetryAfter(applied.retryAfter);
     } finally {
       setPending(false);
     }
@@ -51,76 +76,70 @@ export default function Register() {
       description="Name, email, and password. Email is not verified in this preview."
       pageTitle="Register — Practice"
     >
-      <form class="space-y-4" onSubmit={onSubmit}>
-        <div>
-          <label class="mb-2 block text-sm font-medium" for="register-name">
-            Name
-          </label>
+      <form class="space-y-4" novalidate onSubmit={onSubmit}>
+        <FormField
+          id="register-name"
+          label="Name"
+          hint={AUTH_NAME_HINT}
+          error={fieldErrors().name}
+        >
           <input
-            id="register-name"
             class="ui-field"
             autocomplete="name"
+            {...formFieldControlAttrs({
+              id: "register-name",
+              hint: AUTH_NAME_HINT,
+              error: fieldErrors().name,
+            })}
             value={name()}
-            onInput={(event) => setName(event.currentTarget.value)}
-            aria-invalid={fieldErrors().name ? "true" : undefined}
-            aria-describedby="register-name-hint register-name-error"
+            onInput={(event) => {
+              setName(event.currentTarget.value);
+              patchFieldErrors("name");
+            }}
           />
-          <p id="register-name-hint" class="mt-2 text-sm text-muted">
-            1–100 characters after trimming.
-          </p>
-          <Show when={fieldErrors().name}>
-            <p id="register-name-error" class="mt-2 text-sm text-danger">
-              {fieldErrors().name}
-            </p>
-          </Show>
-        </div>
-        <div>
-          <label class="mb-2 block text-sm font-medium" for="register-email">
-            Email
-          </label>
+        </FormField>
+        <FormField id="register-email" label="Email" error={fieldErrors().email}>
           <input
-            id="register-email"
             class="ui-field"
             type="email"
             autocomplete="email"
+            {...formFieldControlAttrs({
+              id: "register-email",
+              error: fieldErrors().email,
+            })}
             value={email()}
-            onInput={(event) => setEmail(event.currentTarget.value)}
-            aria-invalid={fieldErrors().email ? "true" : undefined}
-            aria-describedby="register-email-error"
+            onInput={(event) => {
+              setEmail(event.currentTarget.value);
+              patchFieldErrors("email");
+            }}
           />
-          <Show when={fieldErrors().email}>
-            <p id="register-email-error" class="mt-2 text-sm text-danger">
-              {fieldErrors().email}
-            </p>
-          </Show>
-        </div>
-        <div>
-          <label class="mb-2 block text-sm font-medium" for="register-password">
-            Password
-          </label>
+        </FormField>
+        <FormField
+          id="register-password"
+          label="Password"
+          hint={AUTH_PASSWORD_HINT}
+          error={fieldErrors().password}
+        >
           <input
-            id="register-password"
             class="ui-field"
             type="password"
             autocomplete="new-password"
+            {...formFieldControlAttrs({
+              id: "register-password",
+              hint: AUTH_PASSWORD_HINT,
+              error: fieldErrors().password,
+            })}
             value={password()}
-            onInput={(event) => setPassword(event.currentTarget.value)}
-            aria-invalid={fieldErrors().password ? "true" : undefined}
-            aria-describedby="register-password-hint register-password-error"
+            onInput={(event) => {
+              setPassword(event.currentTarget.value);
+              patchFieldErrors("password");
+            }}
           />
-          <p id="register-password-hint" class="mt-2 text-sm text-muted">
-            15–128 characters.
-          </p>
-          <Show when={fieldErrors().password}>
-            <p id="register-password-error" class="mt-2 text-sm text-danger">
-              {fieldErrors().password}
-            </p>
-          </Show>
-        </div>
+        </FormField>
         <Show when={formError()}>
-          <p class="text-sm text-danger" role="alert">
+          <FormAlert variant="error" retryAfter={retryAfter()}>
             {formError()}
-          </p>
+          </FormAlert>
         </Show>
         <div class="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={pending()}>
