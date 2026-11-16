@@ -1,7 +1,7 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
+import { AuthFormActions, authFormLinkClass } from "../components/auth/AuthFormActions";
 import { AuthLayout } from "../components/auth/AuthLayout";
-import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
 import {
@@ -68,7 +68,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Create account"
-      description="Name, email, and password. Email is not verified in this preview."
+      description="Access your private practice library."
       pageTitle="Register — Practice"
     >
       <form class="space-y-4" novalidate onSubmit={onSubmit}>
@@ -76,6 +76,7 @@ export default function Register() {
           id="register-name"
           label="Name"
           hint={AUTH_NAME_HINT}
+          hintVisibility="sr-only"
           error={form.fieldErrors().name}
         >
           <input
@@ -113,6 +114,7 @@ export default function Register() {
           id={REGISTER_PASSWORD_ID}
           label="Password"
           hint={AUTH_PASSWORD_HINT}
+          hintVisibility="sr-only"
           error={form.fieldErrors().password}
         >
           <input
@@ -143,14 +145,15 @@ export default function Register() {
             {form.formBanner()}
           </FormAlert>
         </Show>
-        <div class="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={form.pending()}>
-            {form.pending() ? "Creating…" : "Create account"}
-          </Button>
-          <a class="text-sm text-muted underline-offset-4 hover:underline" href={paths.login()}>
+        <AuthFormActions
+          pending={form.pending()}
+          submitLabel="Create account"
+          pendingLabel="Creating…"
+        >
+          <a class={authFormLinkClass("accent")} href={paths.login()}>
             Sign in instead
           </a>
-        </div>
+        </AuthFormActions>
       </form>
     </AuthLayout>
   );

@@ -15,6 +15,8 @@ import { resolveSidebarActive, type SidebarSectionKey } from "../../lib/app/nav-
 import { useAuth } from "../../lib/auth/context";
 import { problemNewPath } from "../../lib/problems/paths";
 import { paths } from "../../router";
+import { PracticeBrandLink } from "../brand/PracticeBrandLink";
+import { appHome } from "../../lib/app/product-routes";
 import { Button } from "../ui/Button";
 
 export type AppSidebarProps = {
@@ -113,9 +115,15 @@ export function AppSidebar(props: AppSidebarProps) {
         props.variant === "drawer" && "h-full",
       ]}
     >
+      {props.variant === "rail" ? (
+        <div class="border-b border-line pb-3">
+          <PracticeBrandLink href={appHome()} size="sidebar" />
+        </div>
+      ) : null}
+
       {props.variant === "drawer" ? (
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-label font-semibold text-ink">Menu</span>
+        <div class="flex items-center justify-between gap-2 border-b border-line pb-3">
+          <PracticeBrandLink href={appHome()} size="sidebar" class="min-w-0" />
           <button
             type="button"
             class="flex min-h-11 min-w-11 items-center justify-center rounded-control text-ink hover:bg-surface-muted"

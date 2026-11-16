@@ -231,7 +231,7 @@ Use a named function prop when the parent needs to control rendering based on ch
 
 ## 8. Async data and routing
 
-- Async derived data uses `createMemo(() => fetchData(id()))` and a `Loading` boundary for pending reads; use `Errored` for failures. App shell: [`App.tsx`](src/App.tsx) wraps routes with `<Errored>` + [`RouteErrorFallback`](src/components/ui/RouteErrorFallback.tsx) outside `<Loading>`. Form/list failures stay imperative (`FormAlert`, `loadStatus`). These replace Solid 1.x `createResource`, `Suspense`, and `ErrorBoundary` patterns in this installed version.
+- Async derived data uses `createMemo(() => fetchData(id()))` and a `Loading` boundary for pending reads; use `Errored` for failures. App shell: [`App.tsx`](src/App.tsx) wraps routes with `<Errored>` + [`RouteErrorFallback`](src/components/ui/RouteErrorFallback.tsx) outside `<Loading>`; the root `<Loading>` fallback is [`RouteLoadingScreen`](src/components/ui/RouteLoadingScreen.tsx) (centered [`PracticeMark`](src/components/brand/PracticeMark.tsx), no skeleton or visible text). Session bootstrap on `/app` reuses the same screen. Product chrome uses [`PracticeBrandLink`](src/components/brand/PracticeBrandLink.tsx) in guest nav, app shell header, and sidebar rail. Login/register/recovery use [`AuthLayout`](src/components/auth/AuthLayout.tsx) only (no duplicate guest nav; `isAuthSurfacePath`). Footer actions use [`AuthFormActions`](src/components/auth/AuthFormActions.tsx). Form/list failures stay imperative (`FormAlert`, `loadStatus`). These replace Solid 1.x `createResource`, `Suspense`, and `ErrorBoundary` patterns in this installed version.
 - Use `refresh`/`affects` only according to the local Solid 2 reference. `isPending` represents pending changes, not a generic initial-loading flag.
 - Keep route files focused on page composition. Put shared primitives in `components/ui/`, feature components/state in feature folders as implemented, and backend request helpers in a dedicated `lib/` module when introduced.
 - The Nest backend owns persistence and validation. Do not introduce framework server actions or store fake solved progress as if it were persisted backend data.
@@ -263,7 +263,7 @@ Phased plan: [docs/FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_P
 
 **Password UX:** [`PasswordCodePointMeter`](../src/components/ui/PasswordCodePointMeter.tsx) on register/reset after blur or first submit (`form.submitAttempted()`). Rate-limit copy comes from `FormAlert` + `Retry-After` (see [`format-retry-after.ts`](../src/lib/forms/format-retry-after.ts)).
 
-**Auth copy:** Use `AUTH_NAME_HINT` / `AUTH_PASSWORD_HINT` on register and reset — do not duplicate password rules in routes.
+**Auth copy:** Use `AUTH_NAME_HINT` / `AUTH_PASSWORD_HINT` on register and reset with `FormField` `hintVisibility="sr-only"`; password guidance in UI comes from [`PasswordCodePointMeter`](src/components/ui/PasswordCodePointMeter.tsx) when active — do not duplicate rules in routes.
 
 ## 9. Accessibility and interaction
 

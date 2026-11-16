@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
 import { Match, Show, Switch, onSettled } from "solid-js";
+import { InlineLoadingMark } from "../components/ui/InlineLoadingMark";
 import { Button } from "../components/ui/Button";
 import { Panel } from "../components/ui/Panel";
 import { useAuth } from "../lib/auth/context";
@@ -9,11 +10,7 @@ import { paths } from "../router";
 function RedirectToDashboard() {
   const navigate = useNavigate();
   onSettled(() => navigate(paths.app(), { replace: true }));
-  return (
-    <p class="text-muted" role="status">
-      Opening your dashboard…
-    </p>
-  );
+  return <InlineLoadingMark />;
 }
 
 export default function Home() {
@@ -24,9 +21,7 @@ export default function Home() {
       <Title>Practice — Coding problem tracker</Title>
       <Switch>
         <Match when={auth.status() === "checking"}>
-          <p class="text-muted" role="status">
-            Checking session…
-          </p>
+          <InlineLoadingMark />
         </Match>
         <Match when={auth.status() === "unavailable"}>
           <p class="text-muted">We could not reach the server.</p>

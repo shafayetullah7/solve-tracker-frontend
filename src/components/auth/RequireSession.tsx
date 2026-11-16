@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "@solidjs/router";
 import type { ParentProps } from "solid-js";
 import { createEffect, Match, Show, Switch } from "solid-js";
 import { Button } from "../ui/Button";
+import { RouteLoadingScreen } from "../ui/RouteLoadingScreen";
 import { useAuth } from "../../lib/auth/context";
 import { loginPathWithReturn } from "../../lib/auth/forms";
 import { paths } from "../../router";
@@ -20,11 +21,7 @@ function RedirectToLogin() {
     },
   );
 
-  return (
-    <p class="text-muted" role="status">
-      Redirecting to sign in…
-    </p>
-  );
+  return <RouteLoadingScreen />;
 }
 
 export function RequireSession(props: ParentProps) {
@@ -33,9 +30,7 @@ export function RequireSession(props: ParentProps) {
   return (
     <Switch>
       <Match when={auth.status() === "checking"}>
-        <p class="text-muted" role="status">
-          Checking session…
-        </p>
+        <RouteLoadingScreen />
       </Match>
       <Match when={auth.status() === "unavailable"}>
         <p class="text-muted">We could not reach the server.</p>

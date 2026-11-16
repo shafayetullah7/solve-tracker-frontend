@@ -1,7 +1,7 @@
 import { useNavigate } from "@solidjs/router";
 import { createSignal, onSettled, Show } from "solid-js";
+import { AuthFormActions } from "../components/auth/AuthFormActions";
 import { AuthLayout } from "../components/auth/AuthLayout";
-import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
 import {
@@ -104,6 +104,7 @@ export default function ResetPassword() {
             id={RESET_PASSWORD_ID}
             label="New password"
             hint={AUTH_PASSWORD_HINT}
+            hintVisibility="sr-only"
             error={form.fieldErrors().password}
           >
             <input
@@ -157,9 +158,11 @@ export default function ResetPassword() {
               {form.formBanner()}
             </FormAlert>
           </Show>
-          <Button type="submit" disabled={form.pending()}>
-            {form.pending() ? "Saving…" : "Update password"}
-          </Button>
+          <AuthFormActions
+            pending={form.pending()}
+            submitLabel="Update password"
+            pendingLabel="Saving…"
+          />
         </form>
       </Show>
       <p class="mt-6 text-sm">

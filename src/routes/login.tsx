@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
+import { AuthFormActions, authFormLinkClass } from "../components/auth/AuthFormActions";
 import { AuthLayout } from "../components/auth/AuthLayout";
-import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
 import { createFormState } from "../lib/forms/create-form-state";
@@ -101,20 +101,18 @@ export default function Login() {
             {form.formBanner()}
           </FormAlert>
         </Show>
-        <div class="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={form.pending()}>
-            {form.pending() ? "Signing in…" : "Sign in"}
-          </Button>
-          <a class="text-sm text-brand underline-offset-4 hover:underline" href={paths.register()}>
+        <AuthFormActions
+          pending={form.pending()}
+          submitLabel="Sign in"
+          pendingLabel="Signing in…"
+        >
+          <a class={authFormLinkClass("accent")} href={paths.register()}>
             Create account
           </a>
-          <a
-            class="text-sm text-muted underline-offset-4 hover:underline"
-            href={paths["forgot-password"]()}
-          >
+          <a class={authFormLinkClass("muted")} href={paths["forgot-password"]()}>
             Forgot password?
           </a>
-        </div>
+        </AuthFormActions>
       </form>
     </AuthLayout>
   );

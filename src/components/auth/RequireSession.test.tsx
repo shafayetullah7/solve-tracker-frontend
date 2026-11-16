@@ -1,6 +1,6 @@
-import { render, screen } from "@solidjs/testing-library";
+import { cleanup, render, screen } from "@solidjs/testing-library";
 import { createSignal, flush, onSettled } from "solid-js";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { AuthContextValue, AuthStatus } from "../../lib/auth/context";
 import { AuthContextOverride } from "../../lib/auth/context";
 import { RequireSession } from "./RequireSession";
@@ -61,14 +61,18 @@ function renderGuard(status: AuthStatus, userArg?: typeof user) {
 }
 
 describe("RequireSession", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     navigate.mockClear();
   });
 
-  test("shows checking copy", async () => {
+  test("shows loading mark while checking", async () => {
     renderGuard("checking");
     await flush();
-    expect(screen.getByRole("status").textContent).toContain("Checking session");
+    expect(screen.getByRole("status", { name: "Loading" })).toBeTruthy();
     expect(screen.queryByTestId("private")).toBeNull();
   });
 
@@ -98,6 +102,6 @@ describe("RequireSession", () => {
     await new Promise<void>((resolve) => onSettled(() => resolve()));
     await flush();
     expect(navigate).toHaveBeenCalledWith("/login?next=%2Faccount", { replace: true });
-    expect(screen.getByText(/Redirecting to sign in/i)).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Loading" })).toBeTruthy();
   });
 });

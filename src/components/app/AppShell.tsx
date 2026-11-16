@@ -4,6 +4,7 @@ import { createEffect, createSignal, onSettled, Show } from "solid-js";
 import { IconMenu } from "../../icons";
 import { handleDrawerTabKeydown } from "../../lib/app/shell-drawer-a11y";
 import { appHome } from "../../lib/app/product-routes";
+import { PracticeBrandLink } from "../brand/PracticeBrandLink";
 import { AppSidebar } from "./AppSidebar";
 
 const DRAWER_ID = "app-shell-drawer";
@@ -66,12 +67,7 @@ export function AppShell(props: ParentProps) {
   return (
     <div class="flex h-dvh max-h-dvh min-h-0 w-full flex-1 flex-col overflow-hidden bg-canvas md:flex-row">
       <header class="flex items-center justify-between gap-4 border-b border-line bg-surface px-5 py-3 md:hidden">
-        <a
-          class="text-xl font-bold tracking-tight text-brand"
-          href={DASHBOARD_PATH}
-        >
-          practice<span class="text-muted">.</span>
-        </a>
+        <PracticeBrandLink href={DASHBOARD_PATH} />
         <button
           ref={menuButtonRef}
           type="button"

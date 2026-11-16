@@ -1,6 +1,6 @@
 import { createSignal, Show } from "solid-js";
+import { AuthFormActions, authFormLinkClass } from "../components/auth/AuthFormActions";
 import { AuthLayout } from "../components/auth/AuthLayout";
-import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
 import { createFormState } from "../lib/forms/create-form-state";
@@ -71,14 +71,15 @@ export default function ForgotPassword() {
             {form.formBanner()}
           </FormAlert>
         </Show>
-        <div class="flex flex-wrap gap-3">
-          <Button type="submit" disabled={form.pending()}>
-            {form.pending() ? "Sending…" : "Send reset link"}
-          </Button>
-          <a class="text-sm text-muted underline-offset-4 hover:underline" href={paths.login()}>
+        <AuthFormActions
+          pending={form.pending()}
+          submitLabel="Send reset link"
+          pendingLabel="Sending…"
+        >
+          <a class={authFormLinkClass("accent")} href={paths.login()}>
             Back to sign in
           </a>
-        </div>
+        </AuthFormActions>
       </form>
     </AuthLayout>
   );

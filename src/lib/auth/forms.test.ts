@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { ApiError } from "../api/errors";
 import {
   authFormMessage,
+  isAuthSurfacePath,
   isPublicAuthPath,
   loginPathWithReturn,
   mapAuthFieldErrors,
@@ -37,6 +38,12 @@ describe("auth forms", () => {
     expect(safeReturnPath("/register")).toBeUndefined();
     expect(safeReturnPath("/forgot-password")).toBeUndefined();
     expect(safeReturnPath("/reset-password")).toBeUndefined();
+  });
+
+  test("isAuthSurfacePath", () => {
+    expect(isAuthSurfacePath("/login")).toBe(true);
+    expect(isAuthSurfacePath("/register")).toBe(true);
+    expect(isAuthSurfacePath("/")).toBe(false);
   });
 
   test("loginPathWithReturn", () => {

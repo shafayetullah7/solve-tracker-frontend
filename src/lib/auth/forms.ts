@@ -11,6 +11,12 @@ const AUTH_ONLY_PATHS = new Set([
   "/reset-password",
 ]);
 
+/** Login, register, and password recovery — single chrome via {@link AuthLayout}. */
+export function isAuthSurfacePath(pathname: string): boolean {
+  const path = pathname.split("?")[0] ?? "";
+  return AUTH_ONLY_PATHS.has(path);
+}
+
 export function isPublicAuthPath(pathname: string): boolean {
   const path = pathname.split("?")[0] ?? "";
   return path === "/forgot-password" || path === "/reset-password";

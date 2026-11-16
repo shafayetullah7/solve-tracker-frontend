@@ -1,4 +1,3 @@
-import { Show } from "solid-js";
 import { paths } from "../../router";
 
 export function AuthNav() {
@@ -10,11 +9,6 @@ export function AuthNav() {
       <a class="text-brand underline-offset-4 hover:underline" href={paths.register()}>
         Register
       </a>
-      <Show when={import.meta.env.DEV}>
-        <a class="text-muted underline-offset-4 hover:underline" href={paths.users()}>
-          Template examples
-        </a>
-      </Show>
     </div>
   );
 }
