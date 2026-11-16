@@ -14,7 +14,7 @@ describe("browse-query", () => {
   test("defaults when search is empty", () => {
     expect(parseBrowseSearch("")).toEqual(DEFAULT_BROWSE_QUERY);
     expect(hasActiveBrowseFilters("")).toBe(false);
-    expect(browseClearHref()).toBe("/problems");
+    expect(browseClearHref()).toBe("/app/problems");
   });
 
   test("round-trip full filter set", () => {
@@ -50,6 +50,22 @@ describe("browse-query", () => {
     expect(
       parseBrowseSearch(`?topicIds=bad&topicIds=${topicA}`).topicIds,
     ).toEqual([topicA]);
+  });
+
+  test("combined q, platform, and status round-trip", () => {
+    const query = {
+      ...DEFAULT_BROWSE_QUERY,
+      q: "Binary",
+      platform: "leetcode" as const,
+      status: "unsolved" as const,
+    };
+    const serialized = serializeBrowseSearch(query);
+    expect(parseBrowseSearch(`?${serialized}`)).toMatchObject({
+      q: "Binary",
+      platform: "leetcode",
+      status: "unsolved",
+    });
+    expect(hasActiveBrowseFilters(`?${serialized}`)).toBe(true);
   });
 
   test("untagged true", () => {

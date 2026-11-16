@@ -12,45 +12,40 @@ import {
 import {
   LibraryProgressStrip,
   type ProgressLoadStatus,
-} from "../../components/problems/LibraryProgressStrip";
-import { ProblemBrowseToolbar } from "../../components/problems/ProblemBrowseToolbar";
-import { Button } from "../../components/ui/Button";
-import { Panel } from "../../components/ui/Panel";
-import { useAuth } from "../../lib/auth/context";
+} from "../../../components/problems/LibraryProgressStrip";
+import { BrowseActiveFilters } from "../../../components/problems/BrowseActiveFilters";
+import { ProblemBrowseToolbar } from "../../../components/problems/ProblemBrowseToolbar";
+import { ProblemLibraryRow } from "../../../components/problems/ProblemLibraryRow";
+import { Button } from "../../../components/ui/Button";
+import { LoadingPlaceholder } from "../../../components/ui/LoadingPlaceholder";
+import { Panel } from "../../../components/ui/Panel";
+import { useAuth } from "../../../lib/auth/context";
 import {
   createProblemsApi,
   type ListProblemsQuery,
   type ProblemResponse,
-} from "../../lib/api/modules/problems.api";
+} from "../../../lib/api/modules/problems.api";
 import {
   createProgressApi,
   type ProgressCounts,
-} from "../../lib/api/modules/progress.api";
-import { createTopicsApi, type TopicResponse } from "../../lib/api/modules/topics.api";
+} from "../../../lib/api/modules/progress.api";
+import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
 import {
   applyCompletionUpdate,
-  completionButtonLabel,
-  completionButtonVariant,
   nextCompletionStatus,
-} from "../../lib/problems/completion-actions";
+} from "../../../lib/problems/completion-actions";
 import {
   browseClearHref,
   hasActiveBrowseFilters,
   parseBrowseSearch,
-} from "../../lib/problems/browse-query";
-import { topicIdFromSearch } from "../../lib/problems/form-state";
+} from "../../../lib/problems/browse-query";
+import { topicIdFromSearch } from "../../../lib/problems/form-state";
 import {
   problemFormMessage,
   problemListMessage,
   progressMessage,
-} from "../../lib/problems/messages";
-import {
-  problemDetailPath,
-  problemEditPath,
-  problemNewPath,
-  problemsBrowseHref,
-} from "../../lib/problems/paths";
-import { platformLabelFromUrl } from "../../lib/problems/platform-display";
+} from "../../../lib/problems/messages";
+import { problemNewPath, problemsBrowseHref } from "../../../lib/problems/paths";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -246,7 +241,7 @@ export default function ProblemsIndex() {
   }
 
   const addHref = () =>
-    filterTopicId() ? problemNewPath(filterTopicId()) : "/problems/new";
+    filterTopicId() ? problemNewPath(filterTopicId()) : problemNewPath();
 
   const showTopicBanner = () => {
     const topicId = filterTopicId();
@@ -303,20 +298,26 @@ export default function ProblemsIndex() {
       </Show>
 
       <Panel title="Saved problems" description="Open the original link on the platform when you practice.">
-        <ProblemBrowseToolbar
-          searchKey={location.search}
-          topics={topics}
-          topicsLoading={topicsLoading}
-          topicsTruncated={topicsTruncated}
-          clearHref={browseClearHref()}
-          onApply={applyBrowse}
-        />
+        <div class="sticky top-0 z-10 -mx-5 mb-4 border-b border-line bg-surface px-5 pb-4 sm:-mx-6 sm:px-6">
+          <ProblemBrowseToolbar
+            searchKey={location.search}
+            topics={topics}
+            topicsLoading={topicsLoading}
+            topicsTruncated={topicsTruncated}
+            clearHref={browseClearHref()}
+            onApply={applyBrowse}
+          />
+
+          <BrowseActiveFilters
+            searchKey={location.search}
+            topics={topics}
+            clearHref={browseClearHref()}
+          />
+        </div>
 
         <Switch>
           <Match when={listStatus() === "loading" || listStatus() === "idle"}>
-            <p class="text-muted" role="status">
-              Loading problems…
-            </p>
+            <LoadingPlaceholder variant="row" lines={3} />
           </Match>
           <Match when={listStatus() === "unavailable"}>
             <p class="text-muted">{listMessage()}</p>
@@ -366,83 +367,17 @@ export default function ProblemsIndex() {
             <ul class="space-y-4">
               <For each={items()}>
                 {(problem) => (
-                  <li class="border-b border-line pb-4 last:border-0">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                      <div class="min-w-0 flex-1 space-y-1">
-                        <a
-                          class="text-body font-medium text-brand underline-offset-4 hover:underline"
-                          href={problemDetailPath(problem.id)}
-                        >
-                          {problem.title}
-                        </a>
-                        <p class="text-sm text-muted">
-                          Platform:{" "}
-                          <span class="text-body">
-                            {platformLabelFromUrl(problem.url)}
-                          </span>
-                        </p>
-                        <p class="text-sm text-muted">
-                          Status:{" "}
-                          <span class="text-body">
-                            {problem.status === "solved" ? "Solved" : "Unsolved"}
-                          </span>
-                        </p>
-                        <Show
-                          when={problem.topics.length > 0}
-                          fallback={<p class="text-sm text-muted">No topics</p>}
-                        >
-                          <p class="text-sm text-muted">
-                            Topics:{" "}
-                            {problem.topics.map((topic) => topic.name).join(", ")}
-                          </p>
-                        </Show>
-                        <Show when={statusError()?.id === problem.id}>
-                          <p class="text-sm text-danger" role="alert">
-                            {statusError()?.message}
-                          </p>
-                        </Show>
-                      </div>
-                      <div class="flex flex-wrap gap-2">
-                        <Button
-                          variant={completionButtonVariant(problem.status)}
-                          disabled={statusPendingId() === problem.id}
-                          aria-busy={statusPendingId() === problem.id}
-                          onClick={() => void toggleCompletion(problem)}
-                        >
-                          {completionButtonLabel(
-                            problem.status,
-                            statusPendingId() === problem.id,
-                          )}
-                        </Button>
-                        <a
-                          class="ui-button"
-                          data-variant="secondary"
-                          href={problem.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Open
-                        </a>
-                        <a
-                          class="ui-button"
-                          data-variant="secondary"
-                          href={problemDetailPath(problem.id)}
-                        >
-                          View
-                        </a>
-                        <a
-                          class="ui-button"
-                          data-variant="secondary"
-                          href={problemEditPath(problem.id)}
-                        >
-                          Edit
-                        </a>
-                        <Button variant="secondary" onClick={() => openDelete(problem)}>
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </li>
+                  <ProblemLibraryRow
+                    problem={problem}
+                    statusPending={statusPendingId() === problem.id}
+                    statusErrorMessage={
+                      statusError()?.id === problem.id
+                        ? statusError()!.message
+                        : undefined
+                    }
+                    onToggleCompletion={() => void toggleCompletion(problem)}
+                    onDelete={() => openDelete(problem)}
+                  />
                 )}
               </For>
             </ul>

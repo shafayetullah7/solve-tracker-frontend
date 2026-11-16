@@ -1,50 +1,56 @@
 import { Title } from "@solidjs/meta";
-import { Loading } from "solid-js";
+import { Loading, Show, type ParentProps } from "solid-js";
 import { AuthNav } from "./components/auth/AuthNav";
-import { AuthProvider } from "./lib/auth/context";
+import { AuthProvider, useAuth } from "./lib/auth/context";
 import { paths, Router } from "./router";
 import "./App.css";
+
+function AppRouterContent(props: ParentProps) {
+  const auth = useAuth();
+  return (
+    <>
+      <Title>Practice</Title>
+      <a
+        class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-surface focus:p-4"
+        href="#main-content"
+      >
+        Skip to content
+      </a>
+      <Show when={auth.status() !== "authenticated"}>
+        <nav
+          aria-label="Main navigation"
+          class="border-b border-line bg-surface px-5 py-4 sm:px-8"
+        >
+          <div class="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            <a
+              class="text-xl font-bold tracking-tight text-brand"
+              href={paths()}
+            >
+              practice<span class="text-muted">.</span>
+            </a>
+            <AuthNav />
+          </div>
+        </nav>
+      </Show>
+      <div>
+        <Loading
+          fallback={
+            <main class="p-8" role="status">
+              Loading…
+            </main>
+          }
+        >
+          {props.children}
+        </Loading>
+      </div>
+    </>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
-    <Router>
-      {(props) => (
-        <>
-          <Title>Practice</Title>
-          <a
-            class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-surface focus:p-4"
-            href="#main-content"
-          >
-            Skip to content
-          </a>
-          <nav
-            aria-label="Main navigation"
-            class="border-b border-line bg-surface px-5 py-4 sm:px-8"
-          >
-            <div class="mx-auto flex max-w-6xl items-center justify-between gap-4">
-              <a
-                class="text-xl font-bold tracking-tight text-brand"
-                href={paths()}
-              >
-                practice<span class="text-muted">.</span>
-              </a>
-              <AuthNav />
-            </div>
-          </nav>
-          <div id="main-content" tabindex="-1">
-            <Loading
-              fallback={
-                <main class="p-8" role="status">
-                  Loading…
-                </main>
-              }
-            >
-              {props.children}
-            </Loading>
-          </div>
-        </>
-      )}
-    </Router>
+      <Router>{(props) => <AppRouterContent>{props.children}</AppRouterContent>}</Router>
     </AuthProvider>
   );
 }

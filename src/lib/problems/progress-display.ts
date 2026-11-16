@@ -17,6 +17,11 @@ export function formatOverallProgress(counts: ProgressCounts): OverallProgressPa
   };
 }
 
+export function overallPercentComplete(counts: ProgressCounts): number {
+  if (counts.total === 0) return 0;
+  return Math.round((counts.solved / counts.total) * 100);
+}
+
 export function formatTopicProgress(topic: TopicProgress): string {
   return `${topic.solved} / ${topic.total} solved (${topic.percentComplete}%)`;
 }

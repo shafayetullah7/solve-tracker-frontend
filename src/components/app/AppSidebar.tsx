@@ -1,0 +1,174 @@
+import { useLocation, useNavigate } from "@solidjs/router";
+import type { JSX } from "@solidjs/web";
+import { createSignal, For, type ParentProps } from "solid-js";
+import type { IconProps } from "../../icons/icon-props";
+import {
+  IconClose,
+  IconDashboard,
+  IconLibrary,
+  IconLogOut,
+  IconPlus,
+  IconTopics,
+  IconUser,
+} from "../../icons";
+import { resolveSidebarActive, type SidebarSectionKey } from "../../lib/app/nav-active";
+import { useAuth } from "../../lib/auth/context";
+import { problemNewPath } from "../../lib/problems/paths";
+import { paths } from "../../router";
+import { Button } from "../ui/Button";
+
+export type AppSidebarProps = {
+  variant: "rail" | "drawer";
+  drawerId?: string;
+  onClose?: () => void;
+};
+
+type NavItem = {
+  key: SidebarSectionKey;
+  label: string;
+  href: string;
+  icon: (props: IconProps) => JSX.Element;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    href: paths.app(),
+    icon: IconDashboard,
+  },
+  {
+    key: "library",
+    label: "Library",
+    href: paths.app.problems(),
+    icon: IconLibrary,
+  },
+  {
+    key: "topics",
+    label: "Topics",
+    href: paths.app.topics(),
+    icon: IconTopics,
+  },
+  {
+    key: "profile",
+    label: "Profile",
+    href: paths.app.profile(),
+    icon: IconUser,
+  },
+];
+
+type SidebarNavLinkProps = ParentProps<{
+  href: string;
+  label: string;
+  active: boolean;
+  current?: boolean;
+  onNavigate?: () => void;
+}>;
+
+function SidebarNavLink(props: SidebarNavLinkProps) {
+  return (
+    <a
+      class={[
+        "flex min-h-11 items-center gap-3 rounded-control px-3 text-label font-medium text-ink hover:bg-surface-muted",
+        props.active && "bg-brand-soft text-brand",
+      ]}
+      href={props.href}
+      aria-current={props.current ? "page" : undefined}
+      onClick={() => props.onNavigate?.()}
+    >
+      {props.children}
+      <span>{props.label}</span>
+    </a>
+  );
+}
+
+export function AppSidebar(props: AppSidebarProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const [logoutPending, setLogoutPending] = createSignal(false);
+
+  const active = () => resolveSidebarActive(location.pathname);
+
+  async function onLogout() {
+    if (logoutPending()) return;
+    setLogoutPending(true);
+    try {
+      await auth.logout();
+      props.onClose?.();
+      navigate(paths.login());
+    } finally {
+      setLogoutPending(false);
+    }
+  }
+
+  const onNavigate = () => props.onClose?.();
+
+  return (
+    <div
+      id={props.drawerId}
+      class={[
+        "flex h-full flex-col gap-4 p-4",
+        props.variant === "rail" && "border-r border-line bg-surface md:w-64",
+      ]}
+    >
+      {props.variant === "drawer" ? (
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-label font-semibold text-ink">Menu</span>
+          <button
+            type="button"
+            class="flex min-h-11 min-w-11 items-center justify-center rounded-control text-ink hover:bg-surface-muted"
+            aria-label="Close navigation menu"
+            onClick={() => props.onClose?.()}
+          >
+            <IconClose class="h-5 w-5" />
+          </button>
+        </div>
+      ) : null}
+
+      <nav aria-label="Product" class="flex flex-col gap-1">
+        <For each={NAV_ITEMS}>
+          {(item) => (
+            <SidebarNavLink
+              href={item.href}
+              label={item.label}
+              active={active().section === item.key}
+              current={
+                active().section === item.key &&
+                !(item.key === "library" && active().addProblem)
+              }
+              onNavigate={onNavigate}
+            >
+              {item.icon({ class: "h-5 w-5 shrink-0" })}
+            </SidebarNavLink>
+          )}
+        </For>
+      </nav>
+
+      <div class="mt-auto flex flex-col gap-4 border-t border-line pt-4">
+        <a
+          class="ui-button inline-flex w-full items-center justify-center gap-2"
+          data-variant="primary"
+          data-active={active().addProblem ? "" : undefined}
+          href={problemNewPath()}
+          aria-current={active().addProblem ? "page" : undefined}
+          onClick={onNavigate}
+        >
+          <IconPlus class="h-5 w-5 shrink-0" />
+          Add problem
+        </a>
+
+        <Button
+          variant="ghost"
+          class="min-h-11 w-full justify-start gap-3 px-3"
+          disabled={logoutPending()}
+          aria-busy={logoutPending()}
+          onClick={() => void onLogout()}
+        >
+          <IconLogOut class="h-5 w-5 shrink-0" />
+          {logoutPending() ? "Signing out…" : "Sign out"}
+        </Button>
+      </div>
+    </div>
+  );
+}

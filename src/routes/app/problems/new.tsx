@@ -1,25 +1,26 @@
 import { Title } from "@solidjs/meta";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
-import { ProblemFormFields } from "../../components/problems/ProblemFormFields";
-import { Button } from "../../components/ui/Button";
-import { Panel } from "../../components/ui/Panel";
-import { ApiError } from "../../lib/api/errors";
-import { createProblemsApi } from "../../lib/api/modules/problems.api";
-import { createTopicsApi, type TopicResponse } from "../../lib/api/modules/topics.api";
-import { useAuth } from "../../lib/auth/context";
-import type { FieldErrors } from "../../lib/auth/forms";
+import { ProblemFormFields } from "../../../components/problems/ProblemFormFields";
+import { Button } from "../../../components/ui/Button";
+import { Panel } from "../../../components/ui/Panel";
+import { ApiError } from "../../../lib/api/errors";
+import { createProblemsApi } from "../../../lib/api/modules/problems.api";
+import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
+import { useAuth } from "../../../lib/auth/context";
+import type { FieldErrors } from "../../../lib/auth/forms";
 import {
   buildCreateInput,
   topicIdFromSearch,
   toggleTopicId,
-} from "../../lib/problems/form-state";
+} from "../../../lib/problems/form-state";
 import {
   problemExistingIdFromError,
   problemFieldErrors,
   problemFormMessage,
-} from "../../lib/problems/messages";
-import { problemDetailPath } from "../../lib/problems/paths";
+} from "../../../lib/problems/messages";
+import { problemDetailPath } from "../../../lib/problems/paths";
+import { paths } from "../../../router";
 
 const FORM_ID = "problem-create";
 
@@ -153,7 +154,7 @@ export default function ProblemNew() {
             <Button type="submit" disabled={pending()}>
               {pending() ? "Saving…" : "Save problem"}
             </Button>
-            <a class="ui-button" data-variant="secondary" href="/problems">
+            <a class="ui-button" data-variant="secondary" href={paths.app.problems()}>
               Cancel
             </a>
           </div>

@@ -17,6 +17,8 @@ This document defines the UI scheme and implementation patterns for this reposit
 
 `src/App.tsx` owns the router/layout; `src/Document.tsx` owns the HTML shell. `src/router.ts` composes generated file routes. Use its generated `paths` helpers for internal links, as existing routes do. There are no Next.js `app/`, `pages/`, `layout.tsx`, `next/link`, `next/navigation`, server actions, or `use client` directives here.
 
+**Product workspace URLs:** Authenticated tracker routes live under **`/app`**: dashboard at **`/app`** (index), profile **`/app/profile`**, library **`/app/problems`**, topics **`/app/topics`**. Layout: [`src/routes/app.tsx`](src/routes/app.tsx) (`RequireSession` + `AppShell`). For string paths in libs (browse hrefs, auth allowlist, problem detail links), use [`src/lib/app/product-routes.ts`](src/lib/app/product-routes.ts) and [`src/lib/problems/paths.ts`](src/lib/problems/paths.ts); in components prefer `paths.app()`, `paths.app.problems()`, etc. **Do not** change backend API path strings in `*.api.ts` — those stay `/problems` and `/topics` on the API host.
+
 Before using unfamiliar APIs, check installed declarations, `node_modules/solid-js/CHEATSHEET.md`, and the Solid 2 documentation. Many search results still describe Solid 1.x, including outdated renderer import paths. Keep prerelease package versions compatible; do not upgrade individual Solid packages to fix a copied snippet. Installed versions and the pnpm lockfile are the final authority.
 
 ## 2. Visual scheme

@@ -52,6 +52,6 @@ test.describe("reset password", () => {
     await page.getByLabel("Email").fill(user.email);
     await page.getByLabel("Password", { exact: true }).fill(newPassword);
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page).toHaveURL(/\/account/);
+    await expect(page).toHaveURL(/\/app(?:\/|$)/, { timeout: 15_000 });
   });
 });

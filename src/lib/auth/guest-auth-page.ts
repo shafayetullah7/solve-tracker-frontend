@@ -16,7 +16,7 @@ export function useRedirectIfAuthenticated() {
       const fromQuery = safeReturnPath(
         new URLSearchParams(search).get("next"),
       );
-      navigate(fromQuery ?? paths.account(), { replace: true });
+      navigate(fromQuery ?? paths.app(), { replace: true });
     },
   );
 }

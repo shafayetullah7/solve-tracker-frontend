@@ -1,3 +1,7 @@
+/**
+ * Library browse filters. Explicit Apply on submit — URL is source of truth;
+ * `searchKey` resyncs local fields when location.search changes.
+ */
 import { createEffect, createSignal, For, Show } from "solid-js";
 import type { ListProblemsQuery } from "../../lib/api/modules/problems.api";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
@@ -154,117 +158,125 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             </For>
           </select>
         </div>
-
-        <div>
-          <label class="mb-2 block text-sm font-medium" for={`${formId}-sort`}>
-            Sort by
-          </label>
-          <select
-            id={`${formId}-sort`}
-            class="ui-field"
-            value={sort()}
-            onChange={(event) =>
-              setSort(event.currentTarget.value as ListProblemsQuery["sort"])
-            }
-          >
-            <option value="createdAt">Date added</option>
-            <option value="title">Title</option>
-            <option value="solvedAt">Date solved</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm font-medium" for={`${formId}-order`}>
-            Order
-          </label>
-          <select
-            id={`${formId}-order`}
-            class="ui-field"
-            value={order()}
-            onChange={(event) =>
-              setOrder(event.currentTarget.value as ListProblemsQuery["order"])
-            }
-          >
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm font-medium" for={`${formId}-pageSize`}>
-            Per page
-          </label>
-          <select
-            id={`${formId}-pageSize`}
-            class="ui-field"
-            value={String(pageSize())}
-            onChange={(event) =>
-              setPageSize(Number.parseInt(event.currentTarget.value, 10))
-            }
-          >
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
       </div>
 
-      <div>
-        <p class="mb-2 text-sm font-medium">Topics</p>
-        <Show
-          when={!props.topicsLoading()}
-          fallback={<p class="text-sm text-muted">Loading topics…</p>}
-        >
-          <Show
-            when={props.topics().length > 0}
-            fallback={<p class="text-sm text-muted">No topics yet.</p>}
-          >
-            <ul class="space-y-2">
-              <For each={props.topics()}>
-                {(topic) => (
-                  <li>
-                    <label class="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={selectedTopicIds().has(topic.id)}
-                        disabled={untagged()}
-                        onChange={(event) =>
-                          onTopicToggle(topic.id, event.currentTarget.checked)
-                        }
-                      />
-                      {topic.name}
-                    </label>
-                  </li>
-                )}
-              </For>
-            </ul>
-          </Show>
-          <Show when={props.topicsTruncated()}>
-            <p class="mt-2 text-sm text-muted">
-              Showing the first 100 topics; not all may appear here.
-            </p>
-          </Show>
-        </Show>
-      </div>
+      <details class="rounded-control border border-line bg-surface-muted/40 p-4">
+        <summary class="cursor-pointer text-sm font-semibold text-ink">
+          More filters
+        </summary>
+        <div class="mt-4 space-y-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-medium" for={`${formId}-sort`}>
+                Sort by
+              </label>
+              <select
+                id={`${formId}-sort`}
+                class="ui-field"
+                value={sort()}
+                onChange={(event) =>
+                  setSort(event.currentTarget.value as ListProblemsQuery["sort"])
+                }
+              >
+                <option value="createdAt">Date added</option>
+                <option value="title">Title</option>
+                <option value="solvedAt">Date solved</option>
+              </select>
+            </div>
 
-      <div>
-        <label class="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={untagged()}
-            onChange={(event) => onUntaggedChange(event.currentTarget.checked)}
-          />
-          Untagged only
-        </label>
-      </div>
+            <div>
+              <label class="mb-2 block text-sm font-medium" for={`${formId}-order`}>
+                Order
+              </label>
+              <select
+                id={`${formId}-order`}
+                class="ui-field"
+                value={order()}
+                onChange={(event) =>
+                  setOrder(event.currentTarget.value as ListProblemsQuery["order"])
+                }
+              >
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                class="mb-2 block text-sm font-medium"
+                for={`${formId}-pageSize`}
+              >
+                Per page
+              </label>
+              <select
+                id={`${formId}-pageSize`}
+                class="ui-field"
+                value={String(pageSize())}
+                onChange={(event) =>
+                  setPageSize(Number.parseInt(event.currentTarget.value, 10))
+                }
+              >
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <p class="mb-2 text-sm font-medium">Topics</p>
+            <Show
+              when={!props.topicsLoading()}
+              fallback={<p class="text-sm text-muted">Loading topics…</p>}
+            >
+              <Show
+                when={props.topics().length > 0}
+                fallback={<p class="text-sm text-muted">No topics yet.</p>}
+              >
+                <ul class="space-y-2">
+                  <For each={props.topics()}>
+                    {(topic) => (
+                      <li>
+                        <label class="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={selectedTopicIds().has(topic.id)}
+                            disabled={untagged()}
+                            onChange={(event) =>
+                              onTopicToggle(topic.id, event.currentTarget.checked)
+                            }
+                          />
+                          {topic.name}
+                        </label>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </Show>
+              <Show when={props.topicsTruncated()}>
+                <p class="mt-2 text-sm text-muted">
+                  Showing the first 100 topics; not all may appear here.
+                </p>
+              </Show>
+            </Show>
+          </div>
+
+          <div>
+            <label class="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={untagged()}
+                onChange={(event) => onUntaggedChange(event.currentTarget.checked)}
+              />
+              Untagged only
+            </label>
+          </div>
+        </div>
+      </details>
 
       <div class="flex flex-wrap gap-3">
         <Button type="submit">Apply filters</Button>
-        <a
-          class="ui-button"
-          data-variant="secondary"
-          href={props.clearHref}
-        >
+        <a class="ui-button" data-variant="secondary" href={props.clearHref}>
           Clear filters
         </a>
       </div>

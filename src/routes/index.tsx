@@ -6,12 +6,12 @@ import { Panel } from "../components/ui/Panel";
 import { useAuth } from "../lib/auth/context";
 import { paths } from "../router";
 
-function RedirectToLibrary() {
+function RedirectToDashboard() {
   const navigate = useNavigate();
-  onSettled(() => navigate(paths.problems(), { replace: true }));
+  onSettled(() => navigate(paths.app(), { replace: true }));
   return (
     <p class="text-muted" role="status">
-      Opening your library…
+      Opening your dashboard…
     </p>
   );
 }
@@ -35,7 +35,7 @@ export default function Home() {
           </Button>
         </Match>
         <Match when={auth.status() === "authenticated"}>
-          <RedirectToLibrary />
+          <RedirectToDashboard />
         </Match>
         <Match when={auth.status() === "anonymous"}>
           <header class="mb-8">

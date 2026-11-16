@@ -1,3 +1,4 @@
+import { appProblems } from "../app/product-routes";
 import type { ListProblemsQuery } from "../api/modules/problems.api";
 
 const UUID =
@@ -19,7 +20,7 @@ export const DEFAULT_BROWSE_QUERY: Required<
 };
 
 export function browseClearHref(): string {
-  return "/problems";
+  return appProblems();
 }
 
 function searchParams(search: string): URLSearchParams {

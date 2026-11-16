@@ -24,7 +24,7 @@ export async function loginUser(page: Page, user: ReturnType<typeof uniqueUser>)
   await page.getByLabel("Email").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/account/);
+  await expect(page).toHaveURL(/\/app(?:\/|$)/, { timeout: 15_000 });
 }
 
 export async function assertNoSecretsInStorage(page: Page) {
@@ -49,11 +49,13 @@ export async function assertNoSecretsInStorage(page: Page) {
   expect(blob).not.toContain("practice_refresh=");
 }
 
-export async function waitForAccountEmail(page: Page, email: string) {
-  await expect
-    .poll(
-      async () => (await page.getByText(email).count()) > 0,
-      { timeout: 15_000 },
-    )
-    .toBe(true);
+export async function waitForSignedInShell(page: Page) {
+  await expect(page.getByRole("link", { name: "Library" })).toBeVisible({
+    timeout: 15_000,
+  });
+}
+
+/** @deprecated use waitForSignedInShell — profile page no longer lists email until UX-4 */
+export async function waitForAccountEmail(page: Page, _email: string) {
+  await waitForSignedInShell(page);
 }

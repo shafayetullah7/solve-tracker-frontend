@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatTopicProgress } from "./progress-display";
+import { formatTopicProgress, overallPercentComplete } from "./progress-display";
 
 describe("formatTopicProgress", () => {
   test("formats empty topic as 0%", () => {
@@ -13,6 +13,12 @@ describe("formatTopicProgress", () => {
         percentComplete: 0,
       }),
     ).toBe("0 / 0 solved (0%)");
+  });
+
+  test("overallPercentComplete", () => {
+    expect(overallPercentComplete({ total: 0, solved: 0, unsolved: 0 })).toBe(0);
+    expect(overallPercentComplete({ total: 4, solved: 1, unsolved: 3 })).toBe(25);
+    expect(overallPercentComplete({ total: 3, solved: 3, unsolved: 0 })).toBe(100);
   });
 
   test("formats full completion", () => {

@@ -4,7 +4,6 @@ import {
   loginUser,
   registerUser,
   uniqueUser,
-  waitForAccountEmail,
 } from "./fixtures";
 
 test.describe("auth flow", () => {
@@ -13,17 +12,24 @@ test.describe("auth flow", () => {
     await registerUser(page, user);
     await expect(page.getByText(/Account created/i)).toBeVisible();
     await loginUser(page, user);
-    await waitForAccountEmail(page, user.email);
+    await expect(page.getByRole("heading", { name: "Your practice" })).toBeVisible();
     await assertNoSecretsInStorage(page);
 
     await page.reload();
-    await waitForAccountEmail(page, user.email);
+    await expect(page.getByRole("heading", { name: "Your practice" })).toBeVisible();
+
+    await page.goto("/app/profile");
+    await expect(page.getByText(user.email)).toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/login/);
 
     await page.goto("/account");
     await expect(page).toHaveURL(/\/login\?next=/);
+
+    await loginUser(page, user);
+    await page.goto("/account");
+    await expect(page).toHaveURL(/\/app\/profile/, { timeout: 15_000 });
   });
 
   test("wrong password shows credential error", async ({ page }) => {

@@ -1,26 +1,26 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate, useParams } from "@solidjs/router";
 import { createEffect, createSignal, Match, Switch } from "solid-js";
-import { ProblemFormFields } from "../../../components/problems/ProblemFormFields";
-import { Button } from "../../../components/ui/Button";
-import { Panel } from "../../../components/ui/Panel";
-import { ApiError } from "../../../lib/api/errors";
-import { createProblemsApi } from "../../../lib/api/modules/problems.api";
-import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
-import { useAuth } from "../../../lib/auth/context";
-import type { FieldErrors } from "../../../lib/auth/forms";
+import { ProblemFormFields } from "../../../../components/problems/ProblemFormFields";
+import { Button } from "../../../../components/ui/Button";
+import { Panel } from "../../../../components/ui/Panel";
+import { ApiError } from "../../../../lib/api/errors";
+import { createProblemsApi } from "../../../../lib/api/modules/problems.api";
+import { createTopicsApi, type TopicResponse } from "../../../../lib/api/modules/topics.api";
+import { useAuth } from "../../../../lib/auth/context";
+import type { FieldErrors } from "../../../../lib/auth/forms";
 import {
   buildUpdateInput,
   hydrateFormFromProblem,
   toggleTopicId,
-} from "../../../lib/problems/form-state";
+} from "../../../../lib/problems/form-state";
 import {
   problemExistingIdFromError,
   problemFieldErrors,
   problemFormMessage,
-} from "../../../lib/problems/messages";
-import { problemDetailPath } from "../../../lib/problems/paths";
-import { paths } from "../../../router";
+} from "../../../../lib/problems/messages";
+import { problemDetailPath } from "../../../../lib/problems/paths";
+import { paths } from "../../../../router";
 
 const FORM_ID = "problem-edit";
 
@@ -136,7 +136,7 @@ export default function ProblemEdit() {
         </div>
         <a
           class="text-sm text-brand underline-offset-4 hover:underline"
-          href={params.id ? problemDetailPath(params.id) : paths.problems()}
+          href={params.id ? problemDetailPath(params.id) : paths.app.problems()}
         >
           Back to details
         </a>
@@ -155,7 +155,7 @@ export default function ProblemEdit() {
           </Button>
           <a
             class="mt-4 ml-4 inline-block text-sm text-brand underline-offset-4 hover:underline"
-            href={paths.problems()}
+            href={paths.app.problems()}
           >
             Back to library
           </a>
@@ -201,7 +201,7 @@ export default function ProblemEdit() {
                 <a
                   class="ui-button"
                   data-variant="secondary"
-                  href={params.id ? problemDetailPath(params.id) : paths.problems()}
+                  href={params.id ? problemDetailPath(params.id) : paths.app.problems()}
                 >
                   Cancel
                 </a>

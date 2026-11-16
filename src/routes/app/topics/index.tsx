@@ -8,19 +8,19 @@ import {
   Show,
   Switch,
 } from "solid-js";
-import { Button } from "../../components/ui/Button";
-import { Panel } from "../../components/ui/Panel";
-import { ApiError } from "../../lib/api/errors";
-import { useAuth } from "../../lib/auth/context";
-import { createProgressApi, type TopicProgress } from "../../lib/api/modules/progress.api";
-import { createTopicsApi, type TopicResponse } from "../../lib/api/modules/topics.api";
-import { progressMessage } from "../../lib/problems/messages";
+import { Button } from "../../../components/ui/Button";
+import { Panel } from "../../../components/ui/Panel";
+import { ApiError } from "../../../lib/api/errors";
+import { useAuth } from "../../../lib/auth/context";
+import { createProgressApi, type TopicProgress } from "../../../lib/api/modules/progress.api";
+import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
+import { progressMessage } from "../../../lib/problems/messages";
 import {
   formatTopicProgress,
   topicProgressById,
-} from "../../lib/problems/progress-display";
-import { topicFieldErrors, topicFormMessage } from "../../lib/topics/messages";
-import { paths } from "../../router";
+} from "../../../lib/problems/progress-display";
+import { topicFieldErrors, topicFormMessage } from "../../../lib/topics/messages";
+import { paths } from "../../../router";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -269,7 +269,7 @@ export default function TopicsIndex() {
                             <div class="min-w-0 space-y-1">
                               <a
                                 class="text-body font-medium text-brand underline-offset-4 hover:underline"
-                                href={`${paths.problems()}?topicId=${topic.id}`}
+                                href={`${paths.app.problems()}?topicId=${topic.id}`}
                               >
                                 {topic.name}
                               </a>

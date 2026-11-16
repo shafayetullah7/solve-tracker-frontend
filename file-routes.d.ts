@@ -47,6 +47,66 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/app";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app"), Extract<"default", keyof typeof import("./src/routes/app")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/index"), Extract<"default", keyof typeof import("./src/routes/app/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/problems";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems"), Extract<"default", keyof typeof import("./src/routes/app/problems")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/problems/:id";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/[id]"), Extract<"default", keyof typeof import("./src/routes/app/problems/[id]")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/problems/:id/edit";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/[id]/edit"), Extract<"default", keyof typeof import("./src/routes/app/problems/[id]/edit")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/problems/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/index"), Extract<"default", keyof typeof import("./src/routes/app/problems/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/problems/new";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/new"), Extract<"default", keyof typeof import("./src/routes/app/problems/new")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/profile";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/profile"), Extract<"default", keyof typeof import("./src/routes/app/profile")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/topics";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/topics"), Extract<"default", keyof typeof import("./src/routes/app/topics")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/topics/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/topics/index"), Extract<"default", keyof typeof import("./src/routes/app/topics/index")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/forgot-password";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/forgot-password"), Extract<"default", keyof typeof import("./src/routes/forgot-password")>>>;
@@ -65,36 +125,6 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
-      path: "/problems";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems"), Extract<"default", keyof typeof import("./src/routes/problems")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/problems/:id";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/[id]"), Extract<"default", keyof typeof import("./src/routes/problems/[id]")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/problems/:id/edit";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/[id]/edit"), Extract<"default", keyof typeof import("./src/routes/problems/[id]/edit")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/problems/";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/index"), Extract<"default", keyof typeof import("./src/routes/problems/index")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/problems/new";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/new"), Extract<"default", keyof typeof import("./src/routes/problems/new")>>>;
-      $$route?: undefined;
-    },
-    {
       path: "/register";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/register"), Extract<"default", keyof typeof import("./src/routes/register")>>>;
@@ -104,18 +134,6 @@ declare module "virtual:file-routes" {
       path: "/reset-password";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/reset-password"), Extract<"default", keyof typeof import("./src/routes/reset-password")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/topics";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/topics"), Extract<"default", keyof typeof import("./src/routes/topics")>>>;
-      $$route?: undefined;
-    },
-    {
-      path: "/topics/";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/topics/index"), Extract<"default", keyof typeof import("./src/routes/topics/index")>>>;
       $$route?: undefined;
     },
     {
@@ -148,6 +166,90 @@ declare module "virtual:file-routes" {
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/index"), Extract<"default", keyof typeof import("./src/routes/index")>>>;
       $$route?: undefined;
       children?: undefined;
+    },
+    {
+      path: "/app";
+      id: "/app";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app"), Extract<"default", keyof typeof import("./src/routes/app")>>>;
+      $$route?: undefined;
+      children: readonly [
+        {
+          path: "/";
+          id: "/";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/index"), Extract<"default", keyof typeof import("./src/routes/app/index")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/topics";
+          id: "/topics";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/topics"), Extract<"default", keyof typeof import("./src/routes/app/topics")>>>;
+          $$route?: undefined;
+          children: readonly [
+            {
+              path: "/";
+              id: "/";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/topics/index"), Extract<"default", keyof typeof import("./src/routes/app/topics/index")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            }
+          ];
+        },
+        {
+          path: "/profile";
+          id: "/profile";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/profile"), Extract<"default", keyof typeof import("./src/routes/app/profile")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/problems";
+          id: "/problems";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems"), Extract<"default", keyof typeof import("./src/routes/app/problems")>>>;
+          $$route?: undefined;
+          children: readonly [
+            {
+              path: "/";
+              id: "/";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/index"), Extract<"default", keyof typeof import("./src/routes/app/problems/index")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/:id";
+              id: "/:id";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/[id]"), Extract<"default", keyof typeof import("./src/routes/app/problems/[id]")>>>;
+              $$route?: undefined;
+              children: readonly [
+                {
+                  path: "/edit";
+                  id: "/edit";
+                  page: true;
+                  $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/[id]/edit"), Extract<"default", keyof typeof import("./src/routes/app/problems/[id]/edit")>>>;
+                  $$route?: undefined;
+                  children?: undefined;
+                }
+              ];
+            },
+            {
+              path: "/new";
+              id: "/new";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems/new"), Extract<"default", keyof typeof import("./src/routes/app/problems/new")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            }
+          ];
+        }
+      ];
     },
     {
       path: "/*404";
@@ -191,71 +293,12 @@ declare module "virtual:file-routes" {
       ];
     },
     {
-      path: "/topics";
-      id: "/topics";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/topics"), Extract<"default", keyof typeof import("./src/routes/topics")>>>;
-      $$route?: undefined;
-      children: readonly [
-        {
-          path: "/";
-          id: "/";
-          page: true;
-          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/topics/index"), Extract<"default", keyof typeof import("./src/routes/topics/index")>>>;
-          $$route?: undefined;
-          children?: undefined;
-        }
-      ];
-    },
-    {
       path: "/account";
       id: "/account";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/account"), Extract<"default", keyof typeof import("./src/routes/account")>>>;
       $$route?: undefined;
       children?: undefined;
-    },
-    {
-      path: "/problems";
-      id: "/problems";
-      page: true;
-      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems"), Extract<"default", keyof typeof import("./src/routes/problems")>>>;
-      $$route?: undefined;
-      children: readonly [
-        {
-          path: "/";
-          id: "/";
-          page: true;
-          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/index"), Extract<"default", keyof typeof import("./src/routes/problems/index")>>>;
-          $$route?: undefined;
-          children?: undefined;
-        },
-        {
-          path: "/:id";
-          id: "/:id";
-          page: true;
-          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/[id]"), Extract<"default", keyof typeof import("./src/routes/problems/[id]")>>>;
-          $$route?: undefined;
-          children: readonly [
-            {
-              path: "/edit";
-              id: "/edit";
-              page: true;
-              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/[id]/edit"), Extract<"default", keyof typeof import("./src/routes/problems/[id]/edit")>>>;
-              $$route?: undefined;
-              children?: undefined;
-            }
-          ];
-        },
-        {
-          path: "/new";
-          id: "/new";
-          page: true;
-          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/problems/new"), Extract<"default", keyof typeof import("./src/routes/problems/new")>>>;
-          $$route?: undefined;
-          children?: undefined;
-        }
-      ];
     },
     {
       path: "/register";

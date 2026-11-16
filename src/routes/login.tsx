@@ -36,7 +36,7 @@ export default function Login() {
     setFieldErrors({});
     try {
       await auth.login({ email: email().trim(), password: password() });
-      navigate(returnPath() ?? paths.account());
+      navigate(returnPath() ?? paths.app());
     } catch (error) {
       if (error instanceof ApiError && error.details)
         setFieldErrors(mapAuthFieldErrors(error.details));

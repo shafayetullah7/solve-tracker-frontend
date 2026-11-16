@@ -7,19 +7,20 @@ import {
   Show,
   Switch,
 } from "solid-js";
-import { Button } from "../../components/ui/Button";
-import { Panel } from "../../components/ui/Panel";
-import { createProblemsApi, type ProblemResponse } from "../../lib/api/modules/problems.api";
-import { useAuth } from "../../lib/auth/context";
+import { Badge } from "../../../components/ui/Badge";
+import { Button } from "../../../components/ui/Button";
+import { Panel } from "../../../components/ui/Panel";
+import { createProblemsApi, type ProblemResponse } from "../../../lib/api/modules/problems.api";
+import { useAuth } from "../../../lib/auth/context";
 import {
   applyCompletionUpdate,
   completionButtonLabel,
   completionButtonVariant,
   nextCompletionStatus,
-} from "../../lib/problems/completion-actions";
-import { problemFormMessage } from "../../lib/problems/messages";
-import { problemEditPath } from "../../lib/problems/paths";
-import { paths } from "../../router";
+} from "../../../lib/problems/completion-actions";
+import { problemFormMessage } from "../../../lib/problems/messages";
+import { problemEditPath } from "../../../lib/problems/paths";
+import { paths } from "../../../router";
 
 type LoadStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -122,7 +123,7 @@ export default function ProblemDetail() {
     try {
       await api.delete(current.id);
       setDeleteOpen(false);
-      navigate(paths.problems());
+      navigate(paths.app.problems());
     } catch (error) {
       setDeleteError(problemFormMessage(error));
     } finally {
@@ -140,7 +141,7 @@ export default function ProblemDetail() {
         </div>
         <a
           class="text-sm text-brand underline-offset-4 hover:underline"
-          href={paths.problems()}
+          href={paths.app.problems()}
         >
           Back to library
         </a>
@@ -162,12 +163,60 @@ export default function ProblemDetail() {
           {(getProblem) => {
             const p = getProblem();
             return (
-              <Panel title={p.title}>
+              <Panel
+                title={p.title}
+                actions={
+                  <div class="flex flex-wrap items-center gap-2">
+                    <a
+                      class="ui-button"
+                      data-variant="primary"
+                      href={p.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open link
+                    </a>
+                    <Button
+                      variant={completionButtonVariant(p.status)}
+                      disabled={statusPending() || deletePending()}
+                      aria-busy={statusPending()}
+                      onClick={() => void toggleCompletion()}
+                    >
+                      {completionButtonLabel(p.status, statusPending())}
+                    </Button>
+                    <details class="relative">
+                      <summary
+                        class="ui-button cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+                        aria-label="More actions"
+                      >
+                        More
+                      </summary>
+                      <div class="absolute right-0 z-20 mt-2 min-w-36 rounded-control border border-line bg-surface p-2 shadow-panel">
+                        <a
+                          class="block rounded-control px-3 py-2 text-sm hover:bg-surface-muted"
+                          href={problemEditPath(p.id)}
+                        >
+                          Edit
+                        </a>
+                        <button
+                          type="button"
+                          class="block w-full rounded-control px-3 py-2 text-left text-sm hover:bg-surface-muted"
+                          onClick={() => setDeleteOpen(true)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </details>
+                  </div>
+                }
+              >
                 <dl class="grid max-w-2xl gap-4 text-sm">
                   <div>
                     <dt class="text-muted">Status</dt>
-                    <dd class="text-body font-medium">
-                      {p.status === "solved" ? "Solved" : "Unsolved"}
+                    <dd class="text-body">
+                      <Badge tone={p.status === "solved" ? "success" : "neutral"}>
+                        {p.status === "solved" ? "Solved" : "Unsolved"}
+                      </Badge>
                       <Show when={p.solvedAt}>
                         <span class="ml-2 text-muted">({formatWhen(p.solvedAt!)})</span>
                       </Show>
@@ -232,36 +281,6 @@ export default function ProblemDetail() {
                     <dd class="text-body">{formatWhen(p.updatedAt)}</dd>
                   </div>
                 </dl>
-
-                <div class="mt-8 flex flex-wrap gap-2">
-                  <Button
-                    variant={completionButtonVariant(p.status)}
-                    disabled={statusPending() || deletePending()}
-                    aria-busy={statusPending()}
-                    onClick={() => void toggleCompletion()}
-                  >
-                    {completionButtonLabel(p.status, statusPending())}
-                  </Button>
-                  <a
-                    class="ui-button"
-                    data-variant="primary"
-                    href={p.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Open link
-                  </a>
-                  <a
-                    class="ui-button"
-                    data-variant="secondary"
-                    href={problemEditPath(p.id)}
-                  >
-                    Edit
-                  </a>
-                  <Button variant="secondary" onClick={() => setDeleteOpen(true)}>
-                    Delete
-                  </Button>
-                </div>
               </Panel>
             );
           }}
