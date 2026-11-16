@@ -7,10 +7,8 @@ import { Panel } from "../../../components/ui/Panel";
 import { createProblemsApi } from "../../../lib/api/modules/problems.api";
 import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
 import { useAuth } from "../../../lib/auth/context";
-import { applyProblemApiError } from "../../../lib/forms/apply-product-api-error";
-import type { FieldErrors } from "../../../lib/forms/field-errors";
+import { createFormState } from "../../../lib/forms/create-form-state";
 import { focusFirstInvalid } from "../../../lib/forms/focus-first-invalid";
-import { FORM_CLIENT_BANNER } from "../../../lib/forms/form-client-banner";
 import { validateProblemDraft } from "../../../lib/forms/validate-problem";
 import {
   buildCreateInput,
@@ -28,6 +26,7 @@ export default function ProblemNew() {
   const navigate = useNavigate();
   const problemsApi = createProblemsApi(auth.productClient);
   const topicsApi = createTopicsApi(auth.productClient);
+  const form = createFormState("problem", { problemExtras: true });
 
   const [title, setTitle] = createSignal("");
   const [url, setUrl] = createSignal("");
@@ -41,12 +40,6 @@ export default function ProblemNew() {
   const [topics, setTopics] = createSignal<TopicResponse[]>([]);
   const [topicsLoading, setTopicsLoading] = createSignal(true);
   const [topicsTruncated, setTopicsTruncated] = createSignal(false);
-
-  const [pending, setPending] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | undefined>();
-  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
-  const [existingProblemId, setExistingProblemId] = createSignal<string | undefined>();
 
   async function loadTopics() {
     setTopicsLoading(true);
@@ -75,8 +68,8 @@ export default function ProblemNew() {
 
   async function onSubmit(event: Event) {
     event.preventDefault();
-    if (pending()) return;
-    const form = event.currentTarget as HTMLFormElement;
+    if (form.pending()) return;
+    const formEl = event.currentTarget as HTMLFormElement;
     const clientErrors = validateProblemDraft({
       title: title(),
       url: url(),
@@ -86,18 +79,12 @@ export default function ProblemNew() {
       notes: notes(),
     });
     if (Object.keys(clientErrors).length > 0) {
-      setFieldErrors(clientErrors);
-      setFormError(FORM_CLIENT_BANNER);
-      setRetryAfter(undefined);
-      setExistingProblemId(undefined);
-      focusFirstInvalid(form);
+      form.applyClientErrors(clientErrors);
+      focusFirstInvalid(formEl);
       return;
     }
-    setPending(true);
-    setFormError(undefined);
-    setFieldErrors({});
-    setExistingProblemId(undefined);
-    setRetryAfter(undefined);
+    form.beginSubmit();
+    form.setPending(true);
     try {
       const created = await problemsApi.create(
         buildCreateInput({
@@ -113,15 +100,10 @@ export default function ProblemNew() {
       );
       navigate(problemDetailPath(created.id));
     } catch (error) {
-      const { fieldErrors: nextFields, banner, retryAfter: retry, existingProblemId: existingId } =
-        applyProblemApiError(error);
-      setFieldErrors(nextFields);
-      setFormError(banner);
-      setRetryAfter(retry);
-      if (existingId) setExistingProblemId(existingId);
-      focusFirstInvalid(form);
+      form.applyApiError(error);
+      focusFirstInvalid(formEl);
     } finally {
-      setPending(false);
+      form.setPending(false);
     }
   }
 
@@ -141,9 +123,15 @@ export default function ProblemNew() {
             mode="create"
             formId={FORM_ID}
             title={title}
-            onTitleInput={setTitle}
+            onTitleInput={(value) => {
+              setTitle(value);
+              form.clearField("title");
+            }}
             url={url}
-            onUrlInput={setUrl}
+            onUrlInput={(value) => {
+              setUrl(value);
+              form.clearField("url");
+            }}
             platformProblemId={platformProblemId}
             onPlatformProblemIdInput={setPlatformProblemId}
             difficulty={difficulty}
@@ -161,17 +149,19 @@ export default function ProblemNew() {
             topics={topics}
             topicsLoading={topicsLoading}
             topicsTruncated={topicsTruncated}
-            fieldErrors={fieldErrors}
-            formError={formError}
-            retryAfter={retryAfter}
-            existingProblemId={existingProblemId}
+            fieldErrors={form.fieldErrors}
+            formError={form.formBanner}
+            retryAfter={form.retryAfter}
+            existingProblemId={form.existingProblemId}
             existingProblemHref={
-              existingProblemId() ? problemDetailPath(existingProblemId()!) : undefined
+              form.existingProblemId()
+                ? problemDetailPath(form.existingProblemId()!)
+                : undefined
             }
           />
           <div class="flex flex-wrap gap-3">
-            <Button type="submit" disabled={pending()}>
-              {pending() ? "Saving…" : "Save problem"}
+            <Button type="submit" disabled={form.pending()}>
+              {form.pending() ? "Saving…" : "Save problem"}
             </Button>
             <a class="ui-button" data-variant="secondary" href={paths.app.problems()}>
               Cancel

@@ -20,9 +20,8 @@ import {
   formatTopicProgress,
   topicProgressById,
 } from "../../../lib/problems/progress-display";
-import { applyTopicApiError } from "../../../lib/forms/apply-product-api-error";
+import { createFormState } from "../../../lib/forms/create-form-state";
 import { focusFirstInvalid } from "../../../lib/forms/focus-first-invalid";
-import { FORM_CLIENT_BANNER } from "../../../lib/forms/form-client-banner";
 import { validateTopicName } from "../../../lib/forms/validate-topic";
 import { topicFormMessage } from "../../../lib/topics/messages";
 import { paths } from "../../../router";
@@ -33,6 +32,8 @@ export default function TopicsIndex() {
   const auth = useAuth();
   const api = createTopicsApi(auth.productClient);
   const progressApi = createProgressApi(auth.productClient);
+  const createForm = createFormState("topic");
+  const renameForm = createFormState("topic");
 
   const [items, setItems] = createSignal<TopicResponse[]>([]);
   const [topicProgress, setTopicProgress] = createSignal<Map<string, TopicProgress>>(
@@ -46,21 +47,9 @@ export default function TopicsIndex() {
   const [truncatedTotal, setTruncatedTotal] = createSignal(false);
 
   const [createName, setCreateName] = createSignal("");
-  const [createPending, setCreatePending] = createSignal(false);
-  const [createError, setCreateError] = createSignal<string | undefined>();
-  const [createRetryAfter, setCreateRetryAfter] = createSignal<string | undefined>();
-  const [createFieldErrors, setCreateFieldErrors] = createSignal<
-    Record<string, string>
-  >({});
 
   const [editingId, setEditingId] = createSignal<string | undefined>();
   const [renameValue, setRenameValue] = createSignal("");
-  const [renamePending, setRenamePending] = createSignal(false);
-  const [renameError, setRenameError] = createSignal<string | undefined>();
-  const [renameRetryAfter, setRenameRetryAfter] = createSignal<string | undefined>();
-  const [renameFieldErrors, setRenameFieldErrors] = createSignal<
-    Record<string, string>
-  >({});
 
   const [deleteTarget, setDeleteTarget] = createSignal<TopicResponse | undefined>();
   const [deletePending, setDeletePending] = createSignal(false);
@@ -112,78 +101,63 @@ export default function TopicsIndex() {
 
   async function onCreate(event: Event) {
     event.preventDefault();
-    if (createPending()) return;
-    const form = event.currentTarget as HTMLFormElement;
+    if (createForm.pending()) return;
+    const formEl = event.currentTarget as HTMLFormElement;
     const clientErrors = validateTopicName({ name: createName() });
     if (Object.keys(clientErrors).length > 0) {
-      setCreateFieldErrors(clientErrors);
-      setCreateError(FORM_CLIENT_BANNER);
-      setCreateRetryAfter(undefined);
-      focusFirstInvalid(form);
+      createForm.applyClientErrors(clientErrors);
+      focusFirstInvalid(formEl);
       return;
     }
-    setCreatePending(true);
-    setCreateError(undefined);
-    setCreateFieldErrors({});
-    setCreateRetryAfter(undefined);
+    createForm.beginSubmit();
+    createForm.setPending(true);
     const name = createName().trim();
     try {
       await api.create({ name });
       setCreateName("");
+      createForm.resetErrors();
       await loadList();
       await loadProgress();
     } catch (error) {
-      const { fieldErrors, banner, retryAfter } = applyTopicApiError(error);
-      setCreateFieldErrors(fieldErrors);
-      setCreateError(banner);
-      setCreateRetryAfter(retryAfter);
-      focusFirstInvalid(form);
+      createForm.applyApiError(error);
+      focusFirstInvalid(formEl);
     } finally {
-      setCreatePending(false);
+      createForm.setPending(false);
     }
   }
 
   function startRename(topic: TopicResponse) {
     setEditingId(topic.id);
     setRenameValue(topic.name);
-    setRenameError(undefined);
-    setRenameFieldErrors({});
+    renameForm.resetErrors();
   }
 
   function cancelRename() {
     setEditingId(undefined);
     setRenameValue("");
-    setRenameError(undefined);
-    setRenameFieldErrors({});
+    renameForm.resetErrors();
   }
 
-  async function onRenameSave(topicId: string, form: HTMLFormElement | undefined) {
-    if (renamePending()) return;
+  async function onRenameSave(topicId: string, formEl: HTMLFormElement | undefined) {
+    if (renameForm.pending()) return;
     const clientErrors = validateTopicName({ name: renameValue() });
     if (Object.keys(clientErrors).length > 0) {
-      setRenameFieldErrors(clientErrors);
-      setRenameError(FORM_CLIENT_BANNER);
-      setRenameRetryAfter(undefined);
-      focusFirstInvalid(form);
+      renameForm.applyClientErrors(clientErrors);
+      focusFirstInvalid(formEl);
       return;
     }
-    setRenamePending(true);
-    setRenameError(undefined);
-    setRenameFieldErrors({});
-    setRenameRetryAfter(undefined);
+    renameForm.beginSubmit();
+    renameForm.setPending(true);
     const name = renameValue().trim();
     try {
       await api.rename(topicId, { name });
       cancelRename();
       await loadList();
     } catch (error) {
-      const { fieldErrors, banner, retryAfter } = applyTopicApiError(error);
-      setRenameFieldErrors(fieldErrors);
-      setRenameError(banner);
-      setRenameRetryAfter(retryAfter);
-      focusFirstInvalid(form);
+      renameForm.applyApiError(error);
+      focusFirstInvalid(formEl);
     } finally {
-      setRenamePending(false);
+      renameForm.setPending(false);
     }
   }
 
@@ -231,26 +205,29 @@ export default function TopicsIndex() {
               id="topic-create-name"
               label="Topic name"
               hint="1–100 characters."
-              error={createFieldErrors().name}
+              error={createForm.fieldErrors().name}
             >
               <input
                 class="ui-field"
                 value={createName()}
-                onInput={(event) => setCreateName(event.currentTarget.value)}
+                onInput={(event) => {
+                  setCreateName(event.currentTarget.value);
+                  createForm.clearField("name");
+                }}
                 {...formFieldControlAttrs({
                   id: "topic-create-name",
                   hint: "1–100 characters.",
-                  error: createFieldErrors().name,
+                  error: createForm.fieldErrors().name,
                 })}
               />
             </FormField>
-            <Show when={createError()}>
-              <FormAlert variant="error" retryAfter={createRetryAfter()}>
-                {createError()}
+            <Show when={createForm.formBanner()}>
+              <FormAlert variant="error" retryAfter={createForm.retryAfter()}>
+                {createForm.formBanner()}
               </FormAlert>
             </Show>
-            <Button type="submit" disabled={createPending()}>
-              {createPending() ? "Creating…" : "Create topic"}
+            <Button type="submit" disabled={createForm.pending()}>
+              {createForm.pending() ? "Creating…" : "Create topic"}
             </Button>
           </form>
         </Panel>
@@ -336,32 +313,33 @@ export default function TopicsIndex() {
                             id={`topic-rename-${topic.id}`}
                             label="Rename topic"
                             hint="1–100 characters."
-                            error={renameFieldErrors().name}
+                            error={renameForm.fieldErrors().name}
                           >
                             <input
                               class="ui-field"
                               value={renameValue()}
-                              onInput={(event) =>
-                                setRenameValue(event.currentTarget.value)
-                              }
+                              onInput={(event) => {
+                                setRenameValue(event.currentTarget.value);
+                                renameForm.clearField("name");
+                              }}
                               {...formFieldControlAttrs({
                                 id: `topic-rename-${topic.id}`,
                                 hint: "1–100 characters.",
-                                error: renameFieldErrors().name,
+                                error: renameForm.fieldErrors().name,
                               })}
                             />
                           </FormField>
-                          <Show when={renameError()}>
-                            <FormAlert variant="error" retryAfter={renameRetryAfter()}>
-                              {renameError()}
+                          <Show when={renameForm.formBanner()}>
+                            <FormAlert variant="error" retryAfter={renameForm.retryAfter()}>
+                              {renameForm.formBanner()}
                             </FormAlert>
                           </Show>
                           <div class="flex flex-wrap gap-2">
                             <Button
                               type="submit"
-                              disabled={renamePending()}
+                              disabled={renameForm.pending()}
                             >
-                              {renamePending() ? "Saving…" : "Save"}
+                              {renameForm.pending() ? "Saving…" : "Save"}
                             </Button>
                             <Button
                               type="button"

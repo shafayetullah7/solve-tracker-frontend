@@ -4,25 +4,29 @@ import { AuthLayout } from "../components/auth/AuthLayout";
 import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
-import { applyAuthApiError } from "../lib/forms/apply-auth-api-error";
+import {
+  PasswordCodePointMeter,
+  passwordMeterId,
+} from "../components/ui/PasswordCodePointMeter";
+import { createFormState } from "../lib/forms/create-form-state";
+import { focusFirstInvalid } from "../lib/forms/focus-first-invalid";
 import { AUTH_PASSWORD_HINT } from "../lib/forms/auth-field-copy";
-import type { FieldErrors } from "../lib/forms/field-errors";
-import { AUTH_CLIENT_BANNER, validateReset } from "../lib/forms/validate-auth";
+import { validateReset } from "../lib/forms/validate-auth";
 import { parseResetTokenFromHash } from "../lib/auth/forms";
 import { useAuth } from "../lib/auth/context";
 import { paths } from "../router";
 
+const RESET_PASSWORD_ID = "reset-password";
+
 export default function ResetPassword() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const form = createFormState("auth");
   const [token, setToken] = createSignal<string | undefined>();
   const [password, setPassword] = createSignal("");
   const [confirm, setConfirm] = createSignal("");
-  const [pending, setPending] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | undefined>();
-  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
   const [localError, setLocalError] = createSignal<string | undefined>();
+  const [passwordBlurred, setPasswordBlurred] = createSignal(false);
 
   onSettled(() => {
     if (typeof window === "undefined") return;
@@ -35,23 +39,18 @@ export default function ResetPassword() {
     }
   });
 
-  function patchFieldErrors(key: string) {
-    setFieldErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  }
+  const meterVisible = () => form.submitAttempted() || passwordBlurred();
+  const passwordMeterDescribedBy = () =>
+    meterVisible() ? [passwordMeterId(RESET_PASSWORD_ID)] : undefined;
 
   async function onSubmit(event: Event) {
     event.preventDefault();
-    if (pending()) return;
+    if (form.pending()) return;
+    const formEl = event.currentTarget as HTMLFormElement;
     const resetToken = token();
     if (!resetToken) {
       setLocalError("Open the password reset link from your email to continue.");
-      setFieldErrors({});
-      setFormError(undefined);
+      form.resetErrors();
       return;
     }
     const clientErrors = validateReset({
@@ -59,17 +58,14 @@ export default function ResetPassword() {
       confirm: confirm(),
     });
     if (Object.keys(clientErrors).length > 0) {
-      setFieldErrors(clientErrors);
-      setFormError(AUTH_CLIENT_BANNER);
+      form.applyClientErrors(clientErrors);
       setLocalError(undefined);
-      setRetryAfter(undefined);
+      focusFirstInvalid(formEl);
       return;
     }
-    setPending(true);
-    setFormError(undefined);
+    form.beginSubmit();
     setLocalError(undefined);
-    setRetryAfter(undefined);
-    setFieldErrors({});
+    form.setPending(true);
     const nextPassword = password();
     try {
       await auth.coordinator.runWithSessionLock(() =>
@@ -79,16 +75,14 @@ export default function ResetPassword() {
       auth.notifyPeersLoggedOut();
       navigate(paths.login());
     } catch (error) {
-      const applied = applyAuthApiError(error);
-      setFieldErrors(applied.fieldErrors);
-      setFormError(applied.banner);
-      setRetryAfter(applied.retryAfter);
+      form.applyApiError(error);
+      focusFirstInvalid(formEl);
     } finally {
-      setPending(false);
+      form.setPending(false);
     }
   }
 
-  const confirmError = () => fieldErrors().confirm;
+  const confirmError = () => form.fieldErrors().confirm;
 
   return (
     <AuthLayout
@@ -107,25 +101,32 @@ export default function ResetPassword() {
       >
         <form class="space-y-4" novalidate onSubmit={onSubmit}>
           <FormField
-            id="reset-password"
+            id={RESET_PASSWORD_ID}
             label="New password"
             hint={AUTH_PASSWORD_HINT}
-            error={fieldErrors().password}
+            error={form.fieldErrors().password}
           >
             <input
               class="ui-field"
               type="password"
               autocomplete="new-password"
               {...formFieldControlAttrs({
-                id: "reset-password",
+                id: RESET_PASSWORD_ID,
                 hint: AUTH_PASSWORD_HINT,
-                error: fieldErrors().password,
+                extraDescribedBy: passwordMeterDescribedBy(),
+                error: form.fieldErrors().password,
               })}
               value={password()}
               onInput={(event) => {
                 setPassword(event.currentTarget.value);
-                patchFieldErrors("password");
+                form.clearField("password");
               }}
+              onBlur={() => setPasswordBlurred(true)}
+            />
+            <PasswordCodePointMeter
+              fieldId={RESET_PASSWORD_ID}
+              value={password()}
+              visible={meterVisible()}
             />
           </FormField>
           <FormField
@@ -144,20 +145,20 @@ export default function ResetPassword() {
               value={confirm()}
               onInput={(event) => {
                 setConfirm(event.currentTarget.value);
-                patchFieldErrors("confirm");
+                form.clearField("confirm");
               }}
             />
           </FormField>
           <Show when={localError()}>
             <FormAlert variant="error">{localError()}</FormAlert>
           </Show>
-          <Show when={formError()}>
-            <FormAlert variant="error" retryAfter={retryAfter()}>
-              {formError()}
+          <Show when={form.formBanner()}>
+            <FormAlert variant="error" retryAfter={form.retryAfter()}>
+              {form.formBanner()}
             </FormAlert>
           </Show>
-          <Button type="submit" disabled={pending()}>
-            {pending() ? "Saving…" : "Update password"}
+          <Button type="submit" disabled={form.pending()}>
+            {form.pending() ? "Saving…" : "Update password"}
           </Button>
         </form>
       </Show>

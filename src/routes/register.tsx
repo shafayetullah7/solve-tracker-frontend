@@ -4,53 +4,50 @@ import { AuthLayout } from "../components/auth/AuthLayout";
 import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
-import { applyAuthApiError } from "../lib/forms/apply-auth-api-error";
+import {
+  PasswordCodePointMeter,
+  passwordMeterId,
+} from "../components/ui/PasswordCodePointMeter";
+import { createFormState } from "../lib/forms/create-form-state";
+import { focusFirstInvalid } from "../lib/forms/focus-first-invalid";
 import { AUTH_NAME_HINT, AUTH_PASSWORD_HINT } from "../lib/forms/auth-field-copy";
-import type { FieldErrors } from "../lib/forms/field-errors";
-import { AUTH_CLIENT_BANNER, validateRegister } from "../lib/forms/validate-auth";
+import { validateRegister } from "../lib/forms/validate-auth";
 import { useAuth } from "../lib/auth/context";
 import { useRedirectIfAuthenticated } from "../lib/auth/guest-auth-page";
 import { paths } from "../router";
+
+const REGISTER_PASSWORD_ID = "register-password";
 
 export default function Register() {
   const auth = useAuth();
   const navigate = useNavigate();
   useRedirectIfAuthenticated();
+  const form = createFormState("auth");
   const [name, setName] = createSignal("");
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
-  const [pending, setPending] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | undefined>();
-  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
+  const [passwordBlurred, setPasswordBlurred] = createSignal(false);
 
-  function patchFieldErrors(key: string) {
-    setFieldErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  }
+  const meterVisible = () => form.submitAttempted() || passwordBlurred();
+  const passwordMeterDescribedBy = () =>
+    meterVisible() ? [passwordMeterId(REGISTER_PASSWORD_ID)] : undefined;
 
   async function onSubmit(event: Event) {
     event.preventDefault();
-    if (pending()) return;
+    if (form.pending()) return;
+    const formEl = event.currentTarget as HTMLFormElement;
     const clientErrors = validateRegister({
       name: name(),
       email: email(),
       password: password(),
     });
     if (Object.keys(clientErrors).length > 0) {
-      setFieldErrors(clientErrors);
-      setFormError(AUTH_CLIENT_BANNER);
-      setRetryAfter(undefined);
+      form.applyClientErrors(clientErrors);
+      focusFirstInvalid(formEl);
       return;
     }
-    setPending(true);
-    setFormError(undefined);
-    setRetryAfter(undefined);
-    setFieldErrors({});
+    form.beginSubmit();
+    form.setPending(true);
     const pwd = password();
     try {
       await auth.authApi.register({
@@ -61,12 +58,10 @@ export default function Register() {
       setPassword("");
       navigate(`${paths.login()}?registered=1`);
     } catch (error) {
-      const applied = applyAuthApiError(error);
-      setFieldErrors(applied.fieldErrors);
-      setFormError(applied.banner);
-      setRetryAfter(applied.retryAfter);
+      form.applyApiError(error);
+      focusFirstInvalid(formEl);
     } finally {
-      setPending(false);
+      form.setPending(false);
     }
   }
 
@@ -81,7 +76,7 @@ export default function Register() {
           id="register-name"
           label="Name"
           hint={AUTH_NAME_HINT}
-          error={fieldErrors().name}
+          error={form.fieldErrors().name}
         >
           <input
             class="ui-field"
@@ -89,61 +84,68 @@ export default function Register() {
             {...formFieldControlAttrs({
               id: "register-name",
               hint: AUTH_NAME_HINT,
-              error: fieldErrors().name,
+              error: form.fieldErrors().name,
             })}
             value={name()}
             onInput={(event) => {
               setName(event.currentTarget.value);
-              patchFieldErrors("name");
+              form.clearField("name");
             }}
           />
         </FormField>
-        <FormField id="register-email" label="Email" error={fieldErrors().email}>
+        <FormField id="register-email" label="Email" error={form.fieldErrors().email}>
           <input
             class="ui-field"
             type="email"
             autocomplete="email"
             {...formFieldControlAttrs({
               id: "register-email",
-              error: fieldErrors().email,
+              error: form.fieldErrors().email,
             })}
             value={email()}
             onInput={(event) => {
               setEmail(event.currentTarget.value);
-              patchFieldErrors("email");
+              form.clearField("email");
             }}
           />
         </FormField>
         <FormField
-          id="register-password"
+          id={REGISTER_PASSWORD_ID}
           label="Password"
           hint={AUTH_PASSWORD_HINT}
-          error={fieldErrors().password}
+          error={form.fieldErrors().password}
         >
           <input
             class="ui-field"
             type="password"
             autocomplete="new-password"
             {...formFieldControlAttrs({
-              id: "register-password",
+              id: REGISTER_PASSWORD_ID,
               hint: AUTH_PASSWORD_HINT,
-              error: fieldErrors().password,
+              extraDescribedBy: passwordMeterDescribedBy(),
+              error: form.fieldErrors().password,
             })}
             value={password()}
             onInput={(event) => {
               setPassword(event.currentTarget.value);
-              patchFieldErrors("password");
+              form.clearField("password");
             }}
+            onBlur={() => setPasswordBlurred(true)}
+          />
+          <PasswordCodePointMeter
+            fieldId={REGISTER_PASSWORD_ID}
+            value={password()}
+            visible={meterVisible()}
           />
         </FormField>
-        <Show when={formError()}>
-          <FormAlert variant="error" retryAfter={retryAfter()}>
-            {formError()}
+        <Show when={form.formBanner()}>
+          <FormAlert variant="error" retryAfter={form.retryAfter()}>
+            {form.formBanner()}
           </FormAlert>
         </Show>
         <div class="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={pending()}>
-            {pending() ? "Creating…" : "Create account"}
+          <Button type="submit" disabled={form.pending()}>
+            {form.pending() ? "Creating…" : "Create account"}
           </Button>
           <a class="text-sm text-muted underline-offset-4 hover:underline" href={paths.login()}>
             Sign in instead

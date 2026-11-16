@@ -1,6 +1,6 @@
 # Form validation & error presentation — phased plan
 
-**Status:** FORM-1–4 complete (2026-11-16); FORM-5 optional / not started.  
+**Status:** FORM-1–5 complete (2026-11-16); backend auth flattening (§5.4) out of scope.  
 **Goal:** One predictable way to validate, map API errors, and show messages on every user-facing form — without replacing Nest as source of truth.  
 **Related:** [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md) §8–9, [AUTH_CONVENTIONS.md](../AUTH_CONVENTIONS.md), backend [PHASE_0_DECISIONS.md](../../backend/docs/PHASE_0_DECISIONS.md) (400 `VALIDATION_ERROR`).
 
@@ -90,7 +90,7 @@ Prefer importing **numeric limits** from shared modules where the repo already a
 | **FORM-2** | Presentation primitives **done** | `FormField`, `FormAlert`, `formFieldControlAttrs`, auth hints, FRONTEND_CONVENTIONS §8.1 |
 | **FORM-3** | Auth forms **done** | `validate-auth`, `applyAuthApiError`, all auth routes on FormField/FormAlert |
 | **FORM-4** | Product forms **done** | `validate-problem` / `validate-topic`, `applyProductApiError`, `focusFirstInvalid`, product routes |
-| **FORM-5** (optional) | Ergonomics | `createFormState` helper, live length feedback, rate-limit `Retry-After` UX |
+| **FORM-5** | Ergonomics **done** | `createFormState`, `clearFieldError`, password meter, rate-limit UX (pre-built) |
 
 ```mermaid
 flowchart LR
@@ -278,6 +278,8 @@ cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run
 ---
 
 ## FORM-5 (optional) — Ergonomics & polish
+
+**Status (2026-11-16):** Done — see [FORM_VALIDATION_PHASED_RESULTS.md](FORM_VALIDATION_PHASED_RESULTS.md). **5.3** was already satisfied before this phase.
 
 **Goal:** Less boilerplate and better live feedback.
 

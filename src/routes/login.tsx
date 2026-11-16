@@ -4,9 +4,9 @@ import { AuthLayout } from "../components/auth/AuthLayout";
 import { Button } from "../components/ui/Button";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
-import { applyAuthApiError } from "../lib/forms/apply-auth-api-error";
-import type { FieldErrors } from "../lib/forms/field-errors";
-import { AUTH_CLIENT_BANNER, validateLogin } from "../lib/forms/validate-auth";
+import { createFormState } from "../lib/forms/create-form-state";
+import { focusFirstInvalid } from "../lib/forms/focus-first-invalid";
+import { validateLogin } from "../lib/forms/validate-auth";
 import { safeReturnPath } from "../lib/auth/forms";
 import { useAuth } from "../lib/auth/context";
 import { useRedirectIfAuthenticated } from "../lib/auth/guest-auth-page";
@@ -17,56 +17,40 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   useRedirectIfAuthenticated();
+  const form = createFormState("auth");
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
-  const [pending, setPending] = createSignal(false);
-  const [formError, setFormError] = createSignal<string | undefined>();
-  const [retryAfter, setRetryAfter] = createSignal<string | undefined>();
-  const [fieldErrors, setFieldErrors] = createSignal<FieldErrors>({});
 
   const registered = () =>
     new URLSearchParams(location.search).get("registered") === "1";
   const returnPath = () =>
     safeReturnPath(new URLSearchParams(location.search).get("next"));
 
-  function patchFieldErrors(key: string) {
-    setFieldErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  }
-
   async function onSubmit(event: Event) {
     event.preventDefault();
-    if (pending()) return;
+    if (form.pending()) return;
+    const formEl = event.currentTarget as HTMLFormElement;
     const clientErrors = validateLogin({ email: email(), password: password() });
     if (Object.keys(clientErrors).length > 0) {
-      setFieldErrors(clientErrors);
-      setFormError(AUTH_CLIENT_BANNER);
-      setRetryAfter(undefined);
+      form.applyClientErrors(clientErrors);
+      focusFirstInvalid(formEl);
       return;
     }
-    setPending(true);
-    setFormError(undefined);
-    setRetryAfter(undefined);
-    setFieldErrors({});
+    form.beginSubmit();
+    form.setPending(true);
     try {
       await auth.login({ email: email().trim(), password: password() });
       navigate(returnPath() ?? paths.app());
     } catch (error) {
-      const applied = applyAuthApiError(error);
-      setFieldErrors(applied.fieldErrors);
-      setFormError(applied.banner);
-      setRetryAfter(applied.retryAfter);
+      form.applyApiError(error);
+      focusFirstInvalid(formEl);
     } finally {
-      setPending(false);
+      form.setPending(false);
     }
   }
 
-  const emailError = () => fieldErrors().email;
-  const passwordError = () => fieldErrors().password;
+  const emailError = () => form.fieldErrors().email;
+  const passwordError = () => form.fieldErrors().password;
 
   return (
     <AuthLayout
@@ -92,7 +76,7 @@ export default function Login() {
             value={email()}
             onInput={(event) => {
               setEmail(event.currentTarget.value);
-              patchFieldErrors("email");
+              form.clearField("email");
             }}
           />
         </FormField>
@@ -108,18 +92,18 @@ export default function Login() {
             value={password()}
             onInput={(event) => {
               setPassword(event.currentTarget.value);
-              patchFieldErrors("password");
+              form.clearField("password");
             }}
           />
         </FormField>
-        <Show when={formError()}>
-          <FormAlert variant="error" retryAfter={retryAfter()}>
-            {formError()}
+        <Show when={form.formBanner()}>
+          <FormAlert variant="error" retryAfter={form.retryAfter()}>
+            {form.formBanner()}
           </FormAlert>
         </Show>
         <div class="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={pending()}>
-            {pending() ? "Signing in…" : "Sign in"}
+          <Button type="submit" disabled={form.pending()}>
+            {form.pending() ? "Signing in…" : "Sign in"}
           </Button>
           <a class="text-sm text-brand underline-offset-4 hover:underline" href={paths.register()}>
             Create account

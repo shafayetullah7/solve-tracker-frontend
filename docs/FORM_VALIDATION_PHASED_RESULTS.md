@@ -63,3 +63,19 @@ cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
 - [ ] Invalid scheme (`ftp://…`) → client or server `url` message, no duplicate generic banner.
 - [ ] Duplicate URL → `url` field + banner + link to existing problem.
 - [ ] Topic create/rename duplicate name → `name` field + banner.
+
+## FORM-5 — Ergonomics & polish (2026-11-16)
+
+**Delivered:** [`create-form-state.ts`](../src/lib/forms/create-form-state.ts), [`clear-field-error.ts`](../src/lib/forms/clear-field-error.ts), [`PasswordCodePointMeter`](../src/components/ui/PasswordCodePointMeter.tsx); all six form routes migrated; auth `focusFirstInvalid`; product title/url/topic name clear-on-input. **Rate-limit UX (§5.3)** was already in place via API client + `FormAlert`.
+
+**Verification:**
+
+```bash
+cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms src/components/ui/PasswordCodePointMeter.test.tsx
+```
+
+**Manual checklist**
+
+- [ ] Register password: meter appears after blur or failed submit, not on first keystroke.
+- [ ] Fix a field error by typing → inline error clears for that field.
+- [ ] Rate-limited auth call shows “Try again in about N minutes.” under `FormAlert`.

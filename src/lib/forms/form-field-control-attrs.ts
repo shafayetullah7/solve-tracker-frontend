@@ -10,6 +10,7 @@ export type FormFieldControlAttrsOptions = {
   id: string;
   error?: string;
   hint?: string;
+  extraDescribedBy?: string[];
   required?: boolean;
 };
 
@@ -24,10 +25,11 @@ export type FormFieldControlAttrs = {
 export function formFieldControlAttrs(
   options: FormFieldControlAttrsOptions,
 ): FormFieldControlAttrs {
-  const { id, error, hint, required } = options;
+  const { id, error, hint, extraDescribedBy, required } = options;
   const hasError = Boolean(error && error.length > 0);
   const describedBy: string[] = [];
   if (hint) describedBy.push(formFieldHintId(id));
+  if (extraDescribedBy?.length) describedBy.push(...extraDescribedBy);
   if (hasError) describedBy.push(formFieldErrorId(id));
 
   const attrs: FormFieldControlAttrs = { id };
