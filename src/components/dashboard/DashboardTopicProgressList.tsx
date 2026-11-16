@@ -18,8 +18,8 @@ const sortIdleClass = "text-muted hover:text-foreground";
 
 const SORT_OPTIONS: { id: DashboardTopicSortMode; label: string }[] = [
   { id: "default", label: "Default" },
-  { id: "mostIncomplete", label: "Most incomplete" },
-  { id: "mostRemaining", label: "Most remaining" },
+  { id: "mostIncomplete", label: "Incomplete" },
+  { id: "mostRemaining", label: "Remaining" },
 ];
 
 export function DashboardTopicProgressList(props: DashboardTopicProgressListProps) {
@@ -76,7 +76,7 @@ export function DashboardTopicProgressList(props: DashboardTopicProgressListProp
           </p>
         }
       >
-        <ul class="mt-4 divide-y divide-line rounded-panel border border-line bg-surface">
+        <ul class="mt-4 divide-y divide-line rounded-panel border border-line bg-surface shadow-panel">
           <For each={sortedTopics()}>
             {(row) => (
               <li class="space-y-2 px-5 py-4">

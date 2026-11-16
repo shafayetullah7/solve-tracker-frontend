@@ -1,11 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createSignal, Match, onCleanup, onSettled, Switch } from "solid-js";
-import { DashboardOverallPanel } from "../../components/dashboard/DashboardOverallPanel";
-import { DashboardPageHeader } from "../../components/dashboard/DashboardPageHeader";
-import { DashboardPreviewGrid } from "../../components/dashboard/DashboardPreviewGrid";
-import { DashboardQuickLinks } from "../../components/dashboard/DashboardQuickLinks";
+import { createMemo, createSignal, Match, onCleanup, onSettled, Switch } from "solid-js";
 import { DashboardActivitySection } from "../../components/dashboard/DashboardActivitySection";
+import { DashboardPageHeader } from "../../components/dashboard/DashboardPageHeader";
 import { DashboardPlatformGrid } from "../../components/dashboard/DashboardPlatformGrid";
+import { DashboardQueueGrid } from "../../components/dashboard/DashboardQueueGrid";
+import { DashboardStatsStrip } from "../../components/dashboard/DashboardStatsStrip";
+import { DashboardToolbar } from "../../components/dashboard/DashboardToolbar";
 import { DashboardTopicProgressList } from "../../components/dashboard/DashboardTopicProgressList";
 import { Button } from "../../components/ui/Button";
 import { LoadingPlaceholder } from "../../components/ui/LoadingPlaceholder";
@@ -30,6 +30,11 @@ type ActivityStatus = "idle" | "loading" | "ready" | "error";
 
 const ACTIVITY_WEEKS = 12;
 
+function latestWeekCounts(data: ProgressActivityResponse | undefined) {
+  const week = data?.weeks.at(-1);
+  return { added: week?.added ?? 0, solved: week?.solved ?? 0 };
+}
+
 export default function DashboardPage() {
   const auth = useAuth();
   const progressApi = createProgressApi(auth.productClient);
@@ -51,6 +56,13 @@ export default function DashboardPage() {
 
   let previewsAbort: AbortController | undefined;
   let activityAbort: AbortController | undefined;
+
+  const isRefreshing = createMemo(
+    () =>
+      loadStatus() === "loading" ||
+      previewsStatus() === "loading" ||
+      activityStatus() === "loading",
+  );
 
   async function loadPreviews() {
     previewsAbort?.abort();
@@ -154,18 +166,27 @@ export default function DashboardPage() {
           </div>
         </Match>
         <Match when={loadStatus() === "ready" && overall()}>
-          {(counts) => (
-            <div class="space-y-8">
-              <DashboardPageHeader />
-              <div class="space-y-8">
-                <DashboardQuickLinks
+          {(counts) => {
+            const week = () => latestWeekCounts(activity());
+            return (
+              <div class="space-y-6">
+                <DashboardPageHeader platforms={platforms()} />
+                <DashboardToolbar
+                  total={counts().total}
                   unsolvedCount={counts().unsolved}
                   untaggedCount={
                     previewsStatus() === "ready" ? previews()?.untaggedTotal : undefined
                   }
+                  onRefresh={() => void loadProgress()}
+                  refreshing={isRefreshing()}
                 />
-                <DashboardOverallPanel counts={counts()} />
-                <DashboardPreviewGrid
+                <DashboardStatsStrip
+                  counts={counts()}
+                  platformCount={platforms().length}
+                  weekSolved={activityStatus() === "ready" ? week().solved : undefined}
+                  weekAdded={activityStatus() === "ready" ? week().added : undefined}
+                />
+                <DashboardQueueGrid
                   status={previewsStatus()}
                   focus={previews()?.focus ?? []}
                   recentAdded={previews()?.recentAdded ?? []}
@@ -173,22 +194,21 @@ export default function DashboardPage() {
                   errorMessage={previewsError()}
                   onRetry={() => void loadPreviews()}
                 />
-                <DashboardActivitySection
-                  status={activityStatus()}
-                  data={activity()}
-                  errorMessage={activityError()}
-                  onRetry={() => void loadActivity()}
-                />
-                <div
-                  class="space-y-8 border-t border-line pt-8"
-                  aria-label="Library breakdown"
-                >
-                  <DashboardTopicProgressList topics={topics()} />
-                  <DashboardPlatformGrid platforms={platforms()} />
+                <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
+                  <div class="space-y-6">
+                    <DashboardTopicProgressList topics={topics()} />
+                    <DashboardPlatformGrid platforms={platforms()} />
+                  </div>
+                  <DashboardActivitySection
+                    status={activityStatus()}
+                    data={activity()}
+                    errorMessage={activityError()}
+                    onRetry={() => void loadActivity()}
+                  />
                 </div>
               </div>
-            </div>
-          )}
+            );
+          }}
         </Match>
       </Switch>
     </div>

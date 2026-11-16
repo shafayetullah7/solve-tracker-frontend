@@ -33,7 +33,7 @@ export function DashboardPlatformGrid(props: DashboardPlatformGridProps) {
           </p>
         }
       >
-        <ul class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <ul class="mt-4 grid grid-cols-2 gap-3">
           <For each={props.platforms}>
             {(row) => (
               <li>

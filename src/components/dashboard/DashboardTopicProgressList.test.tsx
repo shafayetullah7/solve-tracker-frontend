@@ -57,7 +57,7 @@ describe("DashboardTopicProgressList", () => {
         ]}
       />
     ));
-    fireEvent.click(view.getByRole("button", { name: "Most remaining" }));
+    fireEvent.click(view.getByRole("button", { name: "Remaining" }));
     await waitFor(() => {
       const links = view.getAllByRole("link", { name: /^(Arrays|Graphs)$/ });
       expect(links[0]).toHaveTextContent("Graphs");

@@ -33,9 +33,6 @@ export default defineConfig(({ command, mode, isPreview }) => ({
     globals: false,
     setupFiles: ["./vitest-setup.ts"],
     exclude: ["**/node_modules/**", "e2e/**"],
-    // if you have few tests, try commenting this
-    // out to improve performance:
-    isolate: false,
   },
   build: {
     target: "esnext",
