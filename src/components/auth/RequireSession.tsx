@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "@solidjs/router";
 import type { ParentProps } from "solid-js";
-import { Match, Show, Switch, onSettled } from "solid-js";
+import { createEffect, Match, Show, Switch } from "solid-js";
 import { Button } from "../ui/Button";
 import { useAuth } from "../../lib/auth/context";
 import { loginPathWithReturn } from "../../lib/auth/forms";
@@ -11,11 +11,14 @@ function RedirectToLogin() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  onSettled(() => {
-    if (auth.status() !== "anonymous") return;
-    const returnTo = `${location.pathname}${location.search}`;
-    navigate(loginPathWithReturn(returnTo, paths.login()), { replace: true });
-  });
+  createEffect(
+    () => [auth.status(), location.pathname, location.search] as const,
+    ([status, pathname, search]) => {
+      if (status !== "anonymous") return;
+      const returnTo = `${pathname}${search}`;
+      navigate(loginPathWithReturn(returnTo, paths.login()), { replace: true });
+    },
+  );
 
   return (
     <p class="text-muted" role="status">

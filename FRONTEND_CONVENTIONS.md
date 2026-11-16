@@ -231,7 +231,7 @@ Use a named function prop when the parent needs to control rendering based on ch
 
 ## 8. Async data and routing
 
-- Async derived data uses `createMemo(() => fetchData(id()))` and a `Loading` boundary for pending reads; use `Errored` for failures. These replace Solid 1.x `createResource`, `Suspense`, and `ErrorBoundary` patterns in this installed version.
+- Async derived data uses `createMemo(() => fetchData(id()))` and a `Loading` boundary for pending reads; use `Errored` for failures. App shell: [`App.tsx`](src/App.tsx) wraps routes with `<Errored>` + [`RouteErrorFallback`](src/components/ui/RouteErrorFallback.tsx) outside `<Loading>`. Form/list failures stay imperative (`FormAlert`, `loadStatus`). These replace Solid 1.x `createResource`, `Suspense`, and `ErrorBoundary` patterns in this installed version.
 - Use `refresh`/`affects` only according to the local Solid 2 reference. `isPending` represents pending changes, not a generic initial-loading flag.
 - Keep route files focused on page composition. Put shared primitives in `components/ui/`, feature components/state in feature folders as implemented, and backend request helpers in a dedicated `lib/` module when introduced.
 - The Nest backend owns persistence and validation. Do not introduce framework server actions or store fake solved progress as if it were persisted backend data.

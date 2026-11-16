@@ -1,5 +1,6 @@
 import { Title } from "@solidjs/meta";
-import { Loading, Show, type ParentProps } from "solid-js";
+import { Errored, Loading, Show, type ParentProps } from "solid-js";
+import { RouteErrorFallback } from "./components/ui/RouteErrorFallback";
 import { AuthNav } from "./components/auth/AuthNav";
 import { AuthProvider, useAuth } from "./lib/auth/context";
 import { paths, Router } from "./router";
@@ -16,7 +17,7 @@ function AppRouterContent(props: ParentProps) {
       >
         Skip to content
       </a>
-      <Show when={auth.status() !== "authenticated"}>
+      <Show when={auth.status() === "anonymous" || auth.status() === "unavailable"}>
         <nav
           aria-label="Main navigation"
           class="border-b border-line bg-surface px-5 py-4 sm:px-8"
@@ -33,15 +34,19 @@ function AppRouterContent(props: ParentProps) {
         </nav>
       </Show>
       <div class="flex min-h-0 flex-1 flex-col max-h-dvh overflow-hidden max-md:max-h-none max-md:overflow-visible md:h-dvh">
-        <Loading
-          fallback={
-            <main class="p-8" role="status">
-              Loading…
-            </main>
-          }
+        <Errored
+          fallback={(err, reset) => <RouteErrorFallback err={err} reset={reset} />}
         >
-          {props.children}
-        </Loading>
+          <Loading
+            fallback={
+              <main class="p-8" role="status">
+                Loading…
+              </main>
+            }
+          >
+            {props.children}
+          </Loading>
+        </Errored>
       </div>
     </>
   );
