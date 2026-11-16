@@ -32,7 +32,7 @@ function AppRouterContent(props: ParentProps) {
           </div>
         </nav>
       </Show>
-      <div>
+      <div class="flex min-h-0 flex-1 flex-col max-h-dvh overflow-hidden max-md:max-h-none max-md:overflow-visible md:h-dvh">
         <Loading
           fallback={
             <main class="p-8" role="status">

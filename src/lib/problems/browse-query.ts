@@ -1,11 +1,11 @@
 import { appProblems } from "../app/product-routes";
 import type { ListProblemsQuery } from "../api/modules/problems.api";
+import { isPlatformSlug } from "../platforms/catalog";
 
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const STATUSES = new Set(["solved", "unsolved"]);
-const PLATFORMS = new Set(["codeforces", "leetcode", "codechef"]);
 const SORTS = new Set(["title", "createdAt", "solvedAt"]);
 const ORDERS = new Set(["asc", "desc"]);
 const PAGE_SIZES = new Set([25, 50, 100]);
@@ -56,7 +56,7 @@ export function parseBrowseSearch(search: string): ListProblemsQuery {
   if (status && STATUSES.has(status)) query.status = status as "solved" | "unsolved";
 
   const platform = params.get("platform");
-  if (platform && PLATFORMS.has(platform))
+  if (platform && isPlatformSlug(platform))
     query.platform = platform as ListProblemsQuery["platform"];
 
   const topicIds = params
@@ -118,7 +118,10 @@ export function hasActiveBrowseFilters(search: string): boolean {
   const params = searchParams(search);
   if (params.get("q")?.trim()) return true;
   if (params.get("status") && STATUSES.has(params.get("status")!)) return true;
-  if (params.get("platform") && PLATFORMS.has(params.get("platform")!))
+  if (
+    params.get("platform") &&
+    isPlatformSlug(params.get("platform")!)
+  )
     return true;
   if (params.get("untagged") === "true") return true;
   if (params.get("topicId") && UUID.test(params.get("topicId")!)) return true;

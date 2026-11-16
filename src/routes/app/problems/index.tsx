@@ -263,27 +263,23 @@ export default function ProblemsIndex() {
   return (
     <>
       <Title>Library — Practice</Title>
-      <header class="mb-8 flex flex-wrap items-start justify-between gap-4 max-w-2xl">
-        <div>
-          <h1 class="text-page font-semibold tracking-tight">Your problem library</h1>
-          <p class="mt-2 text-muted">
-            Browse saved problems, open platform links, and manage your collection.
-          </p>
+      <header class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="min-w-0 space-y-1">
+          <h1 class="text-section font-semibold tracking-tight">Your problem library</h1>
+          <LibraryProgressStrip
+            loadStatus={progressStatus}
+            overall={overallProgress}
+            errorMessage={progressError}
+            matchingTotal={() =>
+              listStatus() === "ready" ? listMeta().total : undefined
+            }
+            listReady={() => listStatus() === "ready"}
+          />
         </div>
-        <a class="ui-button" data-variant="primary" href={addHref()}>
+        <a class="ui-button shrink-0" data-variant="primary" href={addHref()}>
           Add problem
         </a>
       </header>
-
-      <LibraryProgressStrip
-        loadStatus={progressStatus}
-        overall={overallProgress}
-        errorMessage={progressError}
-        matchingTotal={() =>
-          listStatus() === "ready" ? listMeta().total : undefined
-        }
-        listReady={() => listStatus() === "ready"}
-      />
 
       <Show when={showTopicBanner()}>
         <p class="mb-4 text-sm text-muted">
@@ -297,8 +293,12 @@ export default function ProblemsIndex() {
         </p>
       </Show>
 
-      <Panel title="Saved problems" description="Open the original link on the platform when you practice.">
-        <div class="sticky top-0 z-10 -mx-5 mb-4 border-b border-line bg-surface px-5 pb-4 sm:-mx-6 sm:px-6">
+      <Panel>
+        <div
+          class="sticky top-0 z-10 -mx-5 mb-3 border-b border-line bg-surface px-5 py-2 sm:-mx-6 sm:px-6"
+          role="search"
+          aria-label="Filter saved problems"
+        >
           <ProblemBrowseToolbar
             searchKey={location.search}
             topics={topics}

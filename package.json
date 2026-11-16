@@ -38,6 +38,7 @@
     "@solidjs/meta": "^1.0.0-next.2",
     "@solidjs/router": "^2.0.0-next.44",
     "@solidjs/web": "^2.0.0-rc.21",
+    "simple-icons": "11.6.0",
     "solid-js": "^2.0.0-rc.21"
   },
   "packageManager": "pnpm@12.18.0"

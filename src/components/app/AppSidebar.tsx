@@ -108,8 +108,9 @@ export function AppSidebar(props: AppSidebarProps) {
     <div
       id={props.drawerId}
       class={[
-        "flex h-full flex-col gap-4 p-4",
-        props.variant === "rail" && "border-r border-line bg-surface md:w-64",
+        "flex min-h-0 flex-1 flex-col gap-4 p-4",
+        props.variant === "rail" && "h-full w-full",
+        props.variant === "drawer" && "h-full",
       ]}
     >
       {props.variant === "drawer" ? (

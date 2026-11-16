@@ -13,37 +13,24 @@ type LibraryProgressStripProps = {
 
 export function LibraryProgressStrip(props: LibraryProgressStripProps) {
   return (
-    <div class="mb-6 max-w-2xl space-y-2 text-sm">
+    <div class="text-label text-muted">
       <Switch>
         <Match when={props.loadStatus() === "loading" || props.loadStatus() === "idle"}>
-          <p class="text-muted" role="status">
-            Loading progress…
-          </p>
+          <span role="status">Loading progress…</span>
         </Match>
         <Match when={props.loadStatus() === "error"}>
-          <p class="text-muted" role="status">
-            {props.errorMessage()}
-          </p>
+          <span role="status">{props.errorMessage()}</span>
         </Match>
         <Match when={props.loadStatus() === "ready" && props.overall()}>
-          <>
-            <p class="text-body">
-              <span class="tabular-nums font-medium">{props.overall()!.total}</span> total ·{" "}
-              <span class="tabular-nums font-medium">{props.overall()!.solved}</span> solved ·{" "}
-              <span class="tabular-nums font-medium">{props.overall()!.unsolved}</span>{" "}
-              unsolved
-            </p>
-            <p class="text-muted">
-              These counts reflect your entire library, not the filters below.
-            </p>
+          <span class="tabular-nums" role="status">
+            <span class="text-body">{props.overall()!.total}</span> total ·{" "}
+            <span class="text-body">{props.overall()!.solved}</span> solved ·{" "}
+            <span class="text-body">{props.overall()!.unsolved}</span> unsolved
             <Show when={props.listReady() && props.matchingTotal() !== undefined}>
-              <p class="text-muted" role="status">
-                Showing{" "}
-                <span class="tabular-nums text-body">{props.matchingTotal()}</span> matching
-                results
-              </p>
+              {" · "}
+              <span class="text-body">{props.matchingTotal()}</span> matching
             </Show>
-          </>
+          </span>
         </Match>
       </Switch>
     </div>

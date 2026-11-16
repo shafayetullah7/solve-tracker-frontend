@@ -5,7 +5,7 @@ import {
   completionButtonVariant,
 } from "../../lib/problems/completion-actions";
 import { problemDetailPath, problemEditPath } from "../../lib/problems/paths";
-import { platformLabelFromUrl } from "../../lib/problems/platform-display";
+import { PlatformMark } from "../platforms/PlatformMark";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 
@@ -41,9 +41,7 @@ export function ProblemLibraryRow(props: ProblemLibraryRowProps) {
               {props.problem.status === "solved" ? "Solved" : "Unsolved"}
             </Badge>
           </div>
-          <p class="text-sm text-muted">
-            {platformLabelFromUrl(props.problem.url)}
-          </p>
+          <PlatformMark url={props.problem.url} />
           <Show
             when={props.problem.topics.length > 0}
             fallback={<p class="text-sm text-muted">No topics</p>}

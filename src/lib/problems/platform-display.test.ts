@@ -12,6 +12,9 @@ describe("platformLabelFromUrl", () => {
     expect(platformLabelFromUrl("https://www.codechef.com/problems/TEST")).toBe(
       "CodeChef",
     );
+    expect(platformLabelFromUrl("https://www.hackerrank.com/challenges/solve-me-first")).toBe(
+      "HackerRank",
+    );
   });
 
   test("falls back for unknown hosts", () => {

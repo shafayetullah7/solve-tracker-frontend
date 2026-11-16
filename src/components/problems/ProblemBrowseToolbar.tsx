@@ -1,17 +1,22 @@
 /**
- * Library browse filters. Explicit Apply on submit — URL is source of truth;
- * `searchKey` resyncs local fields when location.search changes.
+ * Library browse controls. Changes apply immediately (debounced search).
+ * URL is source of truth; `searchKey` resyncs local fields on navigation.
  */
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import type { ListProblemsQuery } from "../../lib/api/modules/problems.api";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
+import { browseOrderOptions } from "../../lib/problems/browse-order-labels";
 import {
-  DEFAULT_BROWSE_QUERY,
-  parseBrowseSearch,
-} from "../../lib/problems/browse-query";
+  buildListQueryFromToolbar,
+  fieldsFromBrowseSearch,
+  toolbarDiffersFromSearch,
+  type BrowseStatusFilter,
+} from "../../lib/problems/browse-toolbar-state";
 import { toggleTopicId } from "../../lib/problems/form-state";
-import { PLATFORM_FILTER_OPTIONS } from "../../lib/problems/platform-display";
-import { Button } from "../ui/Button";
+import {
+  PLATFORM_FILTER_OPTIONS,
+  type PlatformSlug,
+} from "../../lib/platforms/catalog";
 
 type ProblemBrowseToolbarProps = {
   searchKey: string;
@@ -22,264 +27,310 @@ type ProblemBrowseToolbarProps = {
   onApply: (query: ListProblemsQuery) => void;
 };
 
+const FIELD = "ui-field min-h-10 w-full py-2 text-label";
+const SEARCH_DEBOUNCE_MS = 400;
+
+type LegendProps = { children: string };
+
+function FieldLegend(props: LegendProps) {
+  return (
+    <legend class="mb-1.5 block text-caption font-medium text-muted">
+      {props.children}
+    </legend>
+  );
+}
+
 export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   const [q, setQ] = createSignal("");
-  const [status, setStatus] = createSignal<"" | "unsolved" | "solved">("");
-  const [platform, setPlatform] = createSignal<
-    "" | "codeforces" | "leetcode" | "codechef"
-  >("");
+  const [status, setStatus] = createSignal<BrowseStatusFilter>("");
+  const [platform, setPlatform] = createSignal<"" | PlatformSlug>("");
   const [selectedTopicIds, setSelectedTopicIds] = createSignal<Set<string>>(
     new Set(),
   );
   const [untagged, setUntagged] = createSignal(false);
-  const [sort, setSort] = createSignal<ListProblemsQuery["sort"]>(
-    DEFAULT_BROWSE_QUERY.sort,
-  );
-  const [order, setOrder] = createSignal<ListProblemsQuery["order"]>(
-    DEFAULT_BROWSE_QUERY.order,
-  );
-  const [pageSize, setPageSize] = createSignal(DEFAULT_BROWSE_QUERY.pageSize);
+  const [sort, setSort] = createSignal<
+    NonNullable<ListProblemsQuery["sort"]>
+  >("createdAt");
+  const [order, setOrder] = createSignal<
+    NonNullable<ListProblemsQuery["order"]>
+  >("desc");
+  const [pageSize, setPageSize] = createSignal(25);
+  const [searchPending, setSearchPending] = createSignal(false);
+
+  const orderLabels = createMemo(() => browseOrderOptions(sort()));
+
+  const toolbarFields = () => ({
+    q: q(),
+    status: status(),
+    platform: platform(),
+    selectedTopicIds: selectedTopicIds(),
+    untagged: untagged(),
+    sort: sort(),
+    order: order(),
+    pageSize: pageSize(),
+  });
 
   createEffect(
     () => props.searchKey,
     (searchKey) => {
-      const parsed = parseBrowseSearch(searchKey);
-      setQ(parsed.q ?? "");
-      setStatus(parsed.status ?? "");
-      setPlatform(parsed.platform ?? "");
-      if (parsed.untagged === "true") {
-        setUntagged(true);
-        setSelectedTopicIds(new Set<string>());
-      } else {
-        setUntagged(false);
-        const ids = new Set<string>();
-        if (parsed.topicIds?.length) {
-          for (const id of parsed.topicIds) ids.add(id);
-        } else if (parsed.topicId) ids.add(parsed.topicId);
-        setSelectedTopicIds(ids);
+      const fields = fieldsFromBrowseSearch(searchKey);
+      setQ(fields.q);
+      setStatus(fields.status);
+      setPlatform(fields.platform);
+      setSelectedTopicIds(new Set(fields.selectedTopicIds));
+      setUntagged(fields.untagged);
+      setSort(fields.sort);
+      setOrder(fields.order);
+      setPageSize(fields.pageSize);
+      setSearchPending(false);
+    },
+  );
+
+  function pushToolbarToUrl() {
+    const query = buildListQueryFromToolbar(toolbarFields());
+    props.onApply(query);
+  }
+
+  function applyIfChanged() {
+    if (!toolbarDiffersFromSearch(toolbarFields(), props.searchKey)) return;
+    pushToolbarToUrl();
+  }
+
+  createEffect(
+    () => [props.searchKey, q()] as const,
+    ([searchKey, queryValue]) => {
+      const value = queryValue.trim();
+      const appliedQ = (fieldsFromBrowseSearch(searchKey).q ?? "").trim();
+      if (value === appliedQ) {
+        setSearchPending(false);
+        return;
       }
-      setSort(parsed.sort ?? DEFAULT_BROWSE_QUERY.sort);
-      setOrder(parsed.order ?? DEFAULT_BROWSE_QUERY.order);
-      setPageSize(parsed.pageSize ?? DEFAULT_BROWSE_QUERY.pageSize);
+      setSearchPending(true);
+      const timer = setTimeout(() => {
+        setSearchPending(false);
+        applyIfChanged();
+      }, SEARCH_DEBOUNCE_MS);
+      onCleanup(() => clearTimeout(timer));
     },
   );
 
   function onTopicToggle(topicId: string, checked: boolean) {
     if (checked) setUntagged(false);
     setSelectedTopicIds((current) => toggleTopicId(current, topicId, checked));
+    queueMicrotask(() => applyIfChanged());
   }
 
   function onUntaggedChange(checked: boolean) {
     setUntagged(checked);
     if (checked) setSelectedTopicIds(new Set<string>());
+    queueMicrotask(() => applyIfChanged());
   }
 
-  function applyFilters(event: Event) {
+  function onSearchSubmit(event: Event) {
     event.preventDefault();
-    const query: ListProblemsQuery = {
-      page: 1,
-      pageSize: pageSize(),
-      sort: sort(),
-      order: order(),
-    };
-    const trimmed = q().trim();
-    if (trimmed) query.q = trimmed;
-    const statusVal = status();
-    if (statusVal) query.status = statusVal;
-    const platformVal = platform();
-    if (platformVal) query.platform = platformVal;
-    if (untagged()) {
-      query.untagged = "true";
-    } else {
-      const ids = [...selectedTopicIds()];
-      if (ids.length > 0) query.topicIds = ids;
-    }
-    props.onApply(query);
+    setSearchPending(false);
+    applyIfChanged();
   }
 
   const formId = "problem-browse-filters";
 
   return (
-    <form class="mb-6 space-y-4" id={formId} onSubmit={applyFilters}>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div class="sm:col-span-2">
-          <label class="mb-2 block text-sm font-medium" for={`${formId}-q`}>
-            Search
-          </label>
+    <form
+      id={formId}
+      class="space-y-3"
+      onSubmit={onSearchSubmit}
+      aria-describedby={`${formId}-hint`}
+    >
+      <p id={`${formId}-hint`} class="text-caption text-muted">
+        Filters and display update as you change them. Search waits briefly after
+        you stop typing.
+      </p>
+
+      <fieldset class="min-w-0 border-0 p-0">
+        <FieldLegend>Filter problems</FieldLegend>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-12">
           <input
             id={`${formId}-q`}
-            class="ui-field"
+            class={`${FIELD} sm:col-span-2 md:col-span-6`}
             type="search"
             value={q()}
+            aria-label="Search title or platform problem id"
+            placeholder="Search title or platform id…"
             onInput={(event) => setQ(event.currentTarget.value)}
-            placeholder="Title or platform problem id"
           />
-        </div>
 
-        <div>
-          <label class="mb-2 block text-sm font-medium" for={`${formId}-status`}>
-            Status
-          </label>
           <select
             id={`${formId}-status`}
-            class="ui-field"
+            class={`${FIELD} md:col-span-3`}
             value={status()}
-            onChange={(event) =>
-              setStatus(event.currentTarget.value as "" | "unsolved" | "solved")
-            }
+            aria-label="Status"
+            onChange={(event) => {
+              setStatus(event.currentTarget.value as BrowseStatusFilter);
+              queueMicrotask(() => applyIfChanged());
+            }}
           >
-            <option value="">All</option>
+            <option value="">Any status</option>
             <option value="unsolved">Unsolved</option>
             <option value="solved">Solved</option>
           </select>
-        </div>
 
-        <div>
-          <label class="mb-2 block text-sm font-medium" for={`${formId}-platform`}>
-            Platform
-          </label>
           <select
             id={`${formId}-platform`}
-            class="ui-field"
+            class={`${FIELD} md:col-span-3`}
             value={platform()}
-            onChange={(event) =>
-              setPlatform(
-                event.currentTarget.value as
-                  | ""
-                  | "codeforces"
-                  | "leetcode"
-                  | "codechef",
-              )
-            }
+            aria-label="Platform"
+            title="Matches saved URL host for listed judges"
+            onChange={(event) => {
+              setPlatform(event.currentTarget.value as "" | PlatformSlug);
+              queueMicrotask(() => applyIfChanged());
+            }}
           >
-            <option value="">All platforms</option>
+            <option value="">Any platform</option>
             <For each={PLATFORM_FILTER_OPTIONS}>
               {(entry) => <option value={entry.slug}>{entry.label}</option>}
             </For>
           </select>
         </div>
-      </div>
+      </fieldset>
 
-      <details class="rounded-control border border-line bg-surface-muted/40 p-4">
-        <summary class="cursor-pointer text-sm font-semibold text-ink">
-          More filters
-        </summary>
-        <div class="mt-4 space-y-4">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label class="mb-2 block text-sm font-medium" for={`${formId}-sort`}>
-                Sort by
-              </label>
-              <select
-                id={`${formId}-sort`}
-                class="ui-field"
-                value={sort()}
-                onChange={(event) =>
-                  setSort(event.currentTarget.value as ListProblemsQuery["sort"])
-                }
-              >
-                <option value="createdAt">Date added</option>
-                <option value="title">Title</option>
-                <option value="solvedAt">Date solved</option>
-              </select>
-            </div>
+      <fieldset class="min-w-0 border-0 p-0">
+        <FieldLegend>Sort &amp; display</FieldLegend>
+        <div class="grid grid-cols-2 gap-2 md:grid-cols-12 md:items-center">
+          <select
+            id={`${formId}-sort`}
+            class={`${FIELD} col-span-1 md:col-span-4`}
+            value={sort()}
+            aria-label="Sort by"
+            onChange={(event) => {
+              setSort(
+                event.currentTarget.value as NonNullable<
+                  ListProblemsQuery["sort"]
+                >,
+              );
+              queueMicrotask(() => applyIfChanged());
+            }}
+          >
+            <option value="createdAt">Date added</option>
+            <option value="title">Title</option>
+            <option value="solvedAt">Date solved</option>
+          </select>
 
-            <div>
-              <label class="mb-2 block text-sm font-medium" for={`${formId}-order`}>
-                Order
-              </label>
-              <select
-                id={`${formId}-order`}
-                class="ui-field"
-                value={order()}
-                onChange={(event) =>
-                  setOrder(event.currentTarget.value as ListProblemsQuery["order"])
-                }
-              >
-                <option value="desc">Descending</option>
-                <option value="asc">Ascending</option>
-              </select>
-            </div>
+          <select
+            id={`${formId}-order`}
+            class={`${FIELD} col-span-1 md:col-span-4`}
+            value={order()}
+            aria-label="Sort order"
+            onChange={(event) => {
+              setOrder(
+                event.currentTarget.value as NonNullable<
+                  ListProblemsQuery["order"]
+                >,
+              );
+              queueMicrotask(() => applyIfChanged());
+            }}
+          >
+            <option value="desc">{orderLabels().desc}</option>
+            <option value="asc">{orderLabels().asc}</option>
+          </select>
 
-            <div>
-              <label
-                class="mb-2 block text-sm font-medium"
-                for={`${formId}-pageSize`}
-              >
-                Per page
-              </label>
-              <select
-                id={`${formId}-pageSize`}
-                class="ui-field"
-                value={String(pageSize())}
-                onChange={(event) =>
-                  setPageSize(Number.parseInt(event.currentTarget.value, 10))
-                }
-              >
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-              </select>
-            </div>
-          </div>
+          <select
+            id={`${formId}-pageSize`}
+            class={`${FIELD} col-span-2 md:col-span-2`}
+            value={String(pageSize())}
+            aria-label="Per page"
+            onChange={(event) => {
+              setPageSize(Number.parseInt(event.currentTarget.value, 10));
+              queueMicrotask(() => applyIfChanged());
+            }}
+          >
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+          </select>
 
-          <div>
-            <p class="mb-2 text-sm font-medium">Topics</p>
-            <Show
-              when={!props.topicsLoading()}
-              fallback={<p class="text-sm text-muted">Loading topics…</p>}
+          <div class="col-span-2 flex flex-wrap items-center justify-start md:col-span-2 md:justify-end">
+            <a
+              class="ui-button min-h-10 shrink-0 px-3 text-label"
+              data-variant="ghost"
+              href={props.clearHref}
             >
-              <Show
-                when={props.topics().length > 0}
-                fallback={<p class="text-sm text-muted">No topics yet.</p>}
-              >
-                <ul class="space-y-2">
-                  <For each={props.topics()}>
-                    {(topic) => (
-                      <li>
-                        <label class="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={selectedTopicIds().has(topic.id)}
-                            disabled={untagged()}
-                            onChange={(event) =>
-                              onTopicToggle(topic.id, event.currentTarget.checked)
-                            }
-                          />
-                          {topic.name}
-                        </label>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-              <Show when={props.topicsTruncated()}>
-                <p class="mt-2 text-sm text-muted">
-                  Showing the first 100 topics; not all may appear here.
-                </p>
-              </Show>
-            </Show>
-          </div>
-
-          <div>
-            <label class="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={untagged()}
-                onChange={(event) => onUntaggedChange(event.currentTarget.checked)}
-              />
-              Untagged only
-            </label>
+              Clear all
+            </a>
           </div>
         </div>
-      </details>
+      </fieldset>
 
-      <div class="flex flex-wrap gap-3">
-        <Button type="submit">Apply filters</Button>
-        <a class="ui-button" data-variant="secondary" href={props.clearHref}>
-          Clear filters
-        </a>
-      </div>
+      <Show when={searchPending()}>
+        <p class="text-caption text-muted" role="status">
+          Updating search…
+        </p>
+      </Show>
+
+      <Show when={props.topicsLoading()}>
+        <p class="text-caption text-muted">Loading topics…</p>
+      </Show>
+
+      <Show when={!props.topicsLoading() && props.topics().length > 0}>
+        <fieldset class="min-w-0 border-0 p-0">
+          <FieldLegend>Topics</FieldLegend>
+          <p class="mb-1.5 text-caption text-muted">
+            Select any topics to match (OR). Turn off when using untagged only.
+          </p>
+          <label class="mb-2 flex min-h-10 items-center gap-2 text-label text-muted">
+            <input
+              type="checkbox"
+              checked={untagged()}
+              onChange={(event) =>
+                onUntaggedChange(event.currentTarget.checked)
+              }
+            />
+            Untagged only (excludes topic filters)
+          </label>
+          <div
+            class="flex min-h-10 flex-wrap gap-1.5 overflow-y-auto rounded-control border border-line bg-surface-muted/30 p-1.5 md:max-h-24"
+            role="group"
+            aria-label="Filter by topic"
+          >
+            <For each={props.topics()}>
+              {(topic) => (
+                <label
+                  class={[
+                    "inline-flex cursor-pointer items-center rounded-full border border-line bg-surface px-2 py-0.5 text-caption",
+                    selectedTopicIds().has(topic.id) &&
+                      "border-brand bg-brand-soft text-brand",
+                    untagged() && "pointer-events-none opacity-50",
+                  ]}
+                >
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    checked={selectedTopicIds().has(topic.id)}
+                    disabled={untagged()}
+                    onChange={(event) =>
+                      onTopicToggle(topic.id, event.currentTarget.checked)
+                    }
+                  />
+                  <span class="max-w-28 truncate">{topic.name}</span>
+                </label>
+              )}
+            </For>
+          </div>
+          <Show when={props.topicsTruncated()}>
+            <span class="text-caption text-muted">First 100 topics.</span>
+          </Show>
+        </fieldset>
+      </Show>
+
+      <Show when={!props.topicsLoading() && props.topics().length === 0}>
+        <label class="flex min-h-10 items-center gap-2 text-label text-muted">
+          <input
+            type="checkbox"
+            checked={untagged()}
+            onChange={(event) => onUntaggedChange(event.currentTarget.checked)}
+          />
+          Untagged only
+        </label>
+      </Show>
     </form>
   );
 }

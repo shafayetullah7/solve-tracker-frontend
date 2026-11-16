@@ -64,7 +64,7 @@ export function AppShell(props: ParentProps) {
   );
 
   return (
-    <div class="flex min-h-0 flex-1 flex-col bg-canvas md:flex-row">
+    <div class="flex h-dvh max-h-dvh min-h-0 w-full flex-1 flex-col overflow-hidden bg-canvas md:flex-row">
       <header class="flex items-center justify-between gap-4 border-b border-line bg-surface px-5 py-3 md:hidden">
         <a
           class="text-xl font-bold tracking-tight text-brand"
@@ -85,7 +85,10 @@ export function AppShell(props: ParentProps) {
         </button>
       </header>
 
-      <aside class="hidden shrink-0 md:flex md:flex-col" aria-label="Sidebar">
+      <aside
+        class="sticky top-0 z-10 hidden h-dvh max-h-dvh w-64 shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-line bg-surface md:flex"
+        aria-label="Sidebar"
+      >
         <AppSidebar variant="rail" />
       </aside>
 
@@ -109,11 +112,11 @@ export function AppShell(props: ParentProps) {
         </div>
       </Show>
 
-      <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <main
           id="main-content"
           tabindex="-1"
-          class="min-h-0 flex-1 outline-none"
+          class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain outline-none"
         >
           {props.children}
         </main>

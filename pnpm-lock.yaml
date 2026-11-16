@@ -175,6 +175,9 @@ importers:
       '@solidjs/web':
         specifier: ^2.0.0-rc.21
         version: 2.0.0-rc.21(solid-js@2.0.0-rc.21)
+      simple-icons:
+        specifier: 11.6.0
+        version: 11.6.0
       solid-js:
         specifier: ^2.0.0-rc.21
         version: 2.0.0-rc.21
@@ -1425,6 +1428,10 @@ packages:
     resolution: {integrity: sha512-FU+LUkmDzWNsJ6oubZFN3dGPKny53DRhPJG6nftEaXDL8MIn19+kEE1Gvc+63Go+qPOwVUlKIdKhsu2HN6tksw==}
     engines: {node: '>=20'}
 
+  simple-icons@11.6.0:
+    resolution: {integrity: sha512-DNJtVC9YB6v+zLe3LY4gaVr0uLEvDAbd6YNxyYtuLvJCcZChsitfYWRhnG4PBnkbNQ6BG3dOJT9NEOTWGbv/tw==}
+    engines: {node: '>=0.12.18'}
+
   solid-js@2.0.0-rc.21:
     resolution: {integrity: sha512-0Z8/qiJKnK6A2g8QspGthwxR0W8WauMOD2/LQtNmxBT8gpZkKaXmo/fdek/+cB+84w4HYejWJixSAn4fcAI0Uw==}
     engines: {node: '>=22.12.0'}
@@ -2561,6 +2568,8 @@ snapshots:
       seroval: 1.7.0
 
   seroval@1.7.0: {}
+
+  simple-icons@11.6.0: {}
 
   solid-js@2.0.0-rc.21:
     dependencies:

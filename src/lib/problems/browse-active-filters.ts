@@ -4,6 +4,7 @@ import {
   parseBrowseSearch,
   serializeBrowseSearch,
 } from "./browse-query";
+import { browseOrderOptionLabel } from "./browse-order-labels";
 import { problemsBrowseHref } from "./paths";
 import { PLATFORM_FILTER_OPTIONS } from "./platform-display";
 
@@ -100,36 +101,42 @@ function chip(
   };
 }
 
-export function buildBrowseActiveChips(
+export type BrowseActiveChipGroups = {
+  filters: BrowseFilterChip[];
+  view: BrowseFilterChip[];
+};
+
+export function buildBrowseActiveChipGroups(
   search: string,
   topicNameById: Map<string, string>,
-): BrowseFilterChip[] {
+): BrowseActiveChipGroups {
   const query = parseBrowseSearch(search);
-  const chips: BrowseFilterChip[] = [];
+  const filters: BrowseFilterChip[] = [];
+  const view: BrowseFilterChip[] = [];
 
   if (query.q) {
-    chips.push(chip("q", `Search: "${query.q}"`, browseHrefOmitting(query, "q")));
+    filters.push(chip("q", `Search: "${query.q}"`, browseHrefOmitting(query, "q")));
   }
 
   if (query.status) {
     const label = `Status: ${STATUS_LABELS[query.status]}`;
-    chips.push(chip("status", label, browseHrefOmitting(query, "status")));
+    filters.push(chip("status", label, browseHrefOmitting(query, "status")));
   }
 
   if (query.platform) {
     const label = `Platform: ${platformLabel(query.platform)}`;
-    chips.push(chip("platform", label, browseHrefOmitting(query, "platform")));
+    filters.push(chip("platform", label, browseHrefOmitting(query, "platform")));
   }
 
   if (query.untagged === "true") {
-    chips.push(
+    filters.push(
       chip("untagged", "Untagged only", browseHrefOmitting(query, "untagged")),
     );
   } else if (query.topicIds?.length) {
     if (query.topicIds.length === 1) {
       const id = query.topicIds[0]!;
       const name = topicNameById.get(id) ?? "Topic";
-      chips.push(
+      filters.push(
         chip(
           `topic:${id}`,
           `Topic: ${name}`,
@@ -137,17 +144,17 @@ export function buildBrowseActiveChips(
         ),
       );
     } else {
-      chips.push(
+      filters.push(
         chip(
           "topics",
-          `Topics: ${query.topicIds.length} selected`,
+          `Topics: ${query.topicIds.length} (any match)`,
           browseHrefOmitting(query, "topics"),
         ),
       );
     }
   } else if (query.topicId) {
     const name = topicNameById.get(query.topicId) ?? "Topic";
-    chips.push(
+    filters.push(
       chip(
         `topic:${query.topicId}`,
         `Topic: ${name}`,
@@ -157,8 +164,10 @@ export function buildBrowseActiveChips(
   }
 
   const sort = query.sort ?? DEFAULT_BROWSE_QUERY.sort;
+  const order = query.order ?? DEFAULT_BROWSE_QUERY.order;
+
   if (sort !== DEFAULT_BROWSE_QUERY.sort) {
-    chips.push(
+    view.push(
       chip(
         "sort",
         `Sort: ${SORT_LABELS[sort]}`,
@@ -167,12 +176,11 @@ export function buildBrowseActiveChips(
     );
   }
 
-  const order = query.order ?? DEFAULT_BROWSE_QUERY.order;
   if (order !== DEFAULT_BROWSE_QUERY.order) {
-    chips.push(
+    view.push(
       chip(
         "order",
-        `Order: ${order === "asc" ? "Ascending" : "Descending"}`,
+        browseOrderOptionLabel(sort, order),
         browseHrefOmitting(query, "order"),
       ),
     );
@@ -180,7 +188,7 @@ export function buildBrowseActiveChips(
 
   const pageSize = query.pageSize ?? DEFAULT_BROWSE_QUERY.pageSize;
   if (pageSize !== DEFAULT_BROWSE_QUERY.pageSize) {
-    chips.push(
+    view.push(
       chip(
         "pageSize",
         `Per page: ${pageSize}`,
@@ -191,12 +199,20 @@ export function buildBrowseActiveChips(
 
   const page = query.page ?? DEFAULT_BROWSE_QUERY.page;
   if (page !== DEFAULT_BROWSE_QUERY.page) {
-    chips.push(
+    view.push(
       chip("page", `Page: ${page}`, browseHrefOmitting(query, "page")),
     );
   }
 
-  return chips;
+  return { filters, view };
+}
+
+export function buildBrowseActiveChips(
+  search: string,
+  topicNameById: Map<string, string>,
+): BrowseFilterChip[] {
+  const groups = buildBrowseActiveChipGroups(search, topicNameById);
+  return [...groups.filters, ...groups.view];
 }
 
 /** Round-trip helper for tests. */

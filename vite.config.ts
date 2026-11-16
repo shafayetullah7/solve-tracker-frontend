@@ -2,8 +2,12 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileRoutes } from "filesystem-routing/vite";
 import { defineConfig } from "vitest/config";
 import solid from "@solidjs/vite-plugin";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadEnv } from "vite";
 import { createApiProxy } from "./config/api-proxy.ts";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export default defineConfig(({ command, mode, isPreview }) => ({
   // Turnkey client mode: no index.html and no mount file — the plugin generates
@@ -36,5 +40,10 @@ export default defineConfig(({ command, mode, isPreview }) => ({
   build: {
     target: "esnext",
     assetsInlineLimit: 0,
+  },
+  resolve: {
+    alias: {
+      "@platforms": path.join(repoRoot, "backend/src/shared"),
+    },
   },
 }));
