@@ -51,7 +51,6 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
       }}
       onClose={() => {
         if (props.pending) return;
-        if (!props.open) return;
         props.onCancel();
       }}
     >

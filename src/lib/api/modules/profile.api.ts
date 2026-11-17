@@ -18,16 +18,14 @@ export type UpdateEducationInput =
 export type ProfileResponse =
   operations["ProfileController_get"]["responses"][200]["content"]["application/json"];
 
-const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function entryId(value: string): string {
-  if (!UUID.test(value)) throw new ApiError("contract", "Invalid entry id.");
-  return value;
+function entryPathId(value: string): string {
+  const id = value.trim();
+  if (!id) throw new ApiError("contract", "This entry is missing an id.");
+  return encodeURIComponent(id);
 }
 
 function decodeWorkEntry(value: unknown): WorkEntry {
@@ -126,7 +124,7 @@ export function createProfileApi(client: ApiClient) {
     ): Promise<WorkEntry> {
       return decodeWorkEntry(
         await client.request({
-          path: `/users/me/work-entries/${entryId(id)}`,
+          path: `/users/me/work-entries/${entryPathId(id)}`,
           method: "PATCH",
           body: input,
           signal,
@@ -136,7 +134,7 @@ export function createProfileApi(client: ApiClient) {
     },
     async deleteWork(id: string, signal?: AbortSignal): Promise<void> {
       await client.request({
-        path: `/users/me/work-entries/${entryId(id)}`,
+        path: `/users/me/work-entries/${entryPathId(id)}`,
         method: "DELETE",
         response: "empty",
         signal,
@@ -164,7 +162,7 @@ export function createProfileApi(client: ApiClient) {
     ): Promise<EducationEntry> {
       return decodeEducationEntry(
         await client.request({
-          path: `/users/me/education-entries/${entryId(id)}`,
+          path: `/users/me/education-entries/${entryPathId(id)}`,
           method: "PATCH",
           body: input,
           signal,
@@ -174,7 +172,7 @@ export function createProfileApi(client: ApiClient) {
     },
     async deleteEducation(id: string, signal?: AbortSignal): Promise<void> {
       await client.request({
-        path: `/users/me/education-entries/${entryId(id)}`,
+        path: `/users/me/education-entries/${entryPathId(id)}`,
         method: "DELETE",
         response: "empty",
         signal,

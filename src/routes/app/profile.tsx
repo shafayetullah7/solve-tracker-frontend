@@ -14,6 +14,7 @@ import { useAuth } from "../../lib/auth/context";
 import { createMediaApi } from "../../lib/api/modules/media.api";
 import { createProfileApi } from "../../lib/api/modules/profile.api";
 import { applyProfileApiError } from "../../lib/forms/apply-profile-api-error";
+import { profileEntryRemoveMessage } from "../../lib/profile/messages";
 import { validateAvatarFile } from "../../lib/profile/profile-avatar-upload";
 import {
   isProfileEntryEditorTarget,
@@ -192,7 +193,7 @@ export default function ProfilePage() {
       setEntryRemoveTarget(null);
     } catch (error) {
       setEntryRemoveTarget(null);
-      setEntryRemoveError(applyProfileApiError(error).banner);
+      setEntryRemoveError(profileEntryRemoveMessage(error));
     } finally {
       setEntryRemovePending(false);
     }

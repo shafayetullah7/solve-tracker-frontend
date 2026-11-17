@@ -33,7 +33,10 @@ export function ProfileEntryCard(props: ProfileEntryCardProps) {
           <ProfileIconAction
             label={props.deleteLabel ?? "Remove entry"}
             class="hover:bg-danger-soft hover:text-danger"
-            onClick={() => props.onDelete!()}
+            onClick={(event) => {
+              event.stopPropagation();
+              props.onDelete!();
+            }}
           >
             <IconTrash class="h-5 w-5" />
           </ProfileIconAction>

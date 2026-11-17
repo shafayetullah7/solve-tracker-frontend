@@ -2,7 +2,7 @@ import type { ParentProps } from "solid-js";
 
 export type ProfileIconActionProps = ParentProps<{
   label: string;
-  onClick: () => void;
+  onClick?: (event: MouseEvent) => void;
   class?: string;
 }>;
 
@@ -15,7 +15,7 @@ export function ProfileIconAction(props: ProfileIconActionProps) {
         props.class,
       ]}
       aria-label={props.label}
-      onClick={() => props.onClick()}
+      onClick={(event) => props.onClick?.(event)}
     >
       {props.children}
     </button>
