@@ -2,11 +2,19 @@ import { createEffect, createSignal, Show } from "solid-js";
 import { applyProfileApiError } from "../../lib/forms/apply-profile-api-error";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { FormAlert } from "../ui/FormAlert";
-import { FormField } from "../ui/FormField";
+import { AUTH_PASSWORD_HINT } from "../../lib/forms/auth-field-copy";
+import { validatePasswordLength } from "../../lib/forms/validate-auth";
+import { FormField, formFieldControlAttrs } from "../ui/FormField";
+import { PasswordInput } from "../ui/PasswordInput";
+import {
+  PasswordCodePointMeter,
+  passwordMeterId,
+} from "../ui/PasswordCodePointMeter";
 import { ProfileEditorDialog } from "./ProfileEditorDialog";
 import { ProfileFormFooter } from "./ProfileFormFooter";
 
 const TITLE_ID = "profile-password-editor-title";
+const NEW_PASSWORD_ID = "profile-new-password";
 
 export type ProfilePasswordEditorDialogProps = {
   open: boolean;
@@ -25,6 +33,10 @@ export function ProfilePasswordEditorDialog(props: ProfilePasswordEditorDialogPr
   const [pending, setPending] = createSignal(false);
   const [discardConfirmOpen, setDiscardConfirmOpen] = createSignal(false);
   const [currentTouched, setCurrentTouched] = createSignal(false);
+  const [newPasswordFocused, setNewPasswordFocused] = createSignal(false);
+  const [newPasswordBlurred, setNewPasswordBlurred] = createSignal(false);
+  const [saveAttempted, setSaveAttempted] = createSignal(false);
+  const [newPasswordError, setNewPasswordError] = createSignal<string | undefined>();
 
   createEffect(
     () => props.open,
@@ -40,7 +52,19 @@ export function ProfilePasswordEditorDialog(props: ProfilePasswordEditorDialogPr
     setFormError(undefined);
     setDiscardConfirmOpen(false);
     setCurrentTouched(false);
+    setNewPasswordFocused(false);
+    setNewPasswordBlurred(false);
+    setSaveAttempted(false);
+    setNewPasswordError(undefined);
   }
+
+  const meterVisible = () =>
+    newPasswordFocused() ||
+    newPassword().length > 0 ||
+    saveAttempted() ||
+    newPasswordBlurred();
+  const passwordMeterDescribedBy = () =>
+    meterVisible() ? [passwordMeterId(NEW_PASSWORD_ID)] : undefined;
 
   const isDirty = () =>
     Boolean(
@@ -68,15 +92,23 @@ export function ProfilePasswordEditorDialog(props: ProfilePasswordEditorDialogPr
   async function save(event: Event) {
     event.preventDefault();
     if (pending()) return;
+    setSaveAttempted(true);
     const current = currentPassword();
     const next = newPassword();
     const confirm = confirmPassword();
+    setNewPasswordError(undefined);
+    setFormError(undefined);
     if (!current) {
       setFormError("Enter your current password.");
       return;
     }
     if (!next) {
-      setFormError("Enter a new password.");
+      setNewPasswordError("Enter a new password.");
+      return;
+    }
+    const lengthErr = validatePasswordLength(next);
+    if (lengthErr) {
+      setNewPasswordError(lengthErr);
       return;
     }
     if (next !== confirm) {
@@ -113,10 +145,8 @@ export function ProfilePasswordEditorDialog(props: ProfilePasswordEditorDialogPr
         aria-busy={pending() ? "true" : undefined}
       >
         <FormField id="profile-current-password" label="Current password">
-          <input
+          <PasswordInput
             id="profile-current-password"
-            class="ui-field"
-            type="password"
             autocomplete="current-password"
             disabled={pending()}
             value={currentPassword()}
@@ -127,25 +157,43 @@ export function ProfilePasswordEditorDialog(props: ProfilePasswordEditorDialogPr
             }}
           />
         </FormField>
-        <FormField id="profile-new-password" label="New password">
-          <input
-            id="profile-new-password"
-            class="ui-field"
-            type="password"
+        <FormField
+          id={NEW_PASSWORD_ID}
+          label="New password"
+          hint={AUTH_PASSWORD_HINT}
+          hintVisibility="sr-only"
+          error={newPasswordError()}
+        >
+          <PasswordInput
             autocomplete="new-password"
             disabled={pending()}
+            {...formFieldControlAttrs({
+              id: NEW_PASSWORD_ID,
+              hint: AUTH_PASSWORD_HINT,
+              extraDescribedBy: passwordMeterDescribedBy(),
+              error: newPasswordError(),
+            })}
             value={newPassword()}
             onInput={(event) => {
               setNewPassword(event.currentTarget.value);
+              setNewPasswordError(undefined);
               setFormError(undefined);
             }}
+            onFocus={() => setNewPasswordFocused(true)}
+            onBlur={() => {
+              setNewPasswordFocused(false);
+              setNewPasswordBlurred(true);
+            }}
+          />
+          <PasswordCodePointMeter
+            fieldId={NEW_PASSWORD_ID}
+            value={newPassword()}
+            visible={meterVisible()}
           />
         </FormField>
         <FormField id="profile-confirm-password" label="Confirm new password">
-          <input
+          <PasswordInput
             id="profile-confirm-password"
-            class="ui-field"
-            type="password"
             autocomplete="new-password"
             disabled={pending()}
             value={confirmPassword()}

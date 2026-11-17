@@ -4,7 +4,7 @@ Verified against security guidance and the installed framework on **2026-11-10**
 
 ## Architecture decision
 
-Use the existing **Solid 2.0.0-rc.21**, **@solidjs/vite-plugin 3.0.0-next.57** Start mode in **CSR** for the private tracker. The current `solid({ start: true })` configuration does not enable streaming SSR, and `@solidjs/start` is not installed. There is no SEO requirement for private problem lists that justifies adding SSR for authentication alone.
+Use **Solid 2.0.0-rc.21** with **@solidjs/vite-plugin 3.0.0-next.57** Start mode (`ssr: true` in `vite.config.ts`). Pages stream on the server and hydrate in the browser; **`@solidjs/start` is not installed**. **Per-request SSR (Track B):** for each document request, the [`authGate`](config/auth-gate.ts) Start middleware probes Nest with the request `Cookie` via [`probeServerAuthSession`](src/lib/auth/server-session-probe.ts) (`server-session.ts` stays browser-safe) (`GET /auth/session` on `API_PROXY_TARGET`). Only safe user metadata reaches `AuthProvider` (via `event.locals`) and a non-executable `application/json` script injected into `<head>` — never JWTs. **SSR is shell-only:** the server renders the auth-aware shell; pages fetch their data in the browser once `auth.status()` is `authenticated`. **Refresh and cross-tab coordination remain client-only** after hydrate (`AuthProvider` revalidates with the browser coordinator).
 
 Keep JWT access and refresh tokens in backend-issued **HttpOnly cookies**, behind a same-origin `/api` proxy to Nest. Frontend JavaScript receives session/user metadata, not JWT strings. This is a project choice based on browser credential-exposure guidance, not a claim that cookies eliminate XSS. Nest still validates JWTs and owns authorization, Argon2id hashing, rotation, and revocation. [OWASP browser storage guidance](https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html)
 
@@ -90,13 +90,18 @@ Do not issue two active successor refresh credentials for one generation. Do not
 
 The rotation/replay principle is supported by [RFC 9700 section 4.14](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.14). This application uses first-party password authentication, not OAuth; these token-protection principles are applicable without introducing OAuth grants or a third-party identity provider.
 
-## Deferred SSR guidance
+## SSR session (enabled — Track B)
 
-SSR, a BFF, distributed refresh locks, and worker-owned sessions are not MVP requirements. Keep the current CSR deployment. A private practice tracker does not need SSR to authenticate safely.
+Streaming SSR is enabled. Auth for HTML responses follows these rules:
 
-If SSR is deliberately introduced later, revisit the design before enabling it: create auth state per request, never cache one user's credentials globally, forward only that user's cookies to the trusted backend, preserve separate Set-Cookie headers, finish cookie changes before streaming, and mark personalized responses private/no-store. Browser Web Locks do not coordinate server renders; choose one refresh owner then. Follow the installed plugin's README rather than unrelated Next.js or separate SolidStart APIs.
+1. **Per request only:** the `authGate` middleware sets `event.locals.practiceAuthBootstrap` once per document request (GET/HEAD, non-`/api`, no file extension); `AuthProvider` reads it with `getRequestEvent()` on the server. No module-level auth singleton and no shared cache between users.
+2. **Server probe:** forward the incoming `Cookie` to Nest `GET /auth/session` on `API_PROXY_TARGET`. Read-only — **no `POST /auth/refresh` on the server** and no browser coordinator on the server render path. A `401 AUTH_REFRESH_REQUIRED` on a request that carried cookies maps to `checking` (the browser may still refresh); a cookie-less request and other `401`s map to `anonymous`; network/5xx/bad shapes map to `unavailable`.
+3. **Redirects are HTTP:** `authGate` returns `302` before rendering — signed-in visitors on `/`, `/login`, `/register` go to a safe `?next=` or `/app`; signed-in `/account*` goes to `/app/profile`; anonymous `/app*` and `/account*` go to `/login?next=…`. `checking` and `unavailable` never redirect; the client resolves them. Client-side `createEffect` redirects remain for in-app navigation.
+4. **HTML personalization:** responses (including redirects) use `Cache-Control: private, no-store` and `Vary: Cookie`. Do not emit JWTs, refresh tokens, or `Set-Cookie` values in streamed HTML.
+5. **Hydration:** `#practice-auth-bootstrap` (`type="application/json"`, `<`/`>`/`&`/U+2028/U+2029 escaped) is injected **before `</head>`** by the middleware, outside the hydrated tree. Never render extra nodes around `<App />` on the server (for example via `serverRenderSetup`): the client entry hydrates `<App />` alone and any extra sibling shifts hydration keys, detaching the whole tree. JavaScript still revalidates via `GET /api/auth/session` after hydrate.
+6. **Isolation:** SSR must not leak one visitor's user metadata to another; Playwright [`e2e/ssr-auth-ssr.spec.ts`](e2e/ssr-auth-ssr.spec.ts) (also fails on hydration-key warnings) and `pnpm verify:ssr-2` are acceptance gates.
 
-Do not implement SSR infrastructure or its tests while the application remains CSR.
+BFFs, distributed refresh locks, and worker-owned sessions remain out of scope. Browser Web Locks still do not coordinate server renders; the server never rotates refresh credentials.
 
 ## Implementation locations and acceptance tests
 
@@ -112,6 +117,6 @@ Required tests, with real multi-tab browser coverage where applicable:
 6. Invalid/reused/revoked tokens, CSRF failure, 403, network failure, 5xx, and lost refresh responses follow their distinct policies without retry storms.
 7. Login/logout/reset invalidate the right server sessions; clearing frontend state alone is not accepted as revocation.
 8. Production cookie flags, same-origin proxy forwarding, cache headers, and CSRF defenses are checked. Unsupported Web Locks behavior is tested explicitly.
-9. SSR isolation tests are required only if an SSR implementation is introduced.
+9. SSR isolation and no-secrets-in-HTML checks apply (`pnpm verify:ssr-2`, `e2e/ssr-auth-ssr.spec.ts`).
 
 These tests are future acceptance gates, not tests already present in the repository.

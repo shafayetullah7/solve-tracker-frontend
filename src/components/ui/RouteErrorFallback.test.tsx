@@ -18,4 +18,14 @@ describe("RouteErrorFallback", () => {
     screen.getByRole("button", { name: /Try again/i }).click();
     expect(reset).toHaveBeenCalledOnce();
   });
+
+  test("renders inside shell without a second main landmark", () => {
+    const reset = vi.fn();
+    const [err] = createSignal(new Error("x"));
+    const { container } = render(() => (
+      <RouteErrorFallback err={err} reset={reset} mainContent={false} />
+    ));
+    expect(container.querySelector("main")).toBeNull();
+    expect(screen.getByRole("alert")).toBeTruthy();
+  });
 });

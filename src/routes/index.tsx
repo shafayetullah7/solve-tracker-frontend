@@ -1,20 +1,23 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
-import { Match, Show, Switch, onSettled } from "solid-js";
+import { createEffect, Match, Switch } from "solid-js";
 import { InlineLoadingMark } from "../components/ui/InlineLoadingMark";
 import { Button } from "../components/ui/Button";
 import { Panel } from "../components/ui/Panel";
 import { useAuth } from "../lib/auth/context";
 import { paths } from "../router";
 
-function RedirectToDashboard() {
-  const navigate = useNavigate();
-  onSettled(() => navigate(paths.app(), { replace: true }));
-  return <InlineLoadingMark />;
-}
-
 export default function Home() {
   const auth = useAuth();
+  const navigate = useNavigate();
+
+  // Hard loads are redirected by the auth gate; this covers client-side state changes.
+  createEffect(
+    () => auth.status(),
+    (status) => {
+      if (status === "authenticated") navigate(paths.app(), { replace: true });
+    },
+  );
 
   return (
     <main class="mx-auto max-w-2xl px-5 py-12 sm:px-8 sm:py-16">
@@ -30,7 +33,7 @@ export default function Home() {
           </Button>
         </Match>
         <Match when={auth.status() === "authenticated"}>
-          <RedirectToDashboard />
+          <InlineLoadingMark />
         </Match>
         <Match when={auth.status() === "anonymous"}>
           <header class="mb-8">
@@ -55,17 +58,6 @@ export default function Home() {
               </a>
             </div>
           </Panel>
-          <Show when={import.meta.env.DEV}>
-            <p class="mt-8 text-sm text-muted">
-              Contributors:{" "}
-              <a
-                class="text-brand underline-offset-4 hover:underline"
-                href={paths.users()}
-              >
-                UI foundation examples
-              </a>
-            </p>
-          </Show>
         </Match>
       </Switch>
     </main>

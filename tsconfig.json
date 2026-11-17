@@ -17,9 +17,6 @@
     // Type Checking & Safety
     "strict": true,
     "skipLibCheck": true,
-    "types": ["vite/client"],
-    "paths": {
-      "@platforms/*": ["../backend/src/shared/*"]
-    }
+    "types": ["vite/client"]
   }
 }

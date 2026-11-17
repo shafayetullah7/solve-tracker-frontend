@@ -12,11 +12,11 @@ describe("mapApiFieldErrors", () => {
   test("maps pipe-shaped issue array", () => {
     expect(
       mapApiFieldErrors([
-        { path: ["password"], message: "Password must contain 15–128 characters" },
+        { path: ["password"], message: "Password must contain 8–128 characters" },
         { path: ["email"], message: "Invalid email" },
       ]),
     ).toEqual({
-      password: "Password must contain 15–128 characters",
+      password: "Password must contain 8–128 characters",
       email: "Invalid email",
     });
   });

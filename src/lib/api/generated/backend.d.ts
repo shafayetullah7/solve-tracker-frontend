@@ -412,7 +412,7 @@ export interface operations {
                 "application/json": {
                     name: string;
                     email: string;
-                    /** @description 15–128 Unicode code points; spaces are preserved. */
+                    /** @description 8–128 Unicode code points; spaces are preserved. */
                     password: string;
                 };
             };
@@ -658,7 +658,7 @@ export interface operations {
             content: {
                 "application/json": {
                     token: string;
-                    /** @description 15–128 Unicode code points; spaces are preserved. */
+                    /** @description 8–128 Unicode code points; spaces are preserved. */
                     password: string;
                 };
             };
@@ -697,7 +697,7 @@ export interface operations {
             content: {
                 "application/json": {
                     currentPassword: string;
-                    /** @description 15–128 Unicode code points; spaces are preserved. */
+                    /** @description 8–128 Unicode code points; spaces are preserved. */
                     newPassword: string;
                 };
             };

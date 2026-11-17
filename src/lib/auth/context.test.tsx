@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./context";
 import { createMemoryBroadcastHub } from "./broadcast";
 import { createAuthCoordinator } from "./coordinator";
 import { createMemoryLockAdapter } from "./locks";
+import { AUTH_BOOTSTRAP_ELEMENT_ID, bootstrapScriptTag } from "./server-session";
 
 const user = { id: "u1", name: "Test", email: "t@example.test" };
 
@@ -152,6 +153,40 @@ describe("AuthProvider", () => {
     expect(getSession.mock.calls.length).toBeGreaterThan(callsBefore);
   });
 
+  test("login wins over stale client bootstrap that finishes later", async () => {
+    let resolveSession: (value: unknown) => void = () => {};
+    const sessionPromise = new Promise((resolve) => {
+      resolveSession = resolve;
+    });
+    const getSession = vi.fn().mockReturnValue(sessionPromise);
+    const loginFn = vi.fn().mockResolvedValue({ user });
+    const clients = bundleFromSession(getSession);
+    clients.authApi.login = loginFn as AuthClientsBundle["authApi"]["login"];
+    let authRef: ReturnType<typeof useAuth> | undefined;
+    const { getByTestId } = render(() => (
+      <AuthProvider
+        clients={clients}
+        initialBootstrap={{ kind: "anonymous" }}
+      >
+        <Probe onAuth={(auth) => (authRef = auth)} />
+      </AuthProvider>
+    ));
+    expect(getByTestId("status")).toHaveTextContent("anonymous");
+    await authRef!.login({
+      email: "t@example.test",
+      password: "long-test-password-12",
+    });
+    await vi.waitFor(() =>
+      expect(getByTestId("status")).toHaveTextContent("authenticated"),
+    );
+    resolveSession(
+      new ApiError("http", "Unauthorized", 401, "AUTH_REFRESH_INVALID"),
+    );
+    await vi.waitFor(() => expect(getSession).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 0));
+    expect(getByTestId("status")).toHaveTextContent("authenticated");
+  });
+
   test("login publishes session-changed on memory broadcast hub", async () => {
     const hub = createMemoryBroadcastHub();
     const publish = vi.spyOn(hub, "publish");
@@ -175,6 +210,51 @@ describe("AuthProvider", () => {
         expect.objectContaining({ type: "session-changed" }),
       ),
     );
+  });
+
+  test("initialBootstrap authenticated starts without checking", async () => {
+    const getSession = vi.fn().mockResolvedValue({ user });
+    const clients = bundleFromSession(getSession);
+    const { getByTestId } = render(() => (
+      <AuthProvider
+        clients={clients}
+        initialBootstrap={{ kind: "authenticated", user }}
+      >
+        <Probe />
+      </AuthProvider>
+    ));
+    expect(getByTestId("status")).toHaveTextContent("authenticated");
+    await vi.waitFor(() => expect(getSession).toHaveBeenCalledTimes(1));
+    expect(getByTestId("status")).toHaveTextContent("authenticated");
+  });
+
+  test("initialBootstrap anonymous skips checking flash", async () => {
+    const getSession = vi.fn().mockResolvedValue({ user });
+    const clients = bundleFromSession(getSession);
+    const { getByTestId } = render(() => (
+      <AuthProvider clients={clients} initialBootstrap={{ kind: "anonymous" }}>
+        <Probe />
+      </AuthProvider>
+    ));
+    expect(getByTestId("status")).toHaveTextContent("anonymous");
+  });
+
+  test("seeds from the injected bootstrap script when no prop is given", () => {
+    document.head.insertAdjacentHTML(
+      "beforeend",
+      bootstrapScriptTag({ kind: "authenticated", user }),
+    );
+    try {
+      const clients = bundleFromSession(vi.fn(() => new Promise(() => {})));
+      const { getByTestId } = render(() => (
+        <AuthProvider clients={clients}>
+          <Probe />
+        </AuthProvider>
+      ));
+      expect(getByTestId("status")).toHaveTextContent("authenticated");
+    } finally {
+      document.getElementById(AUTH_BOOTSTRAP_ELEMENT_ID)?.remove();
+    }
   });
 
   test("clearSession bumps epoch and sets anonymous", async () => {

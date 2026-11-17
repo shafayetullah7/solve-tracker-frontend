@@ -1,3 +1,4 @@
+import { getRequestEvent, isServer } from "@solidjs/web";
 import type { ParentProps } from "solid-js";
 import {
   createContext,
@@ -6,6 +7,7 @@ import {
   untrack,
   useContext,
 } from "solid-js";
+import { ApiError } from "../api/errors";
 import type { ApiClient } from "../api/client";
 import type {
   createAuthApi,
@@ -14,6 +16,10 @@ import type {
 import { createAuthClients } from "./clients";
 import type { AuthCoordinator } from "./coordinator";
 import { createAuthCrossTab, createTabId, type AuthCrossTab } from "./cross-tab";
+import {
+  readClientBootstrapFromDom,
+  type ServerAuthBootstrap,
+} from "./server-session";
 import {
   resolveBootstrapSession,
   type AuthUser,
@@ -58,6 +64,27 @@ export function AuthContextOverride(
   return <AuthContext value={props.value}>{props.children}</AuthContext>;
 }
 
+function authStatusFromSeed(
+  seed: ServerAuthBootstrap | undefined,
+): AuthStatus {
+  return seed?.kind ?? "checking";
+}
+
+/**
+ * Same seed on both sides of hydration: the auth gate middleware stores it on
+ * the request event for SSR and injects it as JSON for the browser.
+ */
+function resolveBootstrapSeed(): ServerAuthBootstrap | undefined {
+  if (isServer) return getRequestEvent()?.locals?.practiceAuthBootstrap;
+  return readClientBootstrapFromDom();
+}
+
+function userFromSeed(
+  seed: ServerAuthBootstrap | undefined,
+): AuthUser | undefined {
+  return seed?.kind === "authenticated" ? seed.user : undefined;
+}
+
 function applyBootstrapResult(
   result: BootstrapResult,
   setStatus: (value: AuthStatus) => void,
@@ -82,21 +109,44 @@ function applyBootstrapResult(
 }
 
 export function AuthProvider(
-  props: ParentProps<{ clients?: AuthClientsBundle }>,
+  props: ParentProps<{
+    clients?: AuthClientsBundle;
+    /** Test override; the app seeds from the request event / DOM. */
+    initialBootstrap?: ServerAuthBootstrap;
+  }>,
 ) {
-  const bundle =
-    untrack(() => props.clients) ?? createAuthClients();
-  const [status, setStatus] = createSignal<AuthStatus>("checking");
-  const [user, setUser] = createSignal<AuthUser | undefined>();
+  const { bundle, hadSeed, seed } = untrack(() => {
+    const resolved = props.initialBootstrap ?? resolveBootstrapSeed();
+    return {
+      bundle: props.clients ?? createAuthClients(),
+      hadSeed: resolved !== undefined,
+      seed: resolved,
+    };
+  });
+
+  const [status, setStatus] = createSignal<AuthStatus>(
+    authStatusFromSeed(seed),
+  );
+  const [user, setUser] = createSignal<AuthUser | undefined>(
+    userFromSeed(seed),
+  );
   const [revocationUnconfirmed, setRevocationUnconfirmed] = createSignal(false);
 
   let bootstrapGeneration = 0;
   let crossTab: AuthCrossTab | undefined;
 
-  async function runBootstrap() {
+  /** Drop in-flight SSR/client session probes so they cannot clobber a fresh login. */
+  function invalidateBootstrapProbe() {
+    bootstrapGeneration += 1;
+  }
+
+  async function runBootstrap(options?: { forceChecking?: boolean }) {
     const generation = ++bootstrapGeneration;
-    setStatus("checking");
-    setUser(undefined);
+    const soft = hadSeed && !options?.forceChecking;
+    if (!soft) {
+      setStatus("checking");
+      setUser(undefined);
+    }
     const result = await resolveBootstrapSession(
       bundle.authApi,
       bundle.coordinator,
@@ -108,7 +158,7 @@ export function AuthProvider(
 
   async function onPeerInvalidate() {
     bootstrapGeneration += 1;
-    await runBootstrap();
+    await runBootstrap({ forceChecking: true });
   }
 
   async function callServerLogout(): Promise<boolean> {
@@ -154,24 +204,32 @@ export function AuthProvider(
     supportsAutoRecovery: bundle.coordinator.supportsAutoRecovery,
     revocationUnconfirmed,
     establishSession(sessionUser) {
+      invalidateBootstrapProbe();
       setUser(sessionUser);
       setStatus("authenticated");
     },
     clearSession() {
+      invalidateBootstrapProbe();
       bundle.coordinator.bumpEpoch();
       setUser(undefined);
       setStatus("anonymous");
     },
-    retryBootstrap: runBootstrap,
+    retryBootstrap: () => runBootstrap({ forceChecking: true }),
     notifyPeersLoggedOut() {
       crossTab?.publishLoggedOut();
     },
     async login(input) {
+      invalidateBootstrapProbe();
       const startEpoch = bundle.coordinator.getEpoch();
       const session = await bundle.coordinator.runWithSessionLock(() =>
         bundle.authApi.login(input),
       );
-      if (bundle.coordinator.getEpoch() !== startEpoch) return;
+      if (bundle.coordinator.getEpoch() !== startEpoch) {
+        throw new ApiError(
+          "context-changed",
+          "Authentication context changed.",
+        );
+      }
       setUser(session.user);
       setStatus("authenticated");
       setRevocationUnconfirmed(false);

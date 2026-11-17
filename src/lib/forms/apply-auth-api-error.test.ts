@@ -5,11 +5,11 @@ import { applyAuthApiError } from "./apply-auth-api-error";
 describe("applyAuthApiError", () => {
   test("VALIDATION_ERROR with password field suppresses banner", () => {
     const error = new ApiError("http", "Invalid input.", 400, "VALIDATION_ERROR", [
-      { path: ["password"], message: "Password must contain 15–128 characters" },
+      { path: ["password"], message: "Password must contain 8–128 characters" },
     ]);
     const result = applyAuthApiError(error);
     expect(result.fieldErrors.password).toBe(
-      "Password must contain 15–128 characters",
+      "Password must contain 8–128 characters",
     );
     expect(result.banner).toBeUndefined();
   });

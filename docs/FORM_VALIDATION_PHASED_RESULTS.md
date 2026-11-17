@@ -9,7 +9,7 @@ Plan: [FORM_VALIDATION_PHASED_PLAN.md](FORM_VALIDATION_PHASED_PLAN.md).
 **Verification:**
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms src/lib/auth/forms.test.ts src/lib/problems/messages.test.ts src/lib/topics/messages.test.ts
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms src/lib/auth/forms.test.ts src/lib/problems/messages.test.ts src/lib/topics/messages.test.ts
 ```
 
 **Note:** Routes still call `mapAuthFieldErrors` directly; pipe-shaped auth validation now maps to field keys via the alias. `resolveFormBanner` is tested but not wired until FORM-3.
@@ -21,7 +21,7 @@ cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms src/li
 **Verification:**
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run \
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run \
   src/lib/forms/form-field-control-attrs.test.ts \
   src/lib/forms/format-retry-after.test.ts \
   src/components/ui/FormField.test.tsx \
@@ -35,13 +35,13 @@ cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run \
 **Verification:**
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
 # optional: pnpm test:e2e e2e/auth-flow.spec.ts e2e/auth-a11y-smoke.spec.ts
 ```
 
 **Manual checklist**
 
-- [ ] Register with &lt;15 char password → `password` field error without API call.
+- [ ] Register with &lt;8 code-point password → `password` field error without API call.
 - [ ] Register duplicate email → `email` field message from `EMAIL_IN_USE`.
 - [ ] Login wrong password → banner only (`Invalid email or password.`).
 - [ ] Forgot invalid email → visible field error under email.
@@ -54,7 +54,7 @@ cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
 **Verification:**
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
 ```
 
 **Manual checklist**
@@ -71,7 +71,7 @@ cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
 **Verification:**
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms src/components/ui/PasswordCodePointMeter.test.tsx
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms src/components/ui/PasswordCodePointMeter.test.tsx
 ```
 
 **Manual checklist**

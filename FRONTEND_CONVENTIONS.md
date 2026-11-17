@@ -1,6 +1,6 @@
 # Frontend conventions
 
-This document defines the UI scheme and implementation patterns for this repository. Examples target the installed packages below, verified on 2026-11-10. They are not React, Next.js, Solid 1.x, or a separate SolidStart 2 application. Follow the [product requirements](../backend/REQUIREMENTS.md) when building features; the home page currently previews UI foundations, not a working problem library.
+This document defines the UI scheme and implementation patterns for this repository. Examples target the installed packages below, verified on 2026-11-10. They are not React, Next.js, Solid 1.x, or a separate SolidStart 2 application. Follow the [product requirements](../solve-tracker-backend/REQUIREMENTS.md) when building features; the home page currently previews UI foundations, not a working problem library.
 
 ## 1. Actual framework and version boundary
 
@@ -13,7 +13,7 @@ This document defines the UI scheme and implementation patterns for this reposit
 | `tailwindcss` and `@tailwindcss/vite` | `4.3.5` |
 | `vite` | `8.3.5` |
 
-**There is no `@solidjs/start` dependency in this project.** Start behavior comes from `solid({ start: true })` in `vite.config.ts`. It currently runs in client mode and builds a static shell to `dist/client`. The generated server artifact does not by itself mean the app runs SSR. Do not add a second framework or migrate to a separate Start package as part of routine UI work.
+**There is no `@solidjs/start` dependency in this project.** Start behavior comes from `@solidjs/vite-plugin` with `start` + `ssr: true` in `vite.config.ts`. Production: **Node ≥ 22.12**, `pnpm build` then `pnpm start` (`dist/server/node.js`, default port 3001); deploy runbook [docs/DEPLOY.md](docs/DEPLOY.md), smoke `pnpm verify:deploy`. Same-origin `/api` is proxied via `config/start-middleware.ts` using `API_PROXY_TARGET`. Logged-in SSR uses a per-request session probe (Track B) in the `authGate` middleware (`config/auth-gate.ts`); SSR renders the auth-aware shell only and refresh stays client-only — see `AUTH_CONVENTIONS.md`. Do not add a separate Start package as part of routine UI work.
 
 `src/App.tsx` owns the router/layout; `src/Document.tsx` owns the HTML shell. `src/router.ts` composes generated file routes. Use its generated `paths` helpers for internal links, as existing routes do. There are no Next.js `app/`, `pages/`, `layout.tsx`, `next/link`, `next/navigation`, server actions, or `use client` directives here.
 
@@ -214,16 +214,17 @@ Render `props.children` and `props.actions` in JSX. Do not cache or eagerly invo
 
 ```tsx
 import type { Component } from 'solid-js';
-import { Dynamic } from '@solidjs/web';
+import { dynamic } from '@solidjs/web';
 
 function IconSlot(props: { icon: Component<{ class?: string }> }) {
-  return <Dynamic component={props.icon} class="size-4" />;
+  const Icon = dynamic(() => props.icon);
+  return <Icon class="size-4" />;
 }
 
 <IconSlot icon={CheckIcon} />
 ```
 
-Pass `CheckIcon`, the function reference, to a component prop. Pass `<CheckIcon />` only when the prop expects JSX content. `Dynamic` handles a changing component reference. For a stable wrapper around a reactive choice, the installed renderer also supports `const Active = dynamic(() => editing() ? Editor : Viewer)` and `<Active value={value()} />`.
+Pass `CheckIcon`, the function reference, to a component prop. Pass `<CheckIcon />` only when the prop expects JSX content. Use `dynamic()` for a changing component or tag, hoisted once per component instance (or per module when constant): `const Active = dynamic(() => editing() ? Editor : Viewer)` then `<Active value={value()} />`. `<Dynamic component=…>` is deprecated in Solid 2; do not use it in new code.
 
 ### Render functions
 
@@ -231,14 +232,19 @@ Use a named function prop when the parent needs to control rendering based on ch
 
 ## 8. Async data and routing
 
-- Async derived data uses `createMemo(() => fetchData(id()))` and a `Loading` boundary for pending reads; use `Errored` for failures. App shell: [`App.tsx`](src/App.tsx) wraps routes with `<Errored>` + [`RouteErrorFallback`](src/components/ui/RouteErrorFallback.tsx) outside `<Loading>`; the root `<Loading>` fallback is [`RouteLoadingScreen`](src/components/ui/RouteLoadingScreen.tsx) (centered [`PracticeMark`](src/components/brand/PracticeMark.tsx), no skeleton or visible text). Session bootstrap on `/app` reuses the same screen. Product chrome uses [`PracticeBrandLink`](src/components/brand/PracticeBrandLink.tsx) in guest nav, app shell header, and sidebar rail. Login/register/recovery use [`AuthLayout`](src/components/auth/AuthLayout.tsx) only (no duplicate guest nav; `isAuthSurfacePath`). Footer actions use [`AuthFormActions`](src/components/auth/AuthFormActions.tsx). Form/list failures stay imperative (`FormAlert`, `loadStatus`). These replace Solid 1.x `createResource`, `Suspense`, and `ErrorBoundary` patterns in this installed version.
+- **SSR (Start mode, shell-only):** The [`authGate`](config/auth-gate.ts) middleware probes the session per document request, answers protected/guest mismatches with a `302`, stores the snapshot on `event.locals` (read by `AuthProvider` via `getRequestEvent()`), and injects `#practice-auth-bootstrap` JSON before `</head>`. Do not use `serverRenderSetup` to wrap `<App />` — the server tree must match what the client entry hydrates. Pages load data in the browser with `createEffect(() => auth.status(), status => { if (status === "authenticated") load(); })` (Solid 2 has no `onMount`; effects run after hydration). Avoid early returns on props in components and read props inside JSX/accessors so they stay reactive. Do not mix a module constant with other text holes in JSX (`{count()} / {MAX}`): the dev SSR compile inlines the constant while the dev client compile keeps a hole, which breaks hydration in dev only — use one expression (`` {`${count()} / ${MAX}`} ``). Same-origin `/api` is proxied only through [`config/start-middleware.ts`](config/start-middleware.ts) (`API_PROXY_TARGET`), not Vite `server.proxy`. HTML responses get `Cache-Control: private, no-store` and `Vary: Cookie` from middleware. Smoke: `pnpm verify:deploy` (or `verify:ssr-1`, `verify:ssr-2`).
+- Async derived data uses `createMemo(() => fetchData(id()))` and a `Loading` boundary for pending reads; use `Errored` for failures. Reuse [`RouteBoundary`](src/components/ui/RouteBoundary.tsx) (`Errored` outside `Loading` + [`RouteErrorFallback`](src/components/ui/RouteErrorFallback.tsx) / [`RouteLoadingScreen`](src/components/ui/RouteLoadingScreen.tsx)). App shell and `/app` layout both wrap routed children with `RouteBoundary` so workspace chrome can stay mounted when a nested route fails. Dev: Vite `server.hmr.overlay` is off so runtime failures surface through boundaries instead of the full-screen overlay when possible. The root `<Loading>` fallback is [`RouteLoadingScreen`](src/components/ui/RouteLoadingScreen.tsx) (centered [`PracticeMark`](src/components/brand/PracticeMark.tsx), no skeleton or visible text). Session bootstrap on `/app` reuses the same screen. Product chrome uses [`PracticeBrandLink`](src/components/brand/PracticeBrandLink.tsx) in guest nav, app shell header, and sidebar rail. Login/register/recovery use [`AuthLayout`](src/components/auth/AuthLayout.tsx) only (no duplicate guest nav; `isAuthSurfacePath`). Footer actions use [`AuthFormActions`](src/components/auth/AuthFormActions.tsx). Form/list failures stay imperative (`FormAlert`, `loadStatus`). These replace Solid 1.x `createResource`, `Suspense`, and `ErrorBoundary` patterns in this installed version.
+- **App page shell:** Signed-in routes under `/app` wrap page content in [`AppPageContainer`](src/components/app/AppPageContainer.tsx) (`mx-auto w-full max-w-6xl px-5 py-10 sm:px-8 sm:py-14`). Dashboard and profile use it directly; `/app/problems/*` and `/app/topics/*` get it from their route layouts. `AppShell` already owns `#main-content` — do not nest another `<main>` in page layouts. Form-focused flows (add/edit problem) may narrow fields with `max-w-2xl` inside the shell; list/grid pages use the full shell width.
+- **Loading UI:** Use [`RouteLoadingScreen`](src/components/ui/RouteLoadingScreen.tsx) for full-route or layout waits (root `RouteBoundary`, `RequireSession` before shell, auth layouts). It owns `id="main-content"` unless `mainContent={false}`. Inside [`AppShell`](src/components/app/AppShell.tsx), pass `nestedInAppShell` on `RouteBoundary` so loading/errors do not duplicate `#main-content`. Use [`InlineLoadingMark`](src/components/ui/InlineLoadingMark.tsx) only for in-page states within an existing `main` (e.g. home redirect gate) — no extra landmark, shorter minimum height. In-page product data waits (dashboard, library, topics, profile, problem detail/edit) use [`LoadingPlaceholder`](src/components/ui/LoadingPlaceholder.tsx): `block` for page/panel layouts, `row` for lists. Caption-sized inline waits inside already-rendered chrome (filter toolbars, header strips) may stay as muted text.
+- **Lazy chunk failures:** [`src/client-setup.ts`](src/client-setup.ts) (`start.clientSetup`) listens for `vite:preloadError` and shows a top-of-page reload banner via [`chunk-load-recovery.ts`](src/lib/app/chunk-load-recovery.ts).
+- **Production security:** optional `ENABLE_NODE_CSP=1` and `TRUST_PROXY_HEADERS=1` (runtime env) — see [docs/DEPLOY.md](docs/DEPLOY.md) § Security. SSR failures log through [`src/server-setup.ts`](src/server-setup.ts) without cookie/auth bodies.
 - Use `refresh`/`affects` only according to the local Solid 2 reference. `isPending` represents pending changes, not a generic initial-loading flag.
 - Keep route files focused on page composition. Put shared primitives in `components/ui/`, feature components/state in feature folders as implemented, and backend request helpers in a dedicated `lib/` module when introduced.
 - The Nest backend owns persistence and validation. Do not introduce framework server actions or store fake solved progress as if it were persisted backend data.
 - Model loading, empty, validation, network failure, and success states explicitly. Preserve form input on failure and roll back optimistic updates if the server rejects them.
 - Browser-only APIs belong in appropriate lifecycle/event code. Client mode still prerenders a shell during builds; do not access `window` or local storage at module scope.
 - Keep `Document.tsx` limited to the document shell; page titles use `@solidjs/meta`. Do not import `next/head`.
-- Vite uses port **3001** so the existing Nest backend can use 3000. Run `pnpm dev` from `cp-frontend/`. Internal links use `paths`, while external problem links use ordinary anchors with suitable new-tab attributes.
+- Vite uses port **3001** so the existing Nest backend can use 3000. Run `pnpm dev` from `solve-tracker-frontend/`. Internal links use `paths`, while external problem links use ordinary anchors with suitable new-tab attributes.
 
 ## Backend API access
 
@@ -246,7 +252,7 @@ Follow [API_CLIENT.md](./API_CLIENT.md). All backend calls use the shared transp
 
 ## Authentication and session security
 
-Follow [Phase 0 decisions](../docs/PHASE_0_DECISIONS.md) for the selected auth API/lifetimes and [AUTH_CONVENTIONS.md](./AUTH_CONVENTIONS.md) for JWT cookie transport, Solid 2 session state, shared refresh promises, cross-tab locking and rechecks, logout races, and future SSR isolation. Current architecture remains CSR; these conventions do not implement authentication.
+Follow [Phase 0 decisions](../../solve-tracker-backend/docs/PHASE_0_DECISIONS.md) for the selected auth API/lifetimes and [AUTH_CONVENTIONS.md](./AUTH_CONVENTIONS.md) for JWT cookie transport, Solid 2 session state, shared refresh promises, cross-tab locking and rechecks, logout races, and SSR auth bootstrap (Track B). These conventions document behavior; route and provider code implement it.
 
 ## 8.1 Form validation and errors
 
@@ -261,13 +267,15 @@ Phased plan: [docs/FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_P
 
 **Banner rule:** If mapped field errors exist for `VALIDATION_ERROR`, fields carry the message; use a form-level `FormAlert` only for credentials, conflicts, network, rate limits, etc.
 
-**Password UX:** [`PasswordCodePointMeter`](../src/components/ui/PasswordCodePointMeter.tsx) on register/reset after blur or first submit (`form.submitAttempted()`). Rate-limit copy comes from `FormAlert` + `Retry-After` (see [`format-retry-after.ts`](../src/lib/forms/format-retry-after.ts)).
+**Platform catalog:** Judge slugs, labels, and URL detection live in [`src/lib/platforms/platform-catalog.ts`](src/lib/platforms/platform-catalog.ts) inside the frontend bundle (no build-time import from the backend repo). A duplicate lives in `solve-tracker-backend/src/shared/platform-catalog.ts` for seeding and server-side URL breakdown. **Edit both files together** when adding or changing a judge; run **`pnpm verify:catalog`** (DATA-1 drift gate). `urlHosts` are not stored in the DB; filter labels use the local catalog.
 
-**Auth copy:** Use `AUTH_NAME_HINT` / `AUTH_PASSWORD_HINT` on register and reset with `FormField` `hintVisibility="sr-only"`; password guidance in UI comes from [`PasswordCodePointMeter`](src/components/ui/PasswordCodePointMeter.tsx) when active — do not duplicate rules in routes.
+**Password UX:** Policy is **8–128 Unicode code points** ([`password-policy.ts`](src/lib/forms/password-policy.ts)), aligned with backend `passwordSchema`. Use [`PasswordInput`](src/components/ui/PasswordInput.tsx) (show/hide toggle) on login, register, reset, and profile change-password. [`PasswordCodePointMeter`](src/components/ui/PasswordCodePointMeter.tsx) on register, reset, and profile new-password when the field is focused, has input, was blurred, or submit was attempted — not only after submit. Rate-limit copy comes from `FormAlert` + `Retry-After` (see [`format-retry-after.ts`](../src/lib/forms/format-retry-after.ts)).
+
+**Auth copy:** Use `AUTH_NAME_HINT` / `AUTH_PASSWORD_HINT` on register, reset, and profile new-password with `FormField` `hintVisibility="sr-only"`; visible guidance comes from the meter when active — do not duplicate rules in routes.
 
 **Profile:** [`/app/profile`](src/routes/app/profile.tsx) uses `max-w-6xl` (dashboard width). Data from [`profile.api.ts`](src/lib/api/modules/profile.api.ts) and avatar upload from [`media.api.ts`](src/lib/api/modules/media.api.ts) (`uploadMultipart`). **About**, **work**, and **education** edit through separate centered modals on [`ProfileEditorDialog`](src/components/profile/ProfileEditorDialog.tsx). **Pessimistic saves:** modals set `pending`, call async handlers, update page state only after APIs resolve; no optimistic list/card updates. Errors: [`applyProfileApiError`](src/lib/forms/apply-profile-api-error.ts). Close while saving is blocked (`closeBlocked`); About cancel prompts when dirty. Account ([`ProfileAccountPanel`](src/components/profile/ProfileAccountPanel.tsx)) holds sign-out and change-password. Open state: [`ProfileEditorTarget`](src/lib/profile/profile-editor-target.ts). [`profile-mock.client.ts`](src/lib/profile/profile-mock.client.ts) remains for unit tests only.
 
-**Media and avatars:** All permanent images use the backend **`media`** model and [`MEDIA_CONVENTIONS.md`](../backend/MEDIA_CONVENTIONS.md). **Upload** (`POST /media`) creates `usage_count = 0`; **link** on save (profile avatar, gallery commit) bumps slots in one server transaction. Gallery lists only `usage_count > 0`. Profile photo UI ([`ProfileAvatarEditorDialog`](src/components/profile/ProfileAvatarEditorDialog.tsx), [`ProfileAvatarUploadField`](src/components/profile/ProfileAvatarUploadField.tsx)): upload in modal, commit `mediaId` on save; abandoning the modal must not increase server usage. Do not store long-lived blobs in page state once APIs exist—use returned `avatarUrl` from profile/media APIs. Client file rules: [`profile-avatar-upload.ts`](src/lib/profile/profile-avatar-upload.ts).
+**Media and avatars:** All permanent images use the backend **`media`** model and [`MEDIA_CONVENTIONS.md`](../solve-tracker-backend/MEDIA_CONVENTIONS.md). **Upload** (`POST /media`) creates `usage_count = 0`; **link** on save (profile avatar, gallery commit) bumps slots in one server transaction. Gallery lists only `usage_count > 0`. Profile photo UI ([`ProfileAvatarEditorDialog`](src/components/profile/ProfileAvatarEditorDialog.tsx), [`ProfileAvatarUploadField`](src/components/profile/ProfileAvatarUploadField.tsx)): upload in modal, commit `mediaId` on save; abandoning the modal must not increase server usage. Do not store long-lived blobs in page state once APIs exist—use returned `avatarUrl` from profile/media APIs. Client file rules: [`profile-avatar-upload.ts`](src/lib/profile/profile-avatar-upload.ts).
 
 ## 9. Accessibility and interaction
 
@@ -287,7 +295,7 @@ Keep the version table, AGENTS guidance, theme tokens, and examples aligned when
 
 ## References
 
-- [MEDIA_CONVENTIONS.md](../backend/MEDIA_CONVENTIONS.md) — media table, gallery, profile avatar slots, Cloudinary, `usage_count` rules.
+- [MEDIA_CONVENTIONS.md](../solve-tracker-backend/MEDIA_CONVENTIONS.md) — media table, gallery, profile avatar slots, Cloudinary, `usage_count` rules.
 - [FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_PLAN.md) — phased work to standardize client validation and error UI.
 - Installed `node_modules/solid-js/CHEATSHEET.md` and package declarations are the exact-version reference for the examples above.
 - [Solid 2 documentation](https://v2.solidjs.com/) — use this version, not unqualified Solid 1.x tutorials.

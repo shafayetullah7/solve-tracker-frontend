@@ -6,6 +6,7 @@ const baseURL =
 
 export default defineConfig({
   testDir: ".",
+  outputDir: "test-results",
   fullyParallel: false,
   workers: 1,
   retries: 0,

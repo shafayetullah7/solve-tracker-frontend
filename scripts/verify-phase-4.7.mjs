@@ -51,7 +51,7 @@ async function main() {
   await run("pnpm", ["api:check"]);
   await run("node", ["scripts/verify-phase-4.1.mjs"]);
   await run("node", ["scripts/verify-phase-4.7-api.mjs"]);
-  await run("pnpm", ["--dir", "../backend", "build"]);
+  await run("pnpm", ["--dir", "../solve-tracker-backend", "build"]);
   await run("pnpm", ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"]);
   console.log("Phase 4.7 full verification passed.");
 }

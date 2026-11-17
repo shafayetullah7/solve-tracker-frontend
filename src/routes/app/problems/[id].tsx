@@ -6,9 +6,11 @@ import {
   Match,
   Show,
   Switch,
+  untrack,
 } from "solid-js";
 import { Badge } from "../../../components/ui/Badge";
 import { Button } from "../../../components/ui/Button";
+import { LoadingPlaceholder } from "../../../components/ui/LoadingPlaceholder";
 import { Panel } from "../../../components/ui/Panel";
 import { createProblemsApi, type ProblemResponse } from "../../../lib/api/modules/problems.api";
 import { useAuth } from "../../../lib/auth/context";
@@ -51,8 +53,7 @@ export default function ProblemDetail() {
 
   let deleteDialogRef: HTMLDialogElement | undefined;
 
-  async function loadProblem() {
-    const id = params.id;
+  async function loadProblem(id = untrack(() => params.id)) {
     if (!id) return;
     setLoadStatus("loading");
     setLoadMessage(undefined);
@@ -69,9 +70,9 @@ export default function ProblemDetail() {
 
   createEffect(
     () => [auth.status(), params.id] as const,
-    ([status]) => {
+    ([status, id]) => {
       if (status !== "authenticated") return;
-      void loadProblem();
+      void loadProblem(id);
     },
   );
 
@@ -149,9 +150,7 @@ export default function ProblemDetail() {
 
       <Switch>
         <Match when={loadStatus() === "loading" || loadStatus() === "idle"}>
-          <p class="text-muted" role="status">
-            Loading problem…
-          </p>
+          <LoadingPlaceholder variant="block" />
         </Match>
         <Match when={loadStatus() === "unavailable"}>
           <p class="text-muted">{loadMessage()}</p>

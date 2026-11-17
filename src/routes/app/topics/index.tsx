@@ -4,7 +4,6 @@ import {
   createSignal,
   For,
   Match,
-  onSettled,
   Show,
   Switch,
 } from "solid-js";
@@ -27,6 +26,31 @@ import { topicFormMessage } from "../../../lib/topics/messages";
 import { paths } from "../../../router";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
+
+const pulse = "motion-safe:animate-pulse rounded bg-surface-muted";
+
+function TopicsListSkeleton() {
+  return (
+    <ul class="space-y-4" role="status" aria-label="Loading">
+      <For each={[0, 1, 2]}>
+        {() => (
+          <li class="border-b border-line pb-4 last:border-0">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class={`h-5 w-40 ${pulse}`} />
+                <div class={`h-4 w-24 ${pulse}`} />
+              </div>
+              <div class="flex gap-2">
+                <div class={`h-11 w-24 ${pulse}`} />
+                <div class={`h-11 w-20 ${pulse}`} />
+              </div>
+            </div>
+          </li>
+        )}
+      </For>
+    </ul>
+  );
+}
 
 export default function TopicsIndex() {
   const auth = useAuth();
@@ -81,12 +105,14 @@ export default function TopicsIndex() {
     }
   }
 
-  onSettled(() => {
-    if (auth.status() === "authenticated") {
+  createEffect(
+    () => auth.status(),
+    (status) => {
+      if (status !== "authenticated") return;
       void loadList();
       void loadProgress();
-    }
-  });
+    },
+  );
 
   createEffect(
     () => [deleteTarget()] as const,
@@ -191,7 +217,7 @@ export default function TopicsIndex() {
   return (
     <>
       <Title>Topics — Practice</Title>
-      <header class="mb-8 max-w-2xl">
+      <header class="mb-8">
         <h1 class="text-page font-semibold tracking-tight">Your topics</h1>
         <p class="mt-2 text-muted">
           Organize problems by topic. Names are unique per account (trimmed, case-insensitive).
@@ -240,9 +266,7 @@ export default function TopicsIndex() {
           </Show>
           <Switch>
             <Match when={listStatus() === "loading" || listStatus() === "idle"}>
-              <p class="text-muted" role="status">
-                Loading topics…
-              </p>
+              <TopicsListSkeleton />
             </Match>
             <Match when={listStatus() === "unavailable"}>
               <p class="text-muted">{listMessage()}</p>

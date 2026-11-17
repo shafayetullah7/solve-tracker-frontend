@@ -1,8 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { useLocation } from "@solidjs/router";
-import { Errored, Loading, Show, type ParentProps } from "solid-js";
-import { RouteErrorFallback } from "./components/ui/RouteErrorFallback";
-import { RouteLoadingScreen } from "./components/ui/RouteLoadingScreen";
+import { Show, type ParentProps } from "solid-js";
+import { RouteBoundary } from "./components/ui/RouteBoundary";
 import { PracticeBrandLink } from "./components/brand/PracticeBrandLink";
 import { AuthNav } from "./components/auth/AuthNav";
 import { AuthProvider, useAuth } from "./lib/auth/context";
@@ -36,14 +35,8 @@ function AppRouterContent(props: ParentProps) {
           </div>
         </nav>
       </Show>
-      <div class="flex min-h-0 flex-1 flex-col max-h-dvh overflow-hidden max-md:max-h-none max-md:overflow-visible md:h-dvh">
-        <Errored
-          fallback={(err, reset) => <RouteErrorFallback err={err} reset={reset} />}
-        >
-          <Loading fallback={<RouteLoadingScreen />}>
-            {props.children}
-          </Loading>
-        </Errored>
+      <div class="flex min-h-dvh min-h-0 flex-1 flex-col max-h-dvh overflow-hidden max-md:max-h-none max-md:overflow-visible md:h-dvh">
+        <RouteBoundary>{props.children}</RouteBoundary>
       </div>
     </>
   );

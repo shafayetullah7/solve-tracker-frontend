@@ -129,7 +129,7 @@ export function ProfileAboutEditorDialog(props: ProfileAboutEditorDialogProps) {
             }}
           />
           <p class="mt-2 text-caption text-muted tabular-nums">
-            {bioCount()} / {BIO_MAX}
+            {`${bioCount()} / ${BIO_MAX}`}
           </p>
         </FormField>
         <Show when={formError()}>

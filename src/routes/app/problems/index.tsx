@@ -8,6 +8,7 @@ import {
   Match,
   Show,
   Switch,
+  untrack,
 } from "solid-js";
 import {
   LibraryProgressStrip,
@@ -127,11 +128,10 @@ export default function ProblemsIndex() {
     }
   }
 
-  async function loadList() {
+  async function loadList(query = untrack(listQuery)) {
     setListStatus("loading");
     setListMessage(undefined);
     try {
-      const query = listQuery();
       const result = await api.list(query);
       setItems(result.items);
       setListMeta({
@@ -149,10 +149,10 @@ export default function ProblemsIndex() {
   }
 
   createEffect(
-    () => [auth.status(), location.search] as const,
-    ([status]) => {
+    () => [auth.status(), listQuery()] as const,
+    ([status, query]) => {
       if (status !== "authenticated") return;
-      void loadList();
+      void loadList(query);
     },
   );
 
@@ -265,7 +265,7 @@ export default function ProblemsIndex() {
       <Title>Library — Practice</Title>
       <header class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div class="min-w-0 space-y-1">
-          <h1 class="text-section font-semibold tracking-tight">Your problem library</h1>
+          <h1 class="text-page font-semibold tracking-tight">Your problem library</h1>
           <LibraryProgressStrip
             loadStatus={progressStatus}
             overall={overallProgress}

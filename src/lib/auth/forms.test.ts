@@ -69,10 +69,10 @@ describe("auth forms", () => {
   test("mapAuthFieldErrors pipe issue array", () => {
     expect(
       mapAuthFieldErrors([
-        { path: ["password"], message: "Password must contain 15–128 characters" },
+        { path: ["password"], message: "Password must contain 8–128 characters" },
       ]),
     ).toEqual({
-      password: "Password must contain 15–128 characters",
+      password: "Password must contain 8–128 characters",
     });
   });
 

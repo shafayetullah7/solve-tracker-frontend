@@ -1,10 +1,11 @@
 import { Title } from "@solidjs/meta";
-import { createMemo, createSignal, Match, onCleanup, onSettled, Switch } from "solid-js";
+import { createEffect, createMemo, createSignal, Match, onCleanup, Switch } from "solid-js";
 import { DashboardActivitySection } from "../../components/dashboard/DashboardActivitySection";
 import { DashboardPageHeader } from "../../components/dashboard/DashboardPageHeader";
 import { DashboardPlatformGrid } from "../../components/dashboard/DashboardPlatformGrid";
 import { DashboardQueueGrid } from "../../components/dashboard/DashboardQueueGrid";
 import { DashboardStatsStrip } from "../../components/dashboard/DashboardStatsStrip";
+import { AppPageContainer } from "../../components/app/AppPageContainer";
 import { DashboardToolbar } from "../../components/dashboard/DashboardToolbar";
 import { DashboardTopicProgressList } from "../../components/dashboard/DashboardTopicProgressList";
 import { Button } from "../../components/ui/Button";
@@ -134,9 +135,13 @@ export default function DashboardPage() {
     }
   }
 
-  onSettled(() => {
-    if (auth.status() === "authenticated") void loadProgress();
-  });
+  createEffect(
+    () => auth.status(),
+    (status) => {
+      if (status !== "authenticated") return;
+      void loadProgress();
+    },
+  );
 
   onCleanup(() => {
     previewsAbort?.abort();
@@ -144,7 +149,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+    <AppPageContainer>
       <Title>Dashboard — Practice</Title>
 
       <Switch>
@@ -211,6 +216,6 @@ export default function DashboardPage() {
           }}
         </Match>
       </Switch>
-    </div>
+    </AppPageContainer>
   );
 }

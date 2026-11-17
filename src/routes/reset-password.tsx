@@ -4,6 +4,7 @@ import { AuthFormActions } from "../components/auth/AuthFormActions";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import {
   PasswordCodePointMeter,
   passwordMeterId,
@@ -26,6 +27,7 @@ export default function ResetPassword() {
   const [password, setPassword] = createSignal("");
   const [confirm, setConfirm] = createSignal("");
   const [localError, setLocalError] = createSignal<string | undefined>();
+  const [passwordFocused, setPasswordFocused] = createSignal(false);
   const [passwordBlurred, setPasswordBlurred] = createSignal(false);
 
   onSettled(() => {
@@ -39,7 +41,11 @@ export default function ResetPassword() {
     }
   });
 
-  const meterVisible = () => form.submitAttempted() || passwordBlurred();
+  const meterVisible = () =>
+    passwordFocused() ||
+    password().length > 0 ||
+    form.submitAttempted() ||
+    passwordBlurred();
   const passwordMeterDescribedBy = () =>
     meterVisible() ? [passwordMeterId(RESET_PASSWORD_ID)] : undefined;
 
@@ -107,9 +113,7 @@ export default function ResetPassword() {
             hintVisibility="sr-only"
             error={form.fieldErrors().password}
           >
-            <input
-              class="ui-field"
-              type="password"
+            <PasswordInput
               autocomplete="new-password"
               {...formFieldControlAttrs({
                 id: RESET_PASSWORD_ID,
@@ -122,7 +126,11 @@ export default function ResetPassword() {
                 setPassword(event.currentTarget.value);
                 form.clearField("password");
               }}
-              onBlur={() => setPasswordBlurred(true)}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => {
+                setPasswordFocused(false);
+                setPasswordBlurred(true);
+              }}
             />
             <PasswordCodePointMeter
               fieldId={RESET_PASSWORD_ID}
@@ -135,9 +143,7 @@ export default function ResetPassword() {
             label="Confirm password"
             error={confirmError()}
           >
-            <input
-              class="ui-field"
-              type="password"
+            <PasswordInput
               autocomplete="new-password"
               {...formFieldControlAttrs({
                 id: "reset-confirm",

@@ -4,6 +4,7 @@ import { AuthFormActions, authFormLinkClass } from "../components/auth/AuthFormA
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import { createFormState } from "../lib/forms/create-form-state";
 import { focusFirstInvalid } from "../lib/forms/focus-first-invalid";
 import { validateLogin } from "../lib/forms/validate-auth";
@@ -40,6 +41,7 @@ export default function Login() {
     form.setPending(true);
     try {
       await auth.login({ email: email().trim(), password: password() });
+      if (auth.status() !== "authenticated") return;
       navigate(returnPath() ?? paths.app());
     } catch (error) {
       form.applyApiError(error);
@@ -81,9 +83,7 @@ export default function Login() {
           />
         </FormField>
         <FormField id="login-password" label="Password" error={passwordError()}>
-          <input
-            class="ui-field"
-            type="password"
+          <PasswordInput
             autocomplete="current-password"
             {...formFieldControlAttrs({
               id: "login-password",

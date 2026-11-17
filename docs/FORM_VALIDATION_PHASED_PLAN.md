@@ -2,7 +2,7 @@
 
 **Status:** FORM-1–5 complete (2026-11-16); backend auth flattening (§5.4) out of scope.  
 **Goal:** One predictable way to validate, map API errors, and show messages on every user-facing form — without replacing Nest as source of truth.  
-**Related:** [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md) §8–9, [AUTH_CONVENTIONS.md](../AUTH_CONVENTIONS.md), backend [PHASE_0_DECISIONS.md](../../backend/docs/PHASE_0_DECISIONS.md) (400 `VALIDATION_ERROR`).
+**Related:** [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md) §8–9, [AUTH_CONVENTIONS.md](../AUTH_CONVENTIONS.md), backend [PHASE_0_DECISIONS.md](../../solve-tracker-backend/docs/PHASE_0_DECISIONS.md) (400 `VALIDATION_ERROR`).
 
 ---
 
@@ -10,12 +10,12 @@
 
 | Gap | Impact |
 | --- | --- |
-| **`mapAuthFieldErrors` only understands flat `details` objects** | Global pipe returns Zod issues as `{ path: string[], message }[]` ([`configure-app.ts`](../../backend/src/configure-app.ts)). Auth register/login/forgot often show **“Check the highlighted fields”** with **no highlighted fields**. |
+| **`mapAuthFieldErrors` only understands flat `details` objects** | Global pipe returns Zod issues as `{ path: string[], message }[]` ([`configure-app.ts`](../../solve-tracker-backend/src/configure-app.ts)). Auth register/login/forgot often show **“Check the highlighted fields”** with **no highlighted fields**. |
 | **Two server `details` shapes** | Pipe: **array of issues**. Services (problems, topics): **record** `{ title: "…" }`. One mapper must handle both. |
 | **Duplicate / generic form banners** | Top-level `Invalid input.` plus good field copy; or banner-only errors (`EMAIL_IN_USE`, `INVALID_CREDENTIALS`) with no field anchor. |
 | **No client preflight** | Users wait on the network for empty login, short password, empty title — then may see poor error placement. |
 | **Inconsistent a11y** | Login password / forgot email lack inline errors and `aria-describedby` parity with register. |
-| **Hints drift from rules** | UI says “characters”; server uses **Unicode code points** ([`measureCodePoints`](../../backend/src/common/unicode.js)). Password rules under-explained on register/reset. |
+| **Hints drift from rules** | UI says “characters”; server uses **Unicode code points** ([`measureCodePoints`](../../solve-tracker-backend/src/common/unicode.js)). Password rules under-explained on register/reset. |
 | **Ad hoc form state** | Each route repeats `pending`, `formError`, `fieldErrors`, clear-on-submit. |
 
 **Non-goals:** Client-only validation that contradicts the API; exposing `VALIDATION_ERROR` or stack traces; Zod-on-frontend for every endpoint in v1; Felte / TanStack Form unless FORM-4+ proves insufficient.
@@ -61,7 +61,7 @@ submit → [optional client validate] → API
 
 | Constant | Backend mirror | Used on |
 | --- | --- | --- |
-| `AUTH_PASSWORD_HINT` | `passwordSchema` 15–128 code points, spaces OK | Register, reset |
+| `AUTH_PASSWORD_HINT` | `passwordSchema` 8–128 code points, spaces OK | Register, reset |
 | `AUTH_NAME_HINT` | register name 1–100 after trim | Register |
 | Problem/topic hints | Already in [`fields.ts`](../src/lib/problems/fields.ts) + topic name limits | Problem forms, topics |
 
@@ -116,7 +116,7 @@ flowchart LR
 
 ### 1.1 `mapApiFieldErrors(details: unknown): FieldErrors`
 
-Implement in `cp-frontend/src/lib/forms/map-api-field-errors.ts`:
+Implement in `solve-tracker-frontend/src/lib/forms/map-api-field-errors.ts`:
 
 1. **`null` / non-object** → `{}`
 2. **Array** (global validation pipe): each issue `{ path: string[], message: string }` → key = `path[0]` (or joined for nested paths if ever needed); first message wins per key.
@@ -142,7 +142,7 @@ Implement in `cp-frontend/src/lib/forms/map-api-field-errors.ts`:
 ### 1.5 Verification
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
 ```
 
 ---
@@ -188,7 +188,7 @@ Behavior:
 ### 2.6 Verification
 
 ```bash
-cd cp-frontend && pnpm test --run src/components/ui/FormField.test.tsx
+cd solve-tracker-frontend && pnpm test --run src/components/ui/FormField.test.tsx
 ```
 
 ---
@@ -206,7 +206,7 @@ cd cp-frontend && pnpm test --run src/components/ui/FormField.test.tsx
 | Email trim + non-empty + basic shape | ✓ | ✓ | ✓ | — |
 | Password non-empty | ✓ | ✓ | — | ✓ |
 | Name 1–100 code points after trim | ✓ | — | — | — |
-| Password 15–128 code points | ✓ | — | — | ✓ |
+| Password 8–128 code points | ✓ | — | — | ✓ |
 | Confirm matches | — | — | — | ✓ |
 
 Use `codePointLength` from [`forms.ts`](../src/lib/auth/forms.ts) (move to `lib/forms/unicode.ts` if cleaner).
@@ -236,7 +236,7 @@ Set `fieldErrors.email` + optional short banner.
 ### 3.5 Verification
 
 ```bash
-cd cp-frontend && pnpm test --run src/lib/forms src/routes
+cd solve-tracker-frontend && pnpm test --run src/lib/forms src/routes
 # optional: pnpm test:e2e e2e/auth-flow.spec.ts
 ```
 
@@ -250,7 +250,7 @@ cd cp-frontend && pnpm test --run src/lib/forms src/routes
 
 ### 4.1 Client preflight
 
-- `validateProblemDraft` / `validateTopicName`: title/url/topic name rules aligned with [`problem-title.ts`](../../backend/src/modules/problems/problem-title.ts), [`problem-url.ts`](../../backend/src/modules/problems/problem-url.ts), [`topic-name.ts`](../../backend/src/modules/topics/topic-name.ts).
+- `validateProblemDraft` / `validateTopicName`: title/url/topic name rules aligned with [`problem-title.ts`](../../solve-tracker-backend/src/modules/problems/problem-title.ts), [`problem-url.ts`](../../solve-tracker-backend/src/modules/problems/problem-url.ts), [`topic-name.ts`](../../solve-tracker-backend/src/modules/topics/topic-name.ts).
 - Rating: if non-empty, must parse as integer in range (avoid silent `NaN`).
 
 ### 4.2 Refactor
@@ -272,7 +272,7 @@ After failed client or server validation, focus first `[aria-invalid="true"]` in
 ### 4.5 Verification
 
 ```bash
-cd cp-frontend && pnpm exec tsc --noEmit && pnpm test --run
+cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run
 ```
 
 ---
@@ -289,7 +289,7 @@ Solid-friendly helper: `pending`, `fieldErrors`, `formBanner`, `resetErrors`, `a
 
 ### 5.2 Live feedback (optional)
 
-- Password/register: “12 / 15 characters” using code points (only after blur or after first submit attempt — avoid noisy `role="alert"` per keystroke).
+- Password/register: code-point meter toward **8–128** (e.g. “12 code points”) — only after blur or first submit attempt; avoid noisy `role="alert"` per keystroke.
 - Clear per-field error when user edits that field post-failure.
 
 ### 5.3 Rate limiting
@@ -357,7 +357,7 @@ When each phase completes:
   "code": "VALIDATION_ERROR",
   "message": "Invalid input.",
   "details": [
-    { "path": ["password"], "message": "Password must contain 15–128 characters" }
+    { "path": ["password"], "message": "Password must contain 8–128 characters" }
   ]
 }
 ```

@@ -14,6 +14,6 @@ describe("PasswordCodePointMeter", () => {
     const { container } = render(() => (
       <PasswordCodePointMeter fieldId="register-password" value="😀😀" visible />
     ));
-    expect(container.textContent).toContain("2 / 15");
+    expect(container.textContent).toContain("2 / 8 minimum");
   });
 });

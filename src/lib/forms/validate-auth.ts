@@ -1,5 +1,6 @@
 import type { FieldErrors } from "./field-errors";
 import { FORM_CLIENT_BANNER } from "./form-client-banner";
+import { PASSWORD_LENGTH_MESSAGE, passwordLengthError } from "./password-policy";
 import { codePointLength } from "./unicode";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -9,7 +10,7 @@ export { FORM_CLIENT_BANNER };
 
 export const AUTH_MSG = {
   nameLength: "Name must contain 1–100 characters",
-  passwordLength: "Password must contain 15–128 characters",
+  passwordLength: PASSWORD_LENGTH_MESSAGE,
   emailInvalid: "Invalid email",
   passwordRequired: "Password is required.",
   confirmMismatch: "Passwords do not match.",
@@ -22,10 +23,8 @@ function validateEmailField(email: string): string | undefined {
   return undefined;
 }
 
-function validatePasswordLength(password: string): string | undefined {
-  const len = codePointLength(password);
-  if (len < 15 || len > 128) return AUTH_MSG.passwordLength;
-  return undefined;
+export function validatePasswordLength(password: string): string | undefined {
+  return passwordLengthError(password);
 }
 
 export function validateLogin(values: { email: string; password: string }): FieldErrors {

@@ -1,32 +1,47 @@
-import tailwindcss from "@tailwindcss/vite";
-import { fileRoutes } from "filesystem-routing/vite";
-import { defineConfig } from "vitest/config";
-import solid from "@solidjs/vite-plugin";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
+import { fileRoutes } from "filesystem-routing/vite";
 import { loadEnv } from "vite";
-import { createApiProxy } from "./config/api-proxy.ts";
+import { defineConfig } from "vitest/config";
+import solid from "@solidjs/vite-plugin";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const here = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ command, mode, isPreview }) => ({
-  // Turnkey client mode: no index.html and no mount file — the plugin generates
-  // the entries around src/App.tsx (wrapped in src/Document.tsx) and `vite build`
-  // prerenders the shell into a purely static dist/client.
+export default defineConfig(({ mode }) => {
+  const loaded = loadEnv(mode, here, "");
+  for (const [key, value] of Object.entries(loaded)) {
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+
+  return {
+  // Start mode: streaming SSR + static client assets; production Node entry at
+  // dist/server/node.js (`pnpm start`). API proxy: config/start-middleware.ts.
   plugins: [
     // `extensions` makes @solidjs/vite-plugin also compile the `?pick=` route
     // modules the fileRoutes plugin emits (their ids end in a query string).
-    solid({ start: true, extensions: [".jsx", ".tsx"], diagnostics: true }), // add `ssr: true` for streaming SSR
+    solid({
+      start: {
+        middleware: "./config/start-middleware.ts",
+        serverSetup: "./src/server-setup.ts",
+        clientSetup: "./src/client-setup.ts",
+        nodeServer: true,
+      },
+      ssr: true,
+      extensions: [".jsx", ".tsx"],
+      diagnostics: true,
+    }),
     fileRoutes({ types: true }),
     tailwindcss(),
   ],
   server: {
     port: 3001,
     strictPort: true,
-    proxy:
-      command === "serve" && !isPreview && mode !== "test"
-        ? createApiProxy(loadEnv(mode, process.cwd(), "").API_PROXY_TARGET)
-        : undefined,
+    hmr: {
+      overlay: false,
+    },
   },
   test: {
     environment: "jsdom",
@@ -38,9 +53,5 @@ export default defineConfig(({ command, mode, isPreview }) => ({
     target: "esnext",
     assetsInlineLimit: 0,
   },
-  resolve: {
-    alias: {
-      "@platforms": path.join(repoRoot, "backend/src/shared"),
-    },
-  },
-}));
+  };
+});

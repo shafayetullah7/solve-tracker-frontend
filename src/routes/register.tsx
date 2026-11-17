@@ -4,6 +4,7 @@ import { AuthFormActions, authFormLinkClass } from "../components/auth/AuthFormA
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { FormAlert } from "../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../components/ui/FormField";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import {
   PasswordCodePointMeter,
   passwordMeterId,
@@ -26,9 +27,14 @@ export default function Register() {
   const [name, setName] = createSignal("");
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
+  const [passwordFocused, setPasswordFocused] = createSignal(false);
   const [passwordBlurred, setPasswordBlurred] = createSignal(false);
 
-  const meterVisible = () => form.submitAttempted() || passwordBlurred();
+  const meterVisible = () =>
+    passwordFocused() ||
+    password().length > 0 ||
+    form.submitAttempted() ||
+    passwordBlurred();
   const passwordMeterDescribedBy = () =>
     meterVisible() ? [passwordMeterId(REGISTER_PASSWORD_ID)] : undefined;
 
@@ -117,9 +123,7 @@ export default function Register() {
           hintVisibility="sr-only"
           error={form.fieldErrors().password}
         >
-          <input
-            class="ui-field"
-            type="password"
+          <PasswordInput
             autocomplete="new-password"
             {...formFieldControlAttrs({
               id: REGISTER_PASSWORD_ID,
@@ -132,7 +136,11 @@ export default function Register() {
               setPassword(event.currentTarget.value);
               form.clearField("password");
             }}
-            onBlur={() => setPasswordBlurred(true)}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => {
+              setPasswordFocused(false);
+              setPasswordBlurred(true);
+            }}
           />
           <PasswordCodePointMeter
             fieldId={REGISTER_PASSWORD_ID}

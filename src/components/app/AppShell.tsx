@@ -112,7 +112,7 @@ export function AppShell(props: ParentProps) {
         <main
           id="main-content"
           tabindex="-1"
-          class="min-h-0 flex-1 overflow-y-auto overscroll-y-contain outline-none"
+          class="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain outline-none"
         >
           {props.children}
         </main>

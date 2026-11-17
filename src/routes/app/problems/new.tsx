@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { useLocation, useNavigate } from "@solidjs/router";
-import { createEffect, createSignal, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, Show, untrack } from "solid-js";
 import { ProblemFormFields } from "../../../components/problems/ProblemFormFields";
 import { Button } from "../../../components/ui/Button";
 import { Panel } from "../../../components/ui/Panel";
@@ -47,7 +47,7 @@ export default function ProblemNew() {
       const result = await topicsApi.list({ page: 1, pageSize: 100 });
       setTopics(result.items);
       setTopicsTruncated(result.meta.total > result.items.length);
-      const preselect = topicIdFromSearch(location.search);
+      const preselect = untrack(preselectTopic);
       if (preselect && result.items.some((topic) => topic.id === preselect)) {
         setSelectedTopicIds(new Set([preselect]));
       }
@@ -107,7 +107,7 @@ export default function ProblemNew() {
     }
   }
 
-  const preselectTopic = topicIdFromSearch(location.search);
+  const preselectTopic = createMemo(() => topicIdFromSearch(location.search));
 
   return (
     <>
@@ -170,7 +170,7 @@ export default function ProblemNew() {
         </form>
       </Panel>
 
-      <Show when={preselectTopic}>
+      <Show when={preselectTopic()}>
         <p class="mt-4 text-sm text-muted">
           Started from a topic filter — the matching topic is pre-selected when available.
         </p>

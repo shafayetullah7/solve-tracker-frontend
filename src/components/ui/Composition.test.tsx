@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library";
-import { Dynamic } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
 import { createSignal, flush, Show } from "solid-js";
 import { afterEach, describe, expect, test } from "vitest";
 import { Button } from "./Button";
@@ -39,15 +39,16 @@ describe("Solid 2 UI composition", () => {
     expect(view.queryByText("Hidden")).not.toBeInTheDocument();
   });
 
-  test("switches a component reference through Dynamic", () => {
+  test("switches a component reference through dynamic()", () => {
     const First = (props: { label: string }) => <p>First: {props.label}</p>;
     const Second = (props: { label: string }) => <p>Second: {props.label}</p>;
     function Preview() {
       const [second, setSecond] = createSignal(false);
+      const Current = dynamic(() => (second() ? Second : First));
       return (
         <>
           <Button onClick={() => setSecond(true)}>Switch</Button>
-          <Dynamic component={second() ? Second : First} label="example" />
+          <Current label="example" />
         </>
       );
     }

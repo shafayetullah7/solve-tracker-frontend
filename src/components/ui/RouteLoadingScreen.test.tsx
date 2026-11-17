@@ -12,4 +12,11 @@ describe("RouteLoadingScreen", () => {
     expect(svg?.getAttribute("aria-hidden")).toBe("true");
     expect(screen.getByRole("status").id).toBe("main-content");
   });
+
+  test("omits main landmark when mainContent is false (nested in AppShell)", () => {
+    const { container } = render(() => <RouteLoadingScreen mainContent={false} />);
+    expect(container.querySelector("main")).toBeNull();
+    const status = container.querySelector('[role="status"][aria-label="Loading"]');
+    expect(status?.tagName).toBe("DIV");
+  });
 });

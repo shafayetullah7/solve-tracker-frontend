@@ -1,6 +1,6 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate } from "@solidjs/router";
-import { createSignal, onSettled, Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import { ProfileAboutEditorDialog } from "../../components/profile/ProfileAboutEditorDialog";
 import { ProfileAvatarEditorDialog } from "../../components/profile/ProfileAvatarEditorDialog";
 import { ProfileAboutSection } from "../../components/profile/ProfileAboutSection";
@@ -9,6 +9,7 @@ import { ProfileEducationSection } from "../../components/profile/ProfileEducati
 import { ProfileEntryEditorDialog } from "../../components/profile/ProfileEntryEditorDialog";
 import { ProfilePageHeader } from "../../components/profile/ProfilePageHeader";
 import { ProfilePasswordEditorDialog } from "../../components/profile/ProfilePasswordEditorDialog";
+import { AppPageContainer } from "../../components/app/AppPageContainer";
 import { ProfileWorkSection } from "../../components/profile/ProfileWorkSection";
 import { useAuth } from "../../lib/auth/context";
 import { createMediaApi } from "../../lib/api/modules/media.api";
@@ -31,6 +32,57 @@ import { FormAlert } from "../../components/ui/FormAlert";
 type ProfileEntryRemoveTarget =
   | { kind: "work"; id: string }
   | { kind: "education"; id: string };
+
+const pulse = "motion-safe:animate-pulse rounded bg-surface-muted";
+const panel =
+  "rounded-panel border border-line bg-surface p-5 shadow-panel sm:p-6";
+
+function ProfileSectionSkeleton() {
+  return (
+    <section class={panel}>
+      <div class="mb-5 space-y-2">
+        <div class={`h-5 w-28 ${pulse}`} />
+        <div class={`h-4 w-56 ${pulse}`} />
+      </div>
+      <div class="space-y-3">
+        <div class={`h-4 w-full ${pulse}`} />
+        <div class={`h-4 w-5/6 ${pulse}`} />
+        <div class={`h-4 w-2/3 ${pulse}`} />
+      </div>
+    </section>
+  );
+}
+
+function ProfilePageSkeleton() {
+  return (
+    <div class="space-y-8" role="status" aria-label="Loading">
+      <div class="space-y-2">
+        <div class={`h-9 w-44 ${pulse}`} />
+        <div class={`h-5 w-full max-w-xl ${pulse}`} />
+      </div>
+      <section class={panel}>
+        <div class="mb-5 space-y-2">
+          <div class={`h-5 w-32 ${pulse}`} />
+          <div class={`h-4 w-64 ${pulse}`} />
+        </div>
+        <div class="flex flex-col gap-6 md:flex-row md:items-start">
+          <div class={`size-28 shrink-0 rounded-full md:size-32 ${pulse}`} />
+          <div class="min-w-0 flex-1 space-y-3">
+            <div class={`h-7 w-48 ${pulse}`} />
+            <div class={`h-4 w-64 ${pulse}`} />
+            <div class={`h-4 w-full ${pulse}`} />
+            <div class={`h-4 w-4/5 ${pulse}`} />
+          </div>
+        </div>
+      </section>
+      <div class="grid gap-8 lg:grid-cols-2">
+        <ProfileSectionSkeleton />
+        <ProfileSectionSkeleton />
+      </div>
+      <ProfileSectionSkeleton />
+    </div>
+  );
+}
 
 function mergeById<T extends { id: string }>(items: T[], saved: T): T[] {
   const index = items.findIndex((item) => item.id === saved.id);
@@ -91,9 +143,12 @@ export default function ProfilePage() {
     }
   }
 
-  onSettled(() => {
-    if (auth.status() === "authenticated") void refreshProfile();
-  });
+  createEffect(
+    () => auth.status(),
+    (status) => {
+      if (status === "authenticated") void refreshProfile();
+    },
+  );
 
   function closeEditor() {
     setEditorTarget(null);
@@ -220,18 +275,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <div class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+    <AppPageContainer>
       <Title>Profile — Practice</Title>
-      <ProfilePageHeader />
+      <Show when={loadPending()}>
+        <ProfilePageSkeleton />
+      </Show>
+      <Show when={!loadPending()}>
+        <ProfilePageHeader />
+      </Show>
       <Show when={loadError()}>
         <FormAlert class="mt-6" variant="error">
           {loadError()}
         </FormAlert>
-      </Show>
-      <Show when={loadPending()}>
-        <p class="mt-8 text-sm text-muted" role="status">
-          Loading profile…
-        </p>
       </Show>
       <Show when={!loadPending() && !loadError()}>
         <div class="mt-8 space-y-8">
@@ -326,6 +381,6 @@ export default function ProfilePage() {
         onClose={() => setPasswordOpen(false)}
         onSave={persistPassword}
       />
-    </div>
+    </AppPageContainer>
   );
 }

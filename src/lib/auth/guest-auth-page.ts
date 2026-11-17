@@ -4,7 +4,10 @@ import { paths } from "../../router";
 import { useAuth } from "./context";
 import { safeReturnPath } from "./forms";
 
-/** Redirect signed-in users away from login/register (not recovery routes). */
+/**
+ * Client fallback: redirect signed-in users away from login/register.
+ * Hard loads are redirected by the auth gate middleware before render.
+ */
 export function useRedirectIfAuthenticated() {
   const auth = useAuth();
   const navigate = useNavigate();

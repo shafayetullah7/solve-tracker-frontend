@@ -27,6 +27,13 @@ export async function loginUser(page: Page, user: ReturnType<typeof uniqueUser>)
   await expect(page).toHaveURL(/\/app(?:\/|$)/, { timeout: 15_000 });
 }
 
+export function assertNoSecretsInHtml(html: string) {
+  const blob = html.toLowerCase();
+  expect(blob).not.toMatch(/eyj[a-z0-9_-]+\.eyj/);
+  expect(blob).not.toContain("practice_access=");
+  expect(blob).not.toContain("practice_refresh=");
+}
+
 export async function assertNoSecretsInStorage(page: Page) {
   const storage = await page.evaluate(() => {
     const collect = (store: Storage) => {

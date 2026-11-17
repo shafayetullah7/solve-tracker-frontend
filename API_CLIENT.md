@@ -47,15 +47,15 @@ Do not enable recovery for login/reset operations or for a mutation unless the b
 
 ## Proxy setup
 
-Copy `.env.example` to `.env` only when no local file exists. Set `API_PROXY_TARGET` to the backend's HTTP(S) origin, without credentials, path, query, or fragment. It is Vite server configuration, not a VITE_ client variable.
+Copy `.env.example` to `.env` only when no local file exists. Set `API_PROXY_TARGET` to the backend's HTTP(S) origin, without credentials, path, query, or fragment. It is server configuration (Start middleware), not a `VITE_` client variable.
 
-`pnpm dev` requires this explicit value, proxies `/api` and subpaths, and removes the prefix once. Original Origin and separate Set-Cookie headers are preserved; `/apix` is not proxied. Upstream failure returns Vite's gateway error, which the transport treats as HTTP failure.
+`pnpm dev`, `pnpm serve`, and `pnpm start` require this value when the app calls the API. [`config/start-middleware.ts`](config/start-middleware.ts) proxies `/api` and subpaths and strips the prefix once (same rewrite as the legacy Vite proxy helper in [`config/api-proxy.ts`](config/api-proxy.ts)). Original `Origin` and separate `Set-Cookie` headers are preserved; `/apix` is not proxied.
 
-Static builds and tests do not require a proxy target. `pnpm serve` previews static output only; it does not supply an API proxy. Production hosting must implement equivalent `/api` reverse proxy behavior.
+Static unit tests do not require a proxy target. Production edge hosting must implement equivalent `/api` reverse proxy behavior when not using the Node SSR entry. Runbook: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## API type generation
 
-From `backend/`:
+From `solve-tracker-backend/`:
 
 ```bash
 pnpm api:export
@@ -64,7 +64,7 @@ pnpm api:check
 
 Export builds and reflects real AppModule/controllers with only DatabaseService replaced to avoid connection lifecycle. Actual environment validation still runs. This is database-independent contract export, not a backend integration test. The committed snapshot is `backend/openapi.json`; no listening server or fake product routes are introduced.
 
-From `cp-frontend/`:
+From `solve-tracker-frontend/`:
 
 ```bash
 pnpm api:generate

@@ -8,10 +8,14 @@ export type ButtonProps = ParentProps<{
   "aria-pressed"?: boolean;
   "aria-busy"?: boolean;
 }>;
+function buttonClass(extra: string | undefined) {
+  return extra ? `ui-button ${extra}` : "ui-button";
+}
+
 export function Button(props: ButtonProps) {
   return (
     <button
-      class={["ui-button", props.class]}
+      class={buttonClass(props.class)}
       data-variant={props.variant ?? "primary"}
       type={props.type ?? "button"}
       disabled={props.disabled}

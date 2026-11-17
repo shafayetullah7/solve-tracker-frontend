@@ -4,6 +4,8 @@ import {
   IconClose,
   IconDashboard,
   IconEdit,
+  IconEye,
+  IconEyeOff,
   IconLibrary,
   IconLogOut,
   IconMenu,
@@ -18,6 +20,8 @@ afterEach(cleanup);
 const icons = [
   ["IconDashboard", IconDashboard],
   ["IconEdit", IconEdit],
+  ["IconEye", IconEye],
+  ["IconEyeOff", IconEyeOff],
   ["IconLibrary", IconLibrary],
   ["IconTopics", IconTopics],
   ["IconPlus", IconPlus],

@@ -1,7 +1,6 @@
 import type { ParentProps } from "solid-js";
+import { AppPageContainer } from "../../components/app/AppPageContainer";
 
 export default function TopicsLayout(props: ParentProps) {
-  return (
-    <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">{props.children}</main>
-  );
+  return <AppPageContainer>{props.children}</AppPageContainer>;
 }

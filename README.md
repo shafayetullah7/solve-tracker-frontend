@@ -1,4 +1,6 @@
-API access and generation: [API_CLIENT.md](./API_CLIENT.md). Development requires `API_PROXY_TARGET` in `.env` (see `.env.example`); production builds do not.
+API access and generation: [API_CLIENT.md](./API_CLIENT.md). Development requires `API_PROXY_TARGET` in `.env` (see `.env.example`); **`pnpm start` still needs it at runtime** for `/api` proxy and SSR auth probe.
+
+**Deploy:** [docs/DEPLOY.md](./docs/DEPLOY.md) (Node **≥ 22.12**, `pnpm build`, `pnpm start`, `pnpm verify:deploy`).
 
 Authentication implementation reference: [Auth and refresh conventions](./AUTH_CONVENTIONS.md).
 
@@ -14,7 +16,7 @@ Read [FRONTEND_CONVENTIONS.md](./FRONTEND_CONVENTIONS.md) for the UI scheme and 
 
 This is `basic` plus [Tailwind CSS](https://tailwindcss.com) v4 — same routes, same demo, same tests; the pages are restyled with utility classes and `src/App.css` shrinks to one line. The diff against `basic` is the documentation of what Tailwind changes.
 
-**Deployment contract** (inherited from `basic`): zero server dependencies — `vite build` emits a purely static site; deploy `dist/client` anywhere. No server, no `start` script: Node hosts that run `npm start` after building (Firebase App Hosting, most buildpacks) need either the platform's static product or the SSR flip — see `basic`'s README.
+**Deployment:** SSR start mode (`ssr: true` in `vite.config.ts`). `pnpm build` emits `dist/client` and `dist/server/node.js`. Run **`pnpm start`** (port **3001** by default) for the Node server that streams HTML and serves static assets; it proxies `/api` when `API_PROXY_TARGET` is set (same as dev). **Auth on SSR (Track B):** each HTML request probes `GET /auth/session` with the visitor’s cookies (direct to Nest via `API_PROXY_TARGET`); only public user fields appear in HTML—never JWTs. Client refresh after hydrate is unchanged. Production smoke: **`pnpm verify:deploy`** (server must already be running). Finer gates: `verify:ssr-1`, `verify:ssr-2`. Logged-in SSR isolation: `e2e/ssr-auth-ssr.spec.ts` (backend on **3000**).
 
 ## How Tailwind fits this stack
 
@@ -57,11 +59,15 @@ Hard-refresh the browser (Ctrl+Shift+R). Avoid running `pnpm build` or `pnpm tes
 
 ### `pnpm run build`
 
-Builds the static production site to `dist/client`, routes code-split, CSS pruned to the classes actually used.
+Builds the client bundle to `dist/client` and the SSR handler to `dist/server` (including `node.js`).
+
+### `pnpm start`
+
+Runs the production SSR server (`dist/server/node.js` on **3001**). Requires `pnpm build` and `API_PROXY_TARGET` in `.env` for API calls. If you see `EADDRINUSE`, stop the other process on **3001** first (e.g. an old `pnpm dev` / `pnpm start`), then run `pnpm start` again so SSR smoke tests see the latest build.
 
 ### `pnpm run serve`
 
-Serves the production build locally.
+Runs Vite preview (SSR-aware when `ssr: true`); set `API_PROXY_TARGET` for `/api`.
 
 ### `pnpm test`
 
@@ -69,6 +75,19 @@ Runs the test suite.
 
 ## Deployment
 
-Deploy the `dist/client` folder to any static host provider (netlify, surge, now, etc.)
+See **[docs/DEPLOY.md](./docs/DEPLOY.md)** for production topologies (Node SSR vs edge split), environment variables, and troubleshooting.
+
+**Fresh clone checklist**
+
+```bash
+cd solve-tracker-frontend
+cp .env.example .env          # set API_PROXY_TARGET
+pnpm install                  # Node ≥ 22.12
+pnpm build
+pnpm start                    # separate terminal; default :3001
+pnpm verify:deploy            # smoke + SSR-1/2 checks
+```
+
+Static-only hosting of `dist/client` without the Node SSR entry is only valid if you deliberately accept hydrate-only auth and no SSR-2 first paint — see DEPLOY.md option B.
 
 ## This project was created with the [Solid CLI](https://github.com/solidjs-community/solid-cli)

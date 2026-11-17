@@ -6,7 +6,7 @@ import { loginUser, registerUser, uniqueUser, waitForAccountEmail } from "./fixt
 
 const backendRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../backend",
+  "../../solve-tracker-backend",
 );
 
 function issueResetToken(email: string): string {

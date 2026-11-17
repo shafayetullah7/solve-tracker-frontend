@@ -1,8 +1,9 @@
 import { Title } from "@solidjs/meta";
 import { useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createSignal, Match, Switch } from "solid-js";
+import { createEffect, createSignal, Match, Switch, untrack } from "solid-js";
 import { ProblemFormFields } from "../../../../components/problems/ProblemFormFields";
 import { Button } from "../../../../components/ui/Button";
+import { LoadingPlaceholder } from "../../../../components/ui/LoadingPlaceholder";
 import { Panel } from "../../../../components/ui/Panel";
 import { createProblemsApi } from "../../../../lib/api/modules/problems.api";
 import { createTopicsApi, type TopicResponse } from "../../../../lib/api/modules/topics.api";
@@ -47,8 +48,7 @@ export default function ProblemEdit() {
   const [topicsLoading, setTopicsLoading] = createSignal(true);
   const [topicsTruncated, setTopicsTruncated] = createSignal(false);
 
-  async function loadForm() {
-    const id = params.id;
+  async function loadForm(id = untrack(() => params.id)) {
     if (!id) return;
     setLoadStatus("loading");
     setLoadMessage(undefined);
@@ -79,9 +79,9 @@ export default function ProblemEdit() {
 
   createEffect(
     () => [auth.status(), params.id] as const,
-    ([status]) => {
+    ([status, id]) => {
       if (status !== "authenticated") return;
-      void loadForm();
+      void loadForm(id);
     },
   );
 
@@ -145,9 +145,7 @@ export default function ProblemEdit() {
 
       <Switch>
         <Match when={loadStatus() === "loading" || loadStatus() === "idle"}>
-          <p class="text-muted" role="status">
-            Loading problem…
-          </p>
+          <LoadingPlaceholder variant="block" />
         </Match>
         <Match when={loadStatus() === "unavailable"}>
           <p class="text-muted">{loadMessage()}</p>

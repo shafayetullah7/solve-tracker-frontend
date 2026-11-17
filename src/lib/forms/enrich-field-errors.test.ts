@@ -38,10 +38,10 @@ describe("enrichFieldErrorsFromError", () => {
 describe("fieldErrorsFromApiError", () => {
   test("maps pipe details and enriches", () => {
     const error = new ApiError("http", "Invalid input.", 400, "VALIDATION_ERROR", [
-      { path: ["password"], message: "Password must contain 15–128 characters" },
+      { path: ["password"], message: "Password must contain 8–128 characters" },
     ]);
     expect(fieldErrorsFromApiError(error)).toEqual({
-      password: "Password must contain 15–128 characters",
+      password: "Password must contain 8–128 characters",
     });
   });
 
