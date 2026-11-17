@@ -1,6 +1,6 @@
 # Frontend conventions
 
-This document defines the UI scheme and implementation patterns for this repository. Examples target the installed packages below, verified on 2026-11-10. They are not React, Next.js, Solid 1.x, or a separate SolidStart 2 application. Follow the [product requirements](../solve-tracker-backend/REQUIREMENTS.md) when building features; the home page currently previews UI foundations, not a working problem library.
+This document defines the UI scheme and implementation patterns for this repository. Examples target the installed packages below, verified on 2026-11-10. They are not React, Next.js, Solid 1.x, or a separate SolidStart 2 application. Follow the [product requirements](../solve-tracker-backend/REQUIREMENTS.md) when building features. Guest marketing copy for `/` lives in [`src/components/landing/`](src/components/landing/) (`LandingPage`); authenticated product UI lives under `/app`.
 
 ## 1. Actual framework and version boundary
 
@@ -267,7 +267,7 @@ Phased plan: [docs/FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_P
 
 **Banner rule:** If mapped field errors exist for `VALIDATION_ERROR`, fields carry the message; use a form-level `FormAlert` only for credentials, conflicts, network, rate limits, etc.
 
-**Platform catalog:** Judge slugs, labels, and URL detection live in [`src/lib/platforms/platform-catalog.ts`](src/lib/platforms/platform-catalog.ts) inside the frontend bundle (no build-time import from the backend repo). A duplicate lives in `solve-tracker-backend/src/shared/platform-catalog.ts` for seeding and server-side URL breakdown. **Edit both files together** when adding or changing a judge; run **`pnpm verify:catalog`** (DATA-1 drift gate). `urlHosts` are not stored in the DB; filter labels use the local catalog.
+**Platform catalog:** Judge slugs, labels, and URL detection live in [`src/lib/platforms/platform-catalog.ts`](src/lib/platforms/platform-catalog.ts) inside the frontend bundle (no build-time import from the backend repo). A duplicate lives in `solve-tracker-backend/src/shared/platform-catalog.ts` for seeding and server-side URL breakdown. **Edit both files together** when adding or changing a judge; run **`pnpm verify:catalog`** (DATA-1 drift gate). `urlHosts` are not stored in the DB; filter labels use the local catalog. **Problem UI:** library and detail use API **`platformSlug`** (`platformLabelForStoredSlug` / `PlatformMark`); client URL parsing is for add/edit preview only (see P5 form UX).
 
 **Password UX:** Policy is **8–128 Unicode code points** ([`password-policy.ts`](src/lib/forms/password-policy.ts)), aligned with backend `passwordSchema`. Use [`PasswordInput`](src/components/ui/PasswordInput.tsx) (show/hide toggle) on login, register, reset, and profile change-password. [`PasswordCodePointMeter`](src/components/ui/PasswordCodePointMeter.tsx) on register, reset, and profile new-password when the field is focused, has input, was blurred, or submit was attempted — not only after submit. Rate-limit copy comes from `FormAlert` + `Retry-After` (see [`format-retry-after.ts`](../src/lib/forms/format-retry-after.ts)).
 

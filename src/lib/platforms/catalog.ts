@@ -6,8 +6,11 @@ export {
   normalizePlatformHostname,
   platformEntryBySlug,
   platformLabelBySlug,
+  platformLabelForStoredSlug,
   platformLabelFromUrl,
+  platformPreviewFromUrl,
   platformSlugFromUrl,
+  type PlatformPreviewFromUrl,
   type PlatformCatalogEntry,
   type PlatformSlug,
 } from "./platform-catalog";

@@ -34,7 +34,11 @@ export function DashboardProblemPreviewRow(props: DashboardProblemPreviewRowProp
         </span>
       </div>
       <div class="mt-2 flex flex-wrap items-center gap-2">
-        <PlatformMark url={props.problem.url} class="text-xs" />
+        <PlatformMark
+          slug={props.problem.platformSlug}
+          url={props.problem.url}
+          class="text-xs"
+        />
         {topicLabel() && (
           <span class="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-medium text-brand">
             {topicLabel()}

@@ -4,5 +4,8 @@ export {
   platformLabelFromUrl,
   platformSlugFromUrl,
   platformLabelBySlug,
+  platformLabelForStoredSlug,
+  platformPreviewFromUrl,
+  type PlatformPreviewFromUrl,
   type PlatformSlug,
 } from "../platforms/catalog";

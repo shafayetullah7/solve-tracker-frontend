@@ -1,3 +1,4 @@
+import { PLATFORM_SLUGS } from "../../platforms/catalog";
 import type { ApiClient } from "../client";
 import { ApiError } from "../errors";
 import type { operations } from "../generated/backend";
@@ -35,6 +36,14 @@ function decodeNullableString(value: unknown): string | null {
   if (value === null) return null;
   if (typeof value !== "string") throw new ApiError("contract", "Invalid problem response.");
   return value;
+}
+
+const STORED_PLATFORM_SLUGS = new Set<string>([...PLATFORM_SLUGS, "other"]);
+
+function decodePlatformSlug(value: unknown): ProblemResponse["platformSlug"] {
+  if (typeof value !== "string" || !STORED_PLATFORM_SLUGS.has(value))
+    throw new ApiError("contract", "Invalid problem response.");
+  return value as ProblemResponse["platformSlug"];
 }
 
 function decodeNullableInt(value: unknown): number | null {
@@ -79,6 +88,7 @@ function decodeProblem(value: unknown): ProblemResponse {
     id: value.id,
     title: value.title,
     url: value.url,
+    platformSlug: decodePlatformSlug(value.platformSlug),
     platformProblemId: decodeNullableString(value.platformProblemId),
     difficulty: decodeNullableString(value.difficulty),
     rating: decodeNullableInt(value.rating),

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import middleware from "./start-middleware";
 
-const [proxyApi, , , cachePolicy, securityHeaders] = middleware;
+const [proxyApi, , , , cachePolicy, securityHeaders] = middleware;
 
 describe("start-middleware proxyApi", () => {
   const prevTarget = process.env.API_PROXY_TARGET;

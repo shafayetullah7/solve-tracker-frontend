@@ -15,8 +15,10 @@ function AppRouterContent(props: ParentProps) {
   const showGuestNav = () =>
     (auth.status() === "anonymous" || auth.status() === "unavailable") &&
     !isAuthSurfacePath(location.pathname);
+  /** Full viewport lock is for auth surfaces and `/app` only — guest nav + `h-dvh` clips the landing. */
+  const lockViewportHeight = () => !showGuestNav();
   return (
-    <>
+    <div class="flex min-h-0 flex-1 flex-col">
       <Title>Practice</Title>
       <a
         class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:bg-surface focus:p-4"
@@ -27,18 +29,24 @@ function AppRouterContent(props: ParentProps) {
       <Show when={showGuestNav()}>
         <nav
           aria-label="Main navigation"
-          class="border-b border-line bg-surface px-5 py-4 sm:px-8"
+          class="sticky top-0 z-20 shrink-0 border-b border-line bg-surface/90 backdrop-blur-md"
         >
-          <div class="mx-auto flex max-w-6xl items-center justify-between gap-4">
+          <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
             <PracticeBrandLink href={paths()} />
             <AuthNav />
           </div>
         </nav>
       </Show>
-      <div class="flex min-h-dvh min-h-0 flex-1 flex-col max-h-dvh overflow-hidden max-md:max-h-none max-md:overflow-visible md:h-dvh">
+      <div
+        class={[
+          "flex min-h-0 flex-1 flex-col",
+          lockViewportHeight() &&
+            "min-h-dvh max-h-dvh overflow-hidden max-md:max-h-none max-md:overflow-visible md:h-dvh",
+        ]}
+      >
         <RouteBoundary>{props.children}</RouteBoundary>
       </div>
-    </>
+    </div>
   );
 }
 

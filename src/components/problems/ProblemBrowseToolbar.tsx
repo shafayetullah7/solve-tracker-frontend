@@ -13,10 +13,7 @@ import {
   type BrowseStatusFilter,
 } from "../../lib/problems/browse-toolbar-state";
 import { toggleTopicId } from "../../lib/problems/form-state";
-import {
-  PLATFORM_FILTER_OPTIONS,
-  type PlatformSlug,
-} from "../../lib/platforms/catalog";
+import { PLATFORM_FILTER_OPTIONS } from "../../lib/platforms/catalog";
 
 type ProblemBrowseToolbarProps = {
   searchKey: string;
@@ -43,7 +40,9 @@ function FieldLegend(props: LegendProps) {
 export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   const [q, setQ] = createSignal("");
   const [status, setStatus] = createSignal<BrowseStatusFilter>("");
-  const [platform, setPlatform] = createSignal<"" | PlatformSlug>("");
+  const [platform, setPlatform] = createSignal<
+    "" | NonNullable<ListProblemsQuery["platform"]>
+  >("");
   const [selectedTopicIds, setSelectedTopicIds] = createSignal<Set<string>>(
     new Set(),
   );
@@ -179,9 +178,13 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             class={`${FIELD} md:col-span-3`}
             value={platform()}
             aria-label="Platform"
-            title="Matches saved URL host for listed judges"
+            title="Filters by stored platform on each problem"
             onChange={(event) => {
-              setPlatform(event.currentTarget.value as "" | PlatformSlug);
+              setPlatform(
+                event.currentTarget.value as
+                  | ""
+                  | NonNullable<ListProblemsQuery["platform"]>,
+              );
               queueMicrotask(() => applyIfChanged());
             }}
           >
@@ -189,6 +192,7 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             <For each={PLATFORM_FILTER_OPTIONS}>
               {(entry) => <option value={entry.slug}>{entry.label}</option>}
             </For>
+            <option value="other">Other</option>
           </select>
         </div>
       </fieldset>

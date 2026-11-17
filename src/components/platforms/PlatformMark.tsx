@@ -1,7 +1,6 @@
 import type { ParentProps } from "solid-js";
 import {
-  isPlatformSlug,
-  platformLabelBySlug,
+  platformLabelForStoredSlug,
   platformLabelFromUrl,
   type PlatformSlug,
 } from "../../lib/platforms/catalog";
@@ -20,8 +19,7 @@ export type PlatformMarkProps = ParentProps<
 export function PlatformMark(props: PlatformMarkProps) {
   const text = () => {
     if (props.label) return props.label;
-    if (props.slug && isPlatformSlug(props.slug))
-      return platformLabelBySlug(props.slug);
+    if (props.slug) return platformLabelForStoredSlug(props.slug);
     if (props.url) return platformLabelFromUrl(props.url);
     return "Other";
   };

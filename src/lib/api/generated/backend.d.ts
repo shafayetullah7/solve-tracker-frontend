@@ -911,7 +911,7 @@ export interface operations {
                 pageSize?: number;
                 q?: string;
                 status?: "unsolved" | "solved";
-                platform?: "codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu";
+                platform?: "codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu" | "other";
                 /** @description Filter to problems linked to any of these owned topics. */
                 topicIds?: string[];
                 topicId?: string;
@@ -936,6 +936,7 @@ export interface operations {
                             id: string;
                             title: string;
                             url: string;
+                            platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
                             platformProblemId: string | null;
                             difficulty: string | null;
                             rating: number | null;
@@ -1014,6 +1015,7 @@ export interface operations {
                         id: string;
                         title: string;
                         url: string;
+                        platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
                         platformProblemId: string | null;
                         difficulty: string | null;
                         rating: number | null;
@@ -1070,6 +1072,7 @@ export interface operations {
                         id: string;
                         title: string;
                         url: string;
+                        platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
                         platformProblemId: string | null;
                         difficulty: string | null;
                         rating: number | null;
@@ -1173,6 +1176,7 @@ export interface operations {
                         id: string;
                         title: string;
                         url: string;
+                        platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
                         platformProblemId: string | null;
                         difficulty: string | null;
                         rating: number | null;

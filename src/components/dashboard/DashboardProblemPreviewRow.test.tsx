@@ -1,13 +1,15 @@
 import { cleanup, render } from "@solidjs/testing-library";
 import { afterEach, describe, expect, test } from "vitest";
+import type { ProblemResponse } from "../../lib/api/modules/problems.api";
 import { DashboardProblemPreviewRow } from "./DashboardProblemPreviewRow";
 
 afterEach(cleanup);
 
-const problem = {
+const problem: ProblemResponse = {
   id: "33333333-3333-4333-8333-333333333333",
   title: "Graph Path",
   url: "https://codeforces.com/problemset/problem/1/A",
+  platformSlug: "codeforces",
   platformProblemId: null,
   difficulty: null,
   rating: null,

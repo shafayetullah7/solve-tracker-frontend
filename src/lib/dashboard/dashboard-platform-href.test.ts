@@ -13,7 +13,7 @@ describe("dashboardPlatformBrowseHref", () => {
     expect(href).toContain("platform=codeforces");
   });
 
-  test("uses plain library for other bucket", () => {
+  test("filters library for other bucket", () => {
     const href = dashboardPlatformBrowseHref({
       slug: "other",
       name: "Other",
@@ -21,7 +21,6 @@ describe("dashboardPlatformBrowseHref", () => {
       solved: 0,
       unsolved: 1,
     });
-    expect(href).toBe("/app/problems");
-    expect(href).not.toContain("platform=");
+    expect(href).toContain("platform=other");
   });
 });

@@ -6,6 +6,7 @@ const problem = {
   id: "11111111-1111-4111-8111-111111111111",
   title: "A",
   url: "https://leetcode.com/problems/a/",
+  platformSlug: "leetcode",
   platformProblemId: null,
   difficulty: null,
   rating: null,

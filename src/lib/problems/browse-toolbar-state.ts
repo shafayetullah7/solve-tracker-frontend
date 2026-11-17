@@ -1,5 +1,4 @@
 import type { ListProblemsQuery } from "../api/modules/problems.api";
-import type { PlatformSlug } from "../platforms/catalog";
 import {
   DEFAULT_BROWSE_QUERY,
   parseBrowseSearch,
@@ -11,7 +10,7 @@ export type BrowseStatusFilter = "" | "unsolved" | "solved";
 export type BrowseToolbarFields = {
   q: string;
   status: BrowseStatusFilter;
-  platform: "" | PlatformSlug;
+  platform: "" | NonNullable<ListProblemsQuery["platform"]>;
   selectedTopicIds: ReadonlySet<string>;
   untagged: boolean;
   sort: NonNullable<ListProblemsQuery["sort"]>;

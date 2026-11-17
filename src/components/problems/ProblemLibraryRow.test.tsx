@@ -7,6 +7,7 @@ const problem: ProblemResponse = {
   id: "p1",
   title: "Two Sum",
   url: "https://leetcode.com/problems/two-sum",
+  platformSlug: "leetcode",
   status: "unsolved",
   platformProblemId: null,
   difficulty: null,

@@ -9,6 +9,7 @@ const problem = {
   id: problemId,
   title: "Two Sum",
   url: "https://leetcode.com/problems/two-sum/",
+  platformSlug: "leetcode",
   platformProblemId: null,
   difficulty: null,
   rating: null,
@@ -115,6 +116,16 @@ describe("typed problems API", () => {
         request: vi.fn().mockResolvedValue({ items: [], meta: { page: 1 } }),
       }).list(),
     ).rejects.toMatchObject({ kind: "contract" });
+  });
+
+  test("decodes platformSlug other", async () => {
+    const request = vi.fn().mockResolvedValue({
+      ...problem,
+      platformSlug: "other",
+      url: "https://example.com/p",
+    });
+    const result = await createProblemsApi({ request }).getOne(problemId);
+    expect(result.platformSlug).toBe("other");
   });
 
   test("rejects invalid problem bodies", async () => {

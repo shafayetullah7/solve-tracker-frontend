@@ -17,7 +17,7 @@ const markClass: Record<PracticeBrandSize, string> = {
 };
 
 const linkClass: Record<PracticeBrandSize, string> = {
-  nav: "inline-flex items-center gap-2.5 text-xl font-bold tracking-tight text-brand underline-offset-4 hover:underline",
+  nav: "inline-flex min-h-11 items-center gap-2.5 text-lg font-semibold tracking-tight text-ink underline-offset-4 hover:text-brand hover:underline",
   sidebar:
     "inline-flex min-h-11 items-center gap-2.5 rounded-control px-1 text-lg font-bold tracking-tight text-brand underline-offset-4 hover:underline",
   auth: "mx-auto inline-flex items-center gap-3 text-xl font-bold tracking-tight text-brand underline-offset-4 hover:underline",

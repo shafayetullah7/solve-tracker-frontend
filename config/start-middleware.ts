@@ -9,6 +9,7 @@ import {
 } from "./node-csp.ts";
 import { headersForApiProxy } from "./proxy-request-headers.ts";
 import { authGate } from "./auth-gate.ts";
+import { seoDocuments } from "./seo-middleware.ts";
 
 const API_PREFIX = /^\/api(?:\/|\?|$)/;
 
@@ -94,6 +95,7 @@ const securityHeaders: StartMiddleware = async (event, next) => {
 
 export default [
   proxyApi,
+  seoDocuments,
   authGate,
   assignCspNonce,
   cachePolicy,

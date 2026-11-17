@@ -1,4 +1,6 @@
-import { type Accessor, For, Show } from "solid-js";
+import { createMemo, type Accessor, For, Show } from "solid-js";
+import { platformPreviewFromUrl } from "../../lib/platforms/catalog";
+import { PlatformMark } from "../platforms/PlatformMark";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
 import type { FieldErrors } from "../../lib/forms/field-errors";
 import {
@@ -57,7 +59,9 @@ export function ProblemFormFields(props: ProblemFormFieldsProps) {
 
   const titleHint = () => `${PROBLEM_TITLE_MIN}–${PROBLEM_TITLE_MAX} characters.`;
   const urlHint = () => `${PROBLEM_URL_HINT} Up to ${PROBLEM_URL_MAX} characters.`;
-  const platformHint = () => `Up to ${PROBLEM_PLATFORM_ID_MAX} characters.`;
+  const platformHint = () =>
+    `Up to ${PROBLEM_PLATFORM_ID_MAX} characters. The judge site is detected from the problem URL above.`;
+  const platformPreview = createMemo(() => platformPreviewFromUrl(props.url()));
   const difficultyHint = () => `Up to ${PROBLEM_DIFFICULTY_MAX} characters.`;
   const ratingHint = () =>
     `Integer from ${PROBLEM_RATING_MIN.toLocaleString()} to ${PROBLEM_RATING_MAX.toLocaleString()}.`;
@@ -108,10 +112,27 @@ export function ProblemFormFields(props: ProblemFormFieldsProps) {
         />
       </FormField>
 
+      <div class="space-y-1" aria-live="polite">
+        <p class="text-sm text-muted">
+          Detected platform:{" "}
+          <Show
+            when={platformPreview().label !== "Enter a URL to detect the judge."}
+            fallback={
+              <span class="text-body">{platformPreview().label}</span>
+            }
+          >
+            <PlatformMark slug={platformPreview().slug} class="inline-flex" />
+          </Show>
+        </p>
+        <p class="text-caption text-muted">
+          Preview only. The saved platform is determined from this URL on the server.
+        </p>
+      </div>
+
       <div class="grid gap-4 sm:grid-cols-2">
         <FormField
           id={platformId()}
-          label="Platform problem ID (optional)"
+          label="Judge problem ID (optional)"
           hint={platformHint()}
           error={props.fieldErrors().platformProblemId}
         >

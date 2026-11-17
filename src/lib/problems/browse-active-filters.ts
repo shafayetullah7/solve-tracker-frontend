@@ -38,6 +38,7 @@ const SORT_LABELS: Record<NonNullable<ListProblemsQuery["sort"]>, string> = {
 };
 
 function platformLabel(slug: NonNullable<ListProblemsQuery["platform"]>): string {
+  if (slug === "other") return "Other";
   return (
     PLATFORM_FILTER_OPTIONS.find((entry) => entry.slug === slug)?.label ?? slug
   );

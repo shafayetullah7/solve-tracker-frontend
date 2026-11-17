@@ -22,6 +22,7 @@ import {
 } from "../../../lib/problems/completion-actions";
 import { problemFormMessage } from "../../../lib/problems/messages";
 import { problemEditPath } from "../../../lib/problems/paths";
+import { PlatformMark } from "../../../components/platforms/PlatformMark";
 import { paths } from "../../../router";
 
 type LoadStatus = "idle" | "loading" | "ready" | "unavailable";
@@ -239,9 +240,15 @@ export default function ProblemDetail() {
                       </a>
                     </dd>
                   </div>
+                  <div>
+                    <dt class="text-muted">Platform</dt>
+                    <dd class="text-body">
+                      <PlatformMark slug={p.platformSlug} url={p.url} />
+                    </dd>
+                  </div>
                   <Show when={p.platformProblemId}>
                     <div>
-                      <dt class="text-muted">Platform ID</dt>
+                      <dt class="text-muted">Judge problem ID</dt>
                       <dd class="text-body">{p.platformProblemId}</dd>
                     </div>
                   </Show>

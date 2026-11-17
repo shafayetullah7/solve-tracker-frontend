@@ -41,7 +41,10 @@ export function ProblemLibraryRow(props: ProblemLibraryRowProps) {
               {props.problem.status === "solved" ? "Solved" : "Unsolved"}
             </Badge>
           </div>
-          <PlatformMark url={props.problem.url} />
+          <PlatformMark
+            slug={props.problem.platformSlug}
+            url={props.problem.url}
+          />
           <Show
             when={props.problem.topics.length > 0}
             fallback={<p class="text-sm text-muted">No topics</p>}

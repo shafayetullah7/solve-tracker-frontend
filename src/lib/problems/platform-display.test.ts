@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { platformLabelFromUrl } from "./platform-display";
+import {
+  platformLabelForStoredSlug,
+  platformLabelFromUrl,
+  platformPreviewFromUrl,
+} from "./platform-display";
 
 describe("platformLabelFromUrl", () => {
   test("recognizes seeded platform hosts", () => {
@@ -20,5 +24,34 @@ describe("platformLabelFromUrl", () => {
   test("falls back for unknown hosts", () => {
     expect(platformLabelFromUrl("https://example.com/p")).toBe("example.com");
     expect(platformLabelFromUrl("not-a-url")).toBe("Other");
+  });
+});
+
+describe("platformLabelForStoredSlug", () => {
+  test("maps API slug values", () => {
+    expect(platformLabelForStoredSlug("leetcode")).toBe("LeetCode");
+    expect(platformLabelForStoredSlug("other")).toBe("Other");
+  });
+});
+
+describe("platformPreviewFromUrl", () => {
+  test("detects catalog host", () => {
+    expect(
+      platformPreviewFromUrl("https://leetcode.com/problems/two-sum/"),
+    ).toEqual({ slug: "leetcode", label: "LeetCode" });
+  });
+
+  test("maps unknown host to other", () => {
+    expect(platformPreviewFromUrl("https://example.com/p")).toEqual({
+      slug: "other",
+      label: "Other",
+    });
+  });
+
+  test("prompts when url empty", () => {
+    expect(platformPreviewFromUrl("  ")).toEqual({
+      slug: "other",
+      label: "Enter a URL to detect the judge.",
+    });
   });
 });

@@ -135,6 +135,28 @@ export function platformLabelBySlug(slug: string): string {
   return platformEntryBySlug(slug)?.name ?? slug;
 }
 
+/** Label for API `platformSlug` (catalog or stored `other`). */
+export function platformLabelForStoredSlug(slug: string): string {
+  if (slug === "other") return "Other";
+  if (isPlatformSlug(slug)) return platformLabelBySlug(slug);
+  return slug;
+}
+
+export type PlatformPreviewFromUrl = {
+  slug: PlatformSlug | "other";
+  label: string;
+};
+
+/** Client-only preview for add/edit forms (server sets platformSlug on save). */
+export function platformPreviewFromUrl(url: string): PlatformPreviewFromUrl {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return { slug: "other", label: "Enter a URL to detect the judge." };
+  }
+  const slug = platformSlugFromUrl(trimmed) ?? "other";
+  return { slug, label: platformLabelForStoredSlug(slug) };
+}
+
 /** Filter dropdown / chip options (slug + display name). */
 export const PLATFORM_FILTER_OPTIONS = PLATFORM_CATALOG.map((entry) => ({
   slug: entry.slug,

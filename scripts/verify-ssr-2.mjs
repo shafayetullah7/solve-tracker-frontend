@@ -76,6 +76,21 @@ await check("anonymous GET /account is a 302 to login with profile next", async 
   }
 });
 
+await check("anonymous GET / includes landing meta description", async () => {
+  const res = await fetch(`${base}/`, { redirect: "manual" });
+  const html = await res.text();
+  if (!html.includes('name="description"')) {
+    throw new Error('expected meta description on /');
+  }
+  if (!html.includes("Your practice library, across every platform.")) {
+    throw new Error("expected landing hero in SSR HTML");
+  }
+  if (!html.includes("/og-image.jpg")) {
+    throw new Error("expected og-image path in SSR HTML");
+  }
+  assertNoSecretsInHtml(html);
+});
+
 await check("HTML still private no-store with Vary Cookie", async () => {
   const res = await fetch(`${base}/login`, { redirect: "manual" });
   const cc = res.headers.get("cache-control") ?? "";

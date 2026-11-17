@@ -1,13 +1,15 @@
 import { cleanup, render } from "@solidjs/testing-library";
 import { afterEach, describe, expect, test } from "vitest";
+import type { ProblemResponse } from "../../lib/api/modules/problems.api";
 import { DashboardQueueGrid } from "./DashboardQueueGrid";
 
 afterEach(cleanup);
 
-const problem = {
+const problem: ProblemResponse = {
   id: "22222222-2222-4222-8222-222222222222",
   title: "Two Sum",
   url: "https://leetcode.com/problems/two-sum/",
+  platformSlug: "leetcode",
   platformProblemId: null,
   difficulty: null,
   rating: null,
