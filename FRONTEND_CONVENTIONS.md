@@ -265,6 +265,8 @@ Phased plan: [docs/FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_P
 
 **Auth copy:** Use `AUTH_NAME_HINT` / `AUTH_PASSWORD_HINT` on register and reset with `FormField` `hintVisibility="sr-only"`; password guidance in UI comes from [`PasswordCodePointMeter`](src/components/ui/PasswordCodePointMeter.tsx) when active — do not duplicate rules in routes.
 
+**Profile mockup (static):** [`/app/profile`](src/routes/app/profile.tsx) uses `max-w-6xl` (dashboard width). **About**, **work**, and **education** edit through separate centered modals on [`ProfileEditorDialog`](src/components/profile/ProfileEditorDialog.tsx) (`ui-dialog-md` / About `lg`; `dialog[open]` centering in [`theme.css`](src/styles/theme.css)). **Pessimistic saves:** modals set `pending`, call async handlers, update page state only after [`profile-mock.client.ts`](src/lib/profile/profile-mock.client.ts) resolves (swap for `profile.api.ts` later); no optimistic list/card updates. Errors: [`applyProfileApiError`](src/lib/forms/apply-profile-api-error.ts). Close while saving is blocked (`closeBlocked`); About cancel prompts when dirty. Account ([`ProfileAccountPanel`](src/components/profile/ProfileAccountPanel.tsx)) stays out of profile modals. Open state: [`ProfileEditorTarget`](src/lib/profile/profile-editor-target.ts). Remove [`ProfileMockupBanner`](src/components/profile/ProfileMockupBanner.tsx) when APIs land.
+
 ## 9. Accessibility and interaction
 
 - Use visible labels, logical headings, native buttons/links, and focus states. Connect help/errors using `aria-describedby` and invalid fields using `aria-invalid`.

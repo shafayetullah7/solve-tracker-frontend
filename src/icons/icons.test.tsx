@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import {
   IconClose,
   IconDashboard,
+  IconEdit,
   IconLibrary,
   IconLogOut,
   IconMenu,
@@ -15,6 +16,7 @@ afterEach(cleanup);
 
 const icons = [
   ["IconDashboard", IconDashboard],
+  ["IconEdit", IconEdit],
   ["IconLibrary", IconLibrary],
   ["IconTopics", IconTopics],
   ["IconPlus", IconPlus],

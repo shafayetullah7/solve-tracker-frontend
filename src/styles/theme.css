@@ -152,6 +152,16 @@
     background: var(--color-danger-soft);
     color: var(--color-danger);
   }
+  dialog[open] {
+    margin: auto;
+    max-height: min(90dvh, 100%);
+  }
+  dialog.ui-dialog-md {
+    max-width: 32rem;
+  }
+  dialog.ui-dialog-lg {
+    max-width: 42rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-button {

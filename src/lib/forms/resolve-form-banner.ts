@@ -1,10 +1,11 @@
 import { ApiError } from "../api/errors";
 import { authFormMessage } from "../auth/forms";
 import { problemFormMessage } from "../problems/messages";
+import { profileFormMessage } from "../profile/messages";
 import { topicFormMessage } from "../topics/messages";
 import type { FieldErrors } from "./field-errors";
 
-export type FormBannerDomain = "auth" | "problem" | "topic";
+export type FormBannerDomain = "auth" | "problem" | "topic" | "profile";
 
 function domainMessage(error: ApiError, domain: FormBannerDomain): string {
   switch (domain) {
@@ -14,6 +15,8 @@ function domainMessage(error: ApiError, domain: FormBannerDomain): string {
       return problemFormMessage(error);
     case "topic":
       return topicFormMessage(error);
+    case "profile":
+      return profileFormMessage(error);
   }
 }
 
