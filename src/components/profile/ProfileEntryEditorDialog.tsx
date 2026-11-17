@@ -3,12 +3,21 @@ import { applyProfileApiError } from "../../lib/forms/apply-profile-api-error";
 import {
   findEducationEntry,
   findWorkEntry,
-} from "../../lib/profile/profile-mock.client";
+} from "../../lib/profile/profile-entry-utils";
 import {
   MAX_EDUCATION_ENTRIES,
   profileEditorTitle,
   type ProfileEntryEditorTarget,
 } from "../../lib/profile/profile-editor-target";
+import {
+  formatWorkPeriod,
+  normalizeEducationEndYearInput,
+  parseWorkPeriod,
+  profileYearMax,
+  PROFILE_YEAR_MIN,
+  validateEducationEndYear,
+  validateWorkPeriodMonths,
+} from "../../lib/profile/profile-entry-dates";
 import type { EducationEntry, WorkEntry } from "../../lib/profile/profile-view.types";
 import { FormAlert } from "../ui/FormAlert";
 import { FormField } from "../ui/FormField";
@@ -31,7 +40,9 @@ export type ProfileEntryEditorDialogProps = {
 export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
   const [organization, setOrganization] = createSignal("");
   const [role, setRole] = createSignal("");
-  const [period, setPeriod] = createSignal("");
+  const [workStartMonth, setWorkStartMonth] = createSignal("");
+  const [workEndMonth, setWorkEndMonth] = createSignal("");
+  const [workPeriodLegacy, setWorkPeriodLegacy] = createSignal<string | undefined>();
   const [institution, setInstitution] = createSignal("");
   const [program, setProgram] = createSignal("");
   const [endYear, setEndYear] = createSignal("");
@@ -62,7 +73,9 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
       if (target.kind === "work-add") {
         setOrganization("");
         setRole("");
-        setPeriod("");
+        setWorkStartMonth("");
+        setWorkEndMonth("");
+        setWorkPeriodLegacy(undefined);
         return;
       }
       if (target.kind === "work-edit") {
@@ -70,7 +83,10 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
         setStaleEdit(!entry);
         setOrganization(entry?.organization ?? "");
         setRole(entry?.role ?? "");
-        setPeriod(entry?.period ?? "");
+        const parsed = parseWorkPeriod(entry?.period);
+        setWorkStartMonth(parsed.start);
+        setWorkEndMonth(parsed.end);
+        setWorkPeriodLegacy(parsed.legacy);
         return;
       }
       if (target.kind === "education-add") {
@@ -119,13 +135,29 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
         setFormError("Role is required.");
         return;
       }
-      const periodValue = period().trim();
+      const periodError = validateWorkPeriodMonths(
+        workStartMonth(),
+        workEndMonth(),
+      );
+      if (periodError) {
+        setFormError(periodError);
+        return;
+      }
+      let periodValue = formatWorkPeriod(workStartMonth(), workEndMonth());
+      if (
+        !periodValue &&
+        workPeriodLegacy() &&
+        !workStartMonth().trim() &&
+        !workEndMonth().trim()
+      ) {
+        periodValue = workPeriodLegacy();
+      }
       const id = target.kind === "work-edit" ? target.id : newEntryId();
       const entry: WorkEntry = {
         id,
         organization: org,
         role: roleValue,
-        period: periodValue || undefined,
+        period: periodValue,
       };
       setPending(true);
       setFormError(undefined);
@@ -155,13 +187,17 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
       setFormError("Program is required.");
       return;
     }
-    const year = endYear().trim();
+    const yearResult = validateEducationEndYear(endYear());
+    if (yearResult.error) {
+      setFormError(yearResult.error);
+      return;
+    }
     const id = target.kind === "education-edit" ? target.id : newEntryId();
     const entry: EducationEntry = {
       id,
       institution: school,
       program: programValue,
-      endYear: year || undefined,
+      endYear: yearResult.value,
     };
     setPending(true);
     setFormError(undefined);
@@ -180,7 +216,7 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
       open={open()}
       titleId={titleId}
       title={profileEditorTitle(props.target)}
-      description="Changes are saved when you confirm. Profile APIs are still in preview."
+      description="Changes are saved when you confirm."
       closeBlocked={pending()}
       onClose={() => props.onClose()}
       onRequestClose={requestClose}
@@ -223,17 +259,26 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
                   }}
                 />
               </FormField>
-              <FormField id="profile-education-end-year" label="End year (optional)">
+              <FormField
+                id="profile-education-end-year"
+                label="End year (optional)"
+                hint="Four-digit graduation or completion year."
+              >
                 <input
                   id="profile-education-end-year"
                   class="ui-field"
-                  type="text"
+                  type="number"
                   inputmode="numeric"
+                  min={PROFILE_YEAR_MIN}
+                  max={profileYearMax()}
+                  step={1}
                   placeholder="e.g. 2026"
                   disabled={fieldDisabled()}
                   value={endYear()}
                   onInput={(event) => {
-                    setEndYear(event.currentTarget.value);
+                    setEndYear(
+                      normalizeEducationEndYearInput(String(event.currentTarget.value)),
+                    );
                     setFormError(undefined);
                   }}
                 />
@@ -267,20 +312,43 @@ export function ProfileEntryEditorDialog(props: ProfileEntryEditorDialogProps) {
               }}
             />
           </FormField>
-          <FormField id="profile-work-period" label="Period (optional)">
-            <input
-              id="profile-work-period"
-              class="ui-field"
-              type="text"
-              placeholder="e.g. Summer 2025"
-              disabled={fieldDisabled()}
-              value={period()}
-              onInput={(event) => {
-                setPeriod(event.currentTarget.value);
-                setFormError(undefined);
-              }}
-            />
-          </FormField>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <FormField id="profile-work-start" label="Start month (optional)">
+              <input
+                id="profile-work-start"
+                class="ui-field"
+                type="month"
+                disabled={fieldDisabled()}
+                value={workStartMonth()}
+                min={`${PROFILE_YEAR_MIN}-01`}
+                max={`${profileYearMax()}-12`}
+                onInput={(event) => {
+                  setWorkStartMonth(event.currentTarget.value);
+                  setFormError(undefined);
+                }}
+              />
+            </FormField>
+            <FormField id="profile-work-end" label="End month (optional)">
+              <input
+                id="profile-work-end"
+                class="ui-field"
+                type="month"
+                disabled={fieldDisabled()}
+                value={workEndMonth()}
+                min={workStartMonth() || `${PROFILE_YEAR_MIN}-01`}
+                max={`${profileYearMax()}-12`}
+                onInput={(event) => {
+                  setWorkEndMonth(event.currentTarget.value);
+                  setFormError(undefined);
+                }}
+              />
+            </FormField>
+          </div>
+          <Show when={workPeriodLegacy() && !workStartMonth() && !workEndMonth()}>
+            <p class="text-sm text-muted">
+              Current period: {workPeriodLegacy()}. Pick months above to replace it.
+            </p>
+          </Show>
         </Show>
         <Show when={formError()}>
           <FormAlert variant="error">{formError()}</FormAlert>

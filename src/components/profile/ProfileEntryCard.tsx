@@ -1,5 +1,5 @@
-import type { ParentProps } from "solid-js";
-import { IconEdit } from "../../icons";
+import { Show, type ParentProps } from "solid-js";
+import { IconEdit, IconTrash } from "../../icons";
 import { ProfileIconAction } from "./ProfileIconAction";
 
 export type ProfileEntryCardProps = ParentProps<{
@@ -8,6 +8,8 @@ export type ProfileEntryCardProps = ParentProps<{
   meta?: string;
   onEdit: () => void;
   editLabel: string;
+  onDelete?: () => void;
+  deleteLabel?: string;
 }>;
 
 export function ProfileEntryCard(props: ProfileEntryCardProps) {
@@ -23,9 +25,20 @@ export function ProfileEntryCard(props: ProfileEntryCardProps) {
         ) : null}
         {props.children}
       </div>
-      <ProfileIconAction label={props.editLabel} onClick={() => props.onEdit()}>
-        <IconEdit class="h-5 w-5" />
-      </ProfileIconAction>
+      <div class="flex shrink-0 items-start">
+        <ProfileIconAction label={props.editLabel} onClick={() => props.onEdit()}>
+          <IconEdit class="h-5 w-5" />
+        </ProfileIconAction>
+        <Show when={props.onDelete}>
+          <ProfileIconAction
+            label={props.deleteLabel ?? "Remove entry"}
+            class="hover:bg-danger-soft hover:text-danger"
+            onClick={() => props.onDelete!()}
+          >
+            <IconTrash class="h-5 w-5" />
+          </ProfileIconAction>
+        </Show>
+      </div>
     </article>
   );
 }

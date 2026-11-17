@@ -7,6 +7,7 @@ export type ProfileEducationSectionProps = {
   education: EducationEntry[];
   onAdd?: () => void;
   onEdit: (entry: EducationEntry) => void;
+  onDelete: (entry: EducationEntry) => void;
 };
 
 function educationMeta(entry: EducationEntry) {
@@ -39,7 +40,9 @@ export function ProfileEducationSection(props: ProfileEducationSectionProps) {
                   secondary={entry.program}
                   meta={educationMeta(entry)}
                   editLabel={`Edit education at ${entry.institution}`}
+                  deleteLabel={`Remove education at ${entry.institution}`}
                   onEdit={() => props.onEdit(entry)}
+                  onDelete={() => props.onDelete(entry)}
                 />
               </li>
             )}

@@ -15,6 +15,10 @@ Use the CSR cookie-based session contract and one refresh coordinator; never
 put JWTs in browser storage or add per-component refresh calls. Cross-tab
 recovery requires a Web Lock plus a session recheck, not just a shared promise.
 
+Read [MEDIA_CONVENTIONS.md](../backend/MEDIA_CONVENTIONS.md) before gallery or
+profile photo work. Upload via `POST /media`, link on save; gallery visibility
+requires `usage_count > 0` on the server.
+
 Phase 4.7 browser verification: with backend on **3000** and `pnpm dev` on **3001**,
 run `pnpm verify:phase-4.7` (first time: `pnpm exec playwright install chromium`).
 Reset E2E tokens use `backend/scripts/phase-4.7-issue-reset-token.mjs` (not deployed).

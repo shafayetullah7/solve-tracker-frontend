@@ -1,6 +1,7 @@
 import { createEffect, createSignal, Show } from "solid-js";
 import { applyProfileApiError } from "../../lib/forms/apply-profile-api-error";
 import { ProfileSaveError } from "../../lib/profile/profile-save-error";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { FormAlert } from "../ui/FormAlert";
 import { Button } from "../ui/Button";
 import { ProfileAvatarUploadField } from "./ProfileAvatarUploadField";
@@ -28,6 +29,7 @@ export function ProfileAvatarEditorDialog(props: ProfileAvatarEditorDialogProps)
   const [removeRequested, setRemoveRequested] = createSignal(false);
   const [formError, setFormError] = createSignal<string | undefined>();
   const [pending, setPending] = createSignal(false);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = createSignal(false);
 
   let draftPreviewUrl: string | undefined;
   let seededForSession = false;
@@ -81,9 +83,16 @@ export function ProfileAvatarEditorDialog(props: ProfileAvatarEditorDialogProps)
 
   function requestClose() {
     if (pending()) return;
-    if (isDirty() && !globalThis.confirm("Discard unsaved changes?")) {
+    if (isDirty()) {
+      setDiscardConfirmOpen(true);
       return;
     }
+    props.onClose();
+  }
+
+  function confirmDiscard() {
+    setDiscardConfirmOpen(false);
+    revokeDraftPreview();
     props.onClose();
   }
 
@@ -122,13 +131,14 @@ export function ProfileAvatarEditorDialog(props: ProfileAvatarEditorDialogProps)
   const fieldDisabled = () => pending();
 
   return (
+    <>
     <ProfileEditorDialog
       open={props.open}
       titleId={TITLE_ID}
       title="Change profile photo"
       description="Upload a new image or remove your current photo. Changes save when you confirm."
       size="lg"
-      closeBlocked={pending()}
+      closeBlocked={pending() || discardConfirmOpen()}
       onClose={() => props.onClose()}
       onRequestClose={requestClose}
     >
@@ -217,5 +227,17 @@ export function ProfileAvatarEditorDialog(props: ProfileAvatarEditorDialogProps)
         />
       </form>
     </ProfileEditorDialog>
+    <ConfirmDialog
+      open={discardConfirmOpen()}
+      titleId="profile-avatar-discard-title"
+      title="Discard unsaved changes?"
+      description="Your photo selection and any removals will not be saved."
+      cancelLabel="Keep editing"
+      confirmLabel="Discard"
+      emphasizeCancel
+      onConfirm={confirmDiscard}
+      onCancel={() => setDiscardConfirmOpen(false)}
+    />
+    </>
   );
 }

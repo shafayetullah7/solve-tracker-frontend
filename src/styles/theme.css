@@ -106,6 +106,13 @@
   .ui-button[data-variant="ghost"] {
     color: var(--color-muted);
   }
+  .ui-button[data-variant="danger"] {
+    background: var(--color-danger);
+    color: #fff;
+  }
+  .ui-button[data-variant="danger"]:hover:not(:disabled) {
+    filter: brightness(0.92);
+  }
   .ui-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;

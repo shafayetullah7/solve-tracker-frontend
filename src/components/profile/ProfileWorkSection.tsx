@@ -1,4 +1,5 @@
 import { For, Show } from "solid-js";
+import { formatWorkPeriodLabel } from "../../lib/profile/profile-entry-dates";
 import type { WorkEntry } from "../../lib/profile/profile-view.types";
 import { ProfileEntryCard } from "./ProfileEntryCard";
 import { ProfileSectionShell } from "./ProfileSectionShell";
@@ -7,6 +8,7 @@ export type ProfileWorkSectionProps = {
   work: WorkEntry[];
   onAdd: () => void;
   onEdit: (entry: WorkEntry) => void;
+  onDelete: (entry: WorkEntry) => void;
 };
 
 export function ProfileWorkSection(props: ProfileWorkSectionProps) {
@@ -33,9 +35,11 @@ export function ProfileWorkSection(props: ProfileWorkSectionProps) {
                 <ProfileEntryCard
                   primary={entry.organization}
                   secondary={entry.role}
-                  meta={entry.period}
+                  meta={formatWorkPeriodLabel(entry.period)}
                   editLabel={`Edit work at ${entry.organization}`}
+                  deleteLabel={`Remove work at ${entry.organization}`}
                   onEdit={() => props.onEdit(entry)}
+                  onDelete={() => props.onDelete(entry)}
                 />
               </li>
             )}

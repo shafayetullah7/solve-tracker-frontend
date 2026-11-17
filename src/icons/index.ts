@@ -6,5 +6,6 @@ export { IconLogOut } from "./IconLogOut";
 export { IconMenu } from "./IconMenu";
 export { IconPlus } from "./IconPlus";
 export { IconTopics } from "./IconTopics";
+export { IconTrash } from "./IconTrash";
 export { IconUser } from "./IconUser";
 export type { IconProps } from "./icon-props";

@@ -1,6 +1,6 @@
 import type { ParentProps } from "solid-js";
 export type ButtonProps = ParentProps<{
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   onClick?: () => void;

@@ -9,6 +9,7 @@ import {
   IconMenu,
   IconPlus,
   IconTopics,
+  IconTrash,
   IconUser,
 } from "./index";
 
@@ -24,6 +25,7 @@ const icons = [
   ["IconLogOut", IconLogOut],
   ["IconMenu", IconMenu],
   ["IconClose", IconClose],
+  ["IconTrash", IconTrash],
 ] as const;
 
 describe("icons barrel", () => {

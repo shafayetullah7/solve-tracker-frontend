@@ -11,6 +11,7 @@ export type ForgotPasswordInput = JsonInput<
   operations["AuthController_forgot"]
 >;
 export type ResetPasswordInput = JsonInput<operations["AuthController_reset"]>;
+export type ChangePasswordInput = JsonInput<operations["AuthController_changePassword"]>;
 export type SessionResponse =
   operations["AuthController_session"]["responses"][200]["content"]["application/json"];
 export type ForgotPasswordResponse =
@@ -85,6 +86,19 @@ export function createAuthApi(client: ApiClient) {
     ): Promise<void> {
       await client.request({
         path: "/auth/reset-password",
+        method: "POST",
+        body: input,
+        response: "empty",
+        signal,
+        recoverAuth: false,
+      });
+    },
+    async changePassword(
+      input: ChangePasswordInput,
+      signal?: AbortSignal,
+    ): Promise<void> {
+      await client.request({
+        path: "/auth/change-password",
         method: "POST",
         body: input,
         response: "empty",

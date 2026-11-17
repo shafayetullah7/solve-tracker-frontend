@@ -1,5 +1,6 @@
 import { createEffect, createSignal, Show } from "solid-js";
 import { applyProfileApiError } from "../../lib/forms/apply-profile-api-error";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { FormAlert } from "../ui/FormAlert";
 import { FormField } from "../ui/FormField";
 import { ProfileEditorDialog } from "./ProfileEditorDialog";
@@ -23,6 +24,7 @@ export function ProfileAboutEditorDialog(props: ProfileAboutEditorDialogProps) {
   const [seedBio, setSeedBio] = createSignal("");
   const [formError, setFormError] = createSignal<string | undefined>();
   const [pending, setPending] = createSignal(false);
+  const [discardConfirmOpen, setDiscardConfirmOpen] = createSignal(false);
 
   let seededForSession = false;
 
@@ -48,9 +50,15 @@ export function ProfileAboutEditorDialog(props: ProfileAboutEditorDialogProps) {
 
   function requestClose() {
     if (pending()) return;
-    if (isDirty() && !globalThis.confirm("Discard unsaved changes?")) {
+    if (isDirty()) {
+      setDiscardConfirmOpen(true);
       return;
     }
+    props.onClose();
+  }
+
+  function confirmDiscard() {
+    setDiscardConfirmOpen(false);
     props.onClose();
   }
 
@@ -82,13 +90,14 @@ export function ProfileAboutEditorDialog(props: ProfileAboutEditorDialogProps) {
   const fieldDisabled = () => pending();
 
   return (
+    <>
     <ProfileEditorDialog
       open={props.open}
       titleId={TITLE_ID}
       title="Edit about you"
       description="Changes are saved when you confirm. Profile APIs are still in preview."
       size="lg"
-      closeBlocked={pending()}
+      closeBlocked={pending() || discardConfirmOpen()}
       onClose={() => props.onClose()}
       onRequestClose={requestClose}
     >
@@ -133,5 +142,17 @@ export function ProfileAboutEditorDialog(props: ProfileAboutEditorDialogProps) {
         />
       </form>
     </ProfileEditorDialog>
+    <ConfirmDialog
+      open={discardConfirmOpen()}
+      titleId="profile-about-discard-title"
+      title="Discard unsaved changes?"
+      description="Anything you entered in this form will be lost."
+      cancelLabel="Keep editing"
+      confirmLabel="Discard"
+      emphasizeCancel
+      onConfirm={confirmDiscard}
+      onCancel={() => setDiscardConfirmOpen(false)}
+    />
+    </>
   );
 }
