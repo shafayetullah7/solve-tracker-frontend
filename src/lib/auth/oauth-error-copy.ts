@@ -20,7 +20,8 @@ const OAUTH_ERROR_FALLBACK =
 
 /** Shown when Google OAuth UI is enabled (login, register, profile). */
 export const GOOGLE_PRACTICE_LOGOUT_NOTE =
-  "Signing out of Google in your browser does not sign you out of Practice.";
+  "Signing out of Google in your browser does not sign you out of Practice. " +
+  "When Cross-Account Protection is enabled on the server, Google may end your Practice session after you revoke app access or certain account security events.";
 
 export function oauthErrorMessage(code: string | null | undefined): string | undefined {
   if (code == null || code === "") return undefined;

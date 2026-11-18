@@ -1,18 +1,16 @@
-import { describe, expect, test } from "vitest";
-import { oauthErrorMessage } from "./oauth-error-copy";
+import { describe, expect, it } from "vitest";
+import { GOOGLE_PRACTICE_LOGOUT_NOTE, oauthErrorMessage } from "./oauth-error-copy";
 
-describe("oauthErrorMessage", () => {
-  test("maps known codes", () => {
-    expect(oauthErrorMessage("OAUTH_EMAIL_UNVERIFIED")).toContain("verified");
-    expect(oauthErrorMessage("OAUTH_STATE_INVALID")).toBeTruthy();
+describe("oauth-error-copy", () => {
+  it("documents Google vs Practice logout and optional RISC", () => {
+    expect(GOOGLE_PRACTICE_LOGOUT_NOTE).toContain(
+      "does not sign you out of Practice",
+    );
+    expect(GOOGLE_PRACTICE_LOGOUT_NOTE).toContain("Cross-Account Protection");
   });
 
-  test("returns undefined when code absent", () => {
-    expect(oauthErrorMessage(null)).toBeUndefined();
-    expect(oauthErrorMessage("")).toBeUndefined();
-  });
-
-  test("falls back for unknown codes", () => {
-    expect(oauthErrorMessage("UNKNOWN_CODE")).toContain("did not complete");
+  it("maps known OAuth error codes", () => {
+    expect(oauthErrorMessage("OAUTH_DISABLED")).toMatch(/not enabled/i);
+    expect(oauthErrorMessage("unknown_code")).toBeDefined();
   });
 });

@@ -100,7 +100,9 @@ Optional **Continue with Google** on login/register when `VITE_GOOGLE_OAUTH_ENAB
 - **Errors:** login/register redirects use `/login?oauth_error=<code>`; profile link/unlink uses `/app/profile?oauth_error=<code>` or `?google_linked=1`. Map codes via `oauth-error-copy.ts`.
 - **Profile linking:** signed-in users link Google from **Profile → Connected accounts** (`GET /api/auth/google?mode=link`). Unlink requires a password (`POST /auth/set-password` for Google-only accounts, then `DELETE /auth/google/link`).
 - **Session flags:** `GET /auth/session` returns `account.googleLinked` and `account.hasPassword` (see `useAuth().account()`).
-- **Google vs Practice logout:** signing out of Google in the browser does not end the Practice session; use Practice **Sign out** (see backend GOOGLE OAuth docs).
+- **Google vs Practice logout:** signing out of Google in the browser does not end the Practice session by itself; use Practice **Sign out** (see backend GOOGLE OAuth docs).
+
+**Cross-Account Protection (RISC):** optional backend-only webhook. There is no frontend RISC flag or API. When the server has RISC enabled, Google may revoke all Practice sessions for a linked account; this app discovers invalidation through the same session probe, refresh, and coordinator paths as password reset revocation — no new client state or BroadcastChannel event type. Reference: [GOOGLE_RISC_RESULTS.md](../solve-tracker-backend/docs/GOOGLE_RISC_RESULTS.md).
 
 ## SSR session (enabled — Track B)
 
