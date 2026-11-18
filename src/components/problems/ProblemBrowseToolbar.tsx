@@ -68,6 +68,10 @@ function FieldLegend(props: LegendProps) {
 export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   const catalog = usePlatformCatalog();
   const platformFilterOptions = usePlatformFilterOptions();
+  const catalogStatus = createMemo(() => catalog.status());
+  const platformLoading = createMemo(() => catalogStatus() === "loading");
+  const platformError = createMemo(() => catalogStatus() === "error");
+  const platformNotReady = createMemo(() => catalogStatus() !== "ready");
   const [q, setQ] = createSignal("");
   const [status, setStatus] = createSignal<BrowseStatusFilter>("");
   const [platform, setPlatform] = createSignal<
@@ -86,8 +90,15 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   const [pageSize, setPageSize] = createSignal(25);
   const [searchPending, setSearchPending] = createSignal(false);
   const [advancedOpen, setAdvancedOpen] = createSignal(
-    readAdvancedExpandedPreference() ??
-      hasAdvancedBrowseFilters(props.searchKey),
+    readAdvancedExpandedPreference() ?? false,
+  );
+
+  createEffect(
+    () => props.searchKey,
+    (searchKey) => {
+      if (readAdvancedExpandedPreference() !== undefined) return;
+      if (hasAdvancedBrowseFilters(searchKey)) setAdvancedOpen(true);
+    },
   );
 
   const orderLabels = createMemo(() => browseOrderOptions(sort()));
@@ -219,7 +230,7 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             value={platform()}
             aria-label="Platform"
             title="Filters by stored platform on each problem"
-            disabled={catalog.status() === "loading"}
+            disabled={platformLoading()}
             onChange={(event) => {
               setPlatform(
                 event.currentTarget.value as
@@ -230,7 +241,7 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             }}
           >
             <option value="">Any platform</option>
-            <Show when={catalog.status() !== "ready"}>
+            <Show when={platformNotReady()}>
               <option value="" disabled>
                 Loading platforms…
               </option>
@@ -265,7 +276,7 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             </span>
           </button>
         </div>
-        <Show when={catalog.status() === "error"}>
+        <Show when={platformError()}>
           <p class="mt-2 text-caption text-muted">
             Could not load platform list.{" "}
             <button

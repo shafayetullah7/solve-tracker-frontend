@@ -1,5 +1,6 @@
 export { IconClose } from "./IconClose";
 export { IconDashboard } from "./IconDashboard";
+export { IconDiscover } from "./IconDiscover";
 export { IconEdit } from "./IconEdit";
 export { IconEye } from "./IconEye";
 export { IconEyeOff } from "./IconEyeOff";

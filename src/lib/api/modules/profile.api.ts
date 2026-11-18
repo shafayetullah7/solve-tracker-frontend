@@ -18,6 +18,12 @@ export type UpdateEducationInput =
 export type ProfileResponse =
   operations["ProfileController_get"]["responses"][200]["content"]["application/json"];
 
+export type ShareStatsResponse =
+  operations["ProfileController_shareStats"]["responses"][200]["content"]["application/json"];
+
+export type FollowersCountResponse =
+  operations["ProfileController_followersCount"]["responses"][200]["content"]["application/json"];
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -62,6 +68,14 @@ function decodeEducationEntry(value: unknown): EducationEntry {
   };
 }
 
+const PRACTICE_VISIBILITY = new Set(["private", "summary", "topics"]);
+const PRACTICE_GOALS = new Set([
+  "interview",
+  "contests",
+  "fundamentals",
+  "coaching",
+]);
+
 function decodeProfile(value: unknown): ProfileResponse {
   if (
     !isRecord(value) ||
@@ -69,15 +83,31 @@ function decodeProfile(value: unknown): ProfileResponse {
     typeof value.bio !== "string" ||
     typeof value.handle !== "string" ||
     value.handle.length === 0 ||
+    typeof value.practiceVisibility !== "string" ||
+    !PRACTICE_VISIBILITY.has(value.practiceVisibility) ||
+    !("practiceGoal" in value) ||
+    (value.practiceGoal !== null &&
+      (typeof value.practiceGoal !== "string" ||
+        !PRACTICE_GOALS.has(value.practiceGoal))) ||
     !Array.isArray(value.work) ||
-    !Array.isArray(value.education)
+    !Array.isArray(value.education) ||
+    typeof value.publicWeb !== "boolean"
   ) {
-    throw new ApiError("contract", "Invalid profile response.");
+    const hint =
+      isRecord(value) &&
+      !("practiceVisibility" in value) &&
+      !("publicWeb" in value)
+        ? " Restart or rebuild the API backend (e.g. docker compose build backend)."
+        : "";
+    throw new ApiError("contract", `Invalid profile response.${hint}`);
   }
   return {
     name: value.name,
     bio: value.bio,
     handle: value.handle,
+    practiceVisibility: value.practiceVisibility as ProfileResponse["practiceVisibility"],
+    practiceGoal: value.practiceGoal as ProfileResponse["practiceGoal"],
+    publicWeb: value.publicWeb,
     ...(typeof value.avatarUrl === "string" ? { avatarUrl: value.avatarUrl } : {}),
     work: value.work.map(decodeWorkEntry),
     education: value.education.map(decodeEducationEntry),
@@ -86,6 +116,21 @@ function decodeProfile(value: unknown): ProfileResponse {
 
 export function createProfileApi(client: ApiClient) {
   return {
+    async getShareStats(days = 30, signal?: AbortSignal): Promise<ShareStatsResponse> {
+      return (await client.request({
+        path: "/users/me/share-stats",
+        query: { days },
+        signal,
+        recoverAuth: true,
+      })) as ShareStatsResponse;
+    },
+    async getFollowersCount(signal?: AbortSignal): Promise<FollowersCountResponse> {
+      return (await client.request({
+        path: "/users/me/followers/count",
+        signal,
+        recoverAuth: true,
+      })) as FollowersCountResponse;
+    },
     async getProfile(signal?: AbortSignal): Promise<ProfileResponse> {
       return decodeProfile(
         await client.request({

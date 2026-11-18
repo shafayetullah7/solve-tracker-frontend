@@ -117,7 +117,7 @@ function decodeActivityStreak(value: unknown): ActivityStreak {
   };
 }
 
-function decodeActivity(value: unknown): ProgressActivityResponse {
+export function decodeProgressActivity(value: unknown): ProgressActivityResponse {
   if (!isRecord(value) || !Array.isArray(value.weeks))
     throw new ApiError("contract", "Invalid activity response.");
   if (value.timezone !== "UTC")
@@ -144,7 +144,7 @@ export function createProgressApi(client: ApiClient) {
       weeks = 12,
       signal?: AbortSignal,
     ): Promise<ProgressActivityResponse> {
-      return decodeActivity(
+      return decodeProgressActivity(
         await client.request({
           path: "/progress/activity",
           query: { weeks },

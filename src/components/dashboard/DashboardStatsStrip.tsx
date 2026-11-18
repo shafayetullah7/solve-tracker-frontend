@@ -10,6 +10,7 @@ type DashboardStatsStripProps = {
   platformCount: number;
   weekSolved?: number;
   weekAdded?: number;
+  readOnly?: boolean;
 };
 
 function StatCell(props: { label: string; value: string; hint: string }) {
@@ -72,7 +73,7 @@ export function DashboardStatsStrip(props: DashboardStatsStripProps) {
           />
         </div>
       </Show>
-      <Show when={props.counts.total === 0}>
+      <Show when={props.counts.total === 0 && !props.readOnly}>
         <p class="border-t border-line px-5 py-5 text-sm text-muted">
           No problems yet.{" "}
           <a class="text-brand underline-offset-4 hover:underline" href={problemNewPath()}>

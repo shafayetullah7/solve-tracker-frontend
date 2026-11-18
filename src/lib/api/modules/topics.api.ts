@@ -10,7 +10,8 @@ const TOPIC_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type CreateTopicInput = JsonInput<operations["TopicsController_create"]>;
-export type RenameTopicInput = JsonInput<operations["TopicsController_rename"]>;
+export type PatchTopicInput = JsonInput<operations["TopicsController_patch"]>;
+export type RenameTopicInput = Pick<PatchTopicInput, "name"> & { name: string };
 export type ListTopicsQuery = NonNullable<
   operations["TopicsController_list"]["parameters"]["query"]
 >;
@@ -34,6 +35,8 @@ function decodeTopic(value: unknown): TopicResponse {
     !isRecord(value) ||
     typeof value.id !== "string" ||
     typeof value.name !== "string" ||
+    typeof value.isPublic !== "boolean" ||
+    typeof value.description !== "string" ||
     typeof value.createdAt !== "string" ||
     typeof value.updatedAt !== "string"
   )
@@ -41,6 +44,8 @@ function decodeTopic(value: unknown): TopicResponse {
   return {
     id: value.id,
     name: value.name,
+    isPublic: value.isPublic,
+    description: value.description,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
   };
@@ -95,9 +100,9 @@ export function createTopicsApi(client: ApiClient) {
         }),
       );
     },
-    async rename(
+    async patch(
       topicIdValue: string,
-      input: RenameTopicInput,
+      input: PatchTopicInput,
       signal?: AbortSignal,
     ): Promise<TopicResponse> {
       const id = topicId(topicIdValue);
@@ -110,6 +115,13 @@ export function createTopicsApi(client: ApiClient) {
           recoverAuth: true,
         }),
       );
+    },
+    async rename(
+      topicIdValue: string,
+      input: RenameTopicInput,
+      signal?: AbortSignal,
+    ): Promise<TopicResponse> {
+      return this.patch(topicIdValue, { name: input.name }, signal);
     },
     async delete(topicIdValue: string, signal?: AbortSignal): Promise<void> {
       const id = topicId(topicIdValue);

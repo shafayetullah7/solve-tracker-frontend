@@ -5,6 +5,11 @@ import { ProfileAboutEditorDialog } from "../../components/profile/ProfileAboutE
 import { ProfileHandleEditorDialog } from "../../components/profile/ProfileHandleEditorDialog";
 import { ProfileAvatarEditorDialog } from "../../components/profile/ProfileAvatarEditorDialog";
 import { ProfileAboutSection } from "../../components/profile/ProfileAboutSection";
+import {
+  ProfilePracticeVisibilityPanel,
+  type PracticeGoal,
+  type PracticeVisibility,
+} from "../../components/profile/ProfilePracticeVisibilityPanel";
 import { ProfileAccountPanel } from "../../components/profile/ProfileAccountPanel";
 import { ProfileEducationSection } from "../../components/profile/ProfileEducationSection";
 import { ProfileEntryEditorDialog } from "../../components/profile/ProfileEntryEditorDialog";
@@ -32,6 +37,15 @@ import type { EducationEntry, WorkEntry } from "../../lib/profile/profile-view.t
 import { pathWithoutSearchKeys } from "../../lib/navigation/search-url";
 import { paths } from "../../router";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+import { isDiscoverOff } from "../../lib/discover/flag";
+import { discoverCopy } from "../../lib/discover/copy";
+import { trackDiscoverEvent } from "../../lib/discover/track";
+import {
+  absolutePeopleProfileUrl,
+  absolutePublicPeopleProfileUrl,
+  peopleProfilePath,
+} from "../../lib/people/paths";
+import { copyTextToClipboard } from "../../lib/people/copy-link";
 import { FormAlert } from "../../components/ui/FormAlert";
 
 type ProfileEntryRemoveTarget =
@@ -127,6 +141,13 @@ export default function ProfilePage() {
   const [loadError, setLoadError] = createSignal<string | undefined>();
 
   const [about, setAbout] = createSignal({ displayName: "", bio: "", handle: "" });
+  const [practiceVisibility, setPracticeVisibility] =
+    createSignal<PracticeVisibility>("private");
+  const [practiceGoal, setPracticeGoal] = createSignal<PracticeGoal>(null);
+  const [publicWeb, setPublicWeb] = createSignal(false);
+  const [copyLinkStatus, setCopyLinkStatus] = createSignal<string | undefined>();
+  const [shareStatsSummary, setShareStatsSummary] = createSignal<string | undefined>();
+  const [followersCount, setFollowersCount] = createSignal(0);
   const [work, setWork] = createSignal<WorkEntry[]>([]);
   const [education, setEducation] = createSignal<EducationEntry[]>([]);
   const [avatarUrl, setAvatarUrl] = createSignal<string | undefined>();
@@ -147,10 +168,39 @@ export default function ProfilePage() {
     try {
       const profile = await profileApi().getProfile();
       setAbout({ displayName: profile.name, bio: profile.bio, handle: profile.handle });
+      setPracticeVisibility(profile.practiceVisibility);
+      setPracticeGoal(profile.practiceGoal);
+      setPublicWeb(profile.publicWeb);
       setWork(profile.work);
       setEducation(profile.education);
       setAvatarUrl(profile.avatarUrl);
       syncSessionUser(profile.name, profile.handle);
+      if (!isDiscoverOff()) {
+        try {
+          const followers = await profileApi().getFollowersCount();
+          setFollowersCount(followers.count);
+        } catch {
+          setFollowersCount(0);
+        }
+      }
+      if (profile.practiceVisibility !== "private" && !isDiscoverOff()) {
+        try {
+          const stats = await profileApi().getShareStats();
+          const total = stats.profileViews + stats.topicCopies;
+          setShareStatsSummary(
+            total > 0
+              ? discoverCopy("visibility.shareStats", {
+                  views: stats.profileViews,
+                  copies: stats.topicCopies,
+                })
+              : undefined,
+          );
+        } catch {
+          setShareStatsSummary(undefined);
+        }
+      } else {
+        setShareStatsSummary(undefined);
+      }
     } catch (error) {
       setLoadError(applyProfileApiError(error).banner);
     } finally {
@@ -212,6 +262,24 @@ export default function ProfilePage() {
     });
     setAbout({ displayName: profile.name, bio: profile.bio, handle: profile.handle });
     syncSessionUser(profile.name, profile.handle);
+  }
+
+  async function persistPracticeVisibility(input: {
+    practiceVisibility: PracticeVisibility;
+    practiceGoal: PracticeGoal;
+    publicWeb: boolean;
+  }) {
+    const profile = await profileApi().patchProfile({
+      practiceVisibility: input.practiceVisibility,
+      practiceGoal: input.practiceGoal,
+      publicWeb: input.publicWeb,
+    });
+    setPracticeVisibility(profile.practiceVisibility);
+    setPracticeGoal(profile.practiceGoal);
+    setPublicWeb(profile.publicWeb);
+    if (profile.practiceVisibility !== "private") {
+      trackDiscoverEvent("discover_share_visibility_save", "profile");
+    }
   }
 
   async function persistHandle(handle: string) {
@@ -361,6 +429,36 @@ export default function ProfilePage() {
             onEditHandle={() => setEditorTarget({ kind: "handle-edit" })}
             onEditPhoto={() => setEditorTarget({ kind: "avatar-edit" })}
           />
+          <Show when={!isDiscoverOff()}>
+            <ProfilePracticeVisibilityPanel
+              handle={about().handle || auth.user()?.handle || ""}
+              practiceVisibility={practiceVisibility()}
+              practiceGoal={practiceGoal()}
+              publicWeb={publicWeb()}
+              shareStatsSummary={shareStatsSummary()}
+              followersCount={followersCount()}
+              onSave={persistPracticeVisibility}
+              onEditHandle={() => setEditorTarget({ kind: "handle-edit" })}
+              copyLinkStatus={copyLinkStatus()}
+              onViewAsOthers={() => {
+                const h = about().handle || auth.user()?.handle;
+                if (h) navigate(peopleProfilePath(h));
+              }}
+              onCopyLink={async () => {
+                const h = about().handle || auth.user()?.handle;
+                if (!h) return;
+                const usePublic =
+                  publicWeb() && practiceVisibility() !== "private";
+                const url = usePublic
+                  ? absolutePublicPeopleProfileUrl(h)
+                  : absolutePeopleProfileUrl(h);
+                const copied = await copyTextToClipboard(url);
+                setCopyLinkStatus(
+                  copied ? discoverCopy("toast.linkCopied") : url,
+                );
+              }}
+            />
+          </Show>
           <Show when={entryRemoveError()}>
             <FormAlert variant="error">{entryRemoveError()}</FormAlert>
           </Show>

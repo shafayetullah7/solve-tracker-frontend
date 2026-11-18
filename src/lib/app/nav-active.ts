@@ -1,4 +1,9 @@
-export type SidebarSectionKey = "dashboard" | "library" | "topics" | "profile";
+export type SidebarSectionKey =
+  | "dashboard"
+  | "library"
+  | "topics"
+  | "profile"
+  | "discover";
 
 export type SidebarActiveState = {
   section: SidebarSectionKey | null;
@@ -31,6 +36,14 @@ export function resolveSidebarActive(pathname: string): SidebarActiveState {
 
   if (path === "/app/problems" || path.startsWith("/app/problems/")) {
     return { section: "library", addProblem: false };
+  }
+
+  if (path === "/app/discover" || path.startsWith("/app/discover/")) {
+    return { section: "discover", addProblem: false };
+  }
+
+  if (path === "/app/u" || path.startsWith("/app/u/")) {
+    return { section: "discover", addProblem: false };
   }
 
   return { section: null, addProblem: false };

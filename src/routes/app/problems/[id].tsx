@@ -24,6 +24,8 @@ import { problemFormMessage } from "../../../lib/problems/messages";
 import { problemEditPath } from "../../../lib/problems/paths";
 import { PlatformMark } from "../../../components/platforms/PlatformMark";
 import { paths } from "../../../router";
+import { DiscoverCommunityPanel } from "../../../components/discover/DiscoverCommunityPanel";
+import { isDiscoverFullEnabled } from "../../../lib/discover/flag";
 
 type LoadStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -287,6 +289,11 @@ export default function ProblemDetail() {
                     <dd class="text-body">{formatWhen(p.updatedAt)}</dd>
                   </div>
                 </dl>
+                <Show when={isDiscoverFullEnabled()}>
+                  <div class="mt-6">
+                    <DiscoverCommunityPanel problemId={p.id} />
+                  </div>
+                </Show>
               </Panel>
             );
           }}

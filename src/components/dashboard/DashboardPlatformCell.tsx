@@ -1,3 +1,4 @@
+import { Show } from "solid-js";
 import type { PlatformProgress } from "../../lib/api/modules/progress.api";
 import { dashboardPlatformBrowseHref } from "../../lib/dashboard/dashboard-platform-href";
 import { overallPercentComplete } from "../../lib/problems/progress-display";
@@ -9,16 +10,13 @@ const linkClass =
 
 type DashboardPlatformCellProps = {
   row: PlatformProgress;
+  readOnly?: boolean;
 };
 
 export function DashboardPlatformCell(props: DashboardPlatformCellProps) {
   const href = () => dashboardPlatformBrowseHref(props.row);
-
-  return (
-    <a
-      class="block rounded-panel border border-line bg-surface px-4 py-4 transition-colors hover:bg-surface-muted focus-visible:outline-offset-2"
-      href={href()}
-    >
+  const inner = (
+    <>
       <PlatformMark
         slug={props.row.slug === "other" ? undefined : props.row.slug}
         label={props.row.name}
@@ -33,7 +31,30 @@ export function DashboardPlatformCell(props: DashboardPlatformCellProps) {
           label={`${props.row.name}: ${overallPercentComplete(props.row)}% solved`}
         />
       </div>
-      <p class={`mt-2 text-label ${linkClass}`}>View on {props.row.name}</p>
-    </a>
+      <Show
+        when={!props.readOnly}
+        fallback={<p class="mt-2 text-label text-muted">{props.row.name}</p>}
+      >
+        <p class={`mt-2 text-label ${linkClass}`}>View on {props.row.name}</p>
+      </Show>
+    </>
+  );
+
+  return (
+    <Show
+      when={!props.readOnly}
+      fallback={
+        <div class="block rounded-panel border border-line bg-surface px-4 py-4">
+          {inner}
+        </div>
+      }
+    >
+      <a
+        class="block rounded-panel border border-line bg-surface px-4 py-4 transition-colors hover:bg-surface-muted focus-visible:outline-offset-2"
+        href={href()}
+      >
+        {inner}
+      </a>
+    </Show>
   );
 }

@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { createEffect, createMemo, createSignal, Match, onCleanup, Switch } from "solid-js";
+import { createEffect, createMemo, createSignal, Match, onCleanup, Show, Switch } from "solid-js";
 import { DashboardActivitySection } from "../../components/dashboard/DashboardActivitySection";
 import { DashboardPageHeader } from "../../components/dashboard/DashboardPageHeader";
 import { DashboardPlatformGrid } from "../../components/dashboard/DashboardPlatformGrid";
@@ -24,6 +24,10 @@ import {
   type DashboardPreviews,
 } from "../../lib/dashboard/load-dashboard-previews";
 import { problemListMessage, progressMessage } from "../../lib/problems/messages";
+import { DiscoverPeopleLikeYouCard } from "../../components/dashboard/DiscoverPeopleLikeYouCard";
+import { DiscoverBenchmarkCard } from "../../components/dashboard/DiscoverBenchmarkCard";
+import { DiscoverLaunchBanner } from "../../components/dashboard/DiscoverLaunchBanner";
+import { isDiscoverFullEnabled } from "../../lib/discover/flag";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 type PreviewsStatus = "idle" | "loading" | "ready" | "error";
@@ -191,6 +195,10 @@ export default function DashboardPage() {
                   weekSolved={activityStatus() === "ready" ? week().solved : undefined}
                   weekAdded={activityStatus() === "ready" ? week().added : undefined}
                 />
+                <Show when={isDiscoverFullEnabled()}>
+                  <DiscoverLaunchBanner />
+                  <DiscoverBenchmarkCard />
+                </Show>
                 <DashboardQueueGrid
                   status={previewsStatus()}
                   focus={previews()?.focus ?? []}
@@ -202,6 +210,9 @@ export default function DashboardPage() {
                 <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
                   <div class="space-y-6">
                     <DashboardTopicProgressList topics={topics()} />
+                    <Show when={isDiscoverFullEnabled()}>
+                      <DiscoverPeopleLikeYouCard />
+                    </Show>
                     <DashboardPlatformGrid platforms={platforms()} />
                   </div>
                   <DashboardActivitySection

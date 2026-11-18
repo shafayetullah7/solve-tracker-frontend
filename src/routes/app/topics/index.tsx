@@ -15,8 +15,17 @@ import { FormAlert } from "../../../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../../../components/ui/FormField";
 import { Panel } from "../../../components/ui/Panel";
 import { useAuth } from "../../../lib/auth/context";
+import { discoverCopy } from "../../../lib/discover/copy";
+import { trackDiscoverEvent } from "../../../lib/discover/track";
+import { isDiscoverOff, isDiscoverFullEnabled } from "../../../lib/discover/flag";
+import { createDiscoverApi } from "../../../lib/api/modules/discover.api";
+import { TopicCommunityHint } from "../../../components/topics/TopicCommunityHint";
+import { createProfileApi } from "../../../lib/api/modules/profile.api";
 import { createProgressApi, type TopicProgress } from "../../../lib/api/modules/progress.api";
 import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
+import type { PracticeVisibility } from "../../../components/profile/ProfilePracticeVisibilityPanel";
+import { TopicShareControl } from "../../../components/topics/TopicShareControl";
+import { ConfirmDialog } from "../../../components/ui/ConfirmDialog";
 import type { DashboardTopicSortMode } from "../../../lib/dashboard/sort-dashboard-topics";
 import { progressMessage } from "../../../lib/problems/messages";
 import {
@@ -64,7 +73,19 @@ function TopicsListSkeleton() {
 export default function TopicsIndex() {
   const auth = useAuth();
   const api = createTopicsApi(auth.productClient);
+  const discoverApi = createDiscoverApi(auth.productClient);
+  const profileApi = createProfileApi(auth.productClient);
   const progressApi = createProgressApi(auth.productClient);
+  const [topicHints, setTopicHints] = createSignal(
+    new Map<string, { topicKey: string; practicerCount: number; publicListCount: number; topicName: string }>(),
+  );
+  const [practiceVisibility, setPracticeVisibility] =
+    createSignal<PracticeVisibility>("private");
+  const [shareTopicsConfirmOpen, setShareTopicsConfirmOpen] = createSignal(false);
+  const [shareTopicsPending, setShareTopicsPending] = createSignal(false);
+  const [shareStatsByTopic, setShareStatsByTopic] = createSignal(
+    new Map<string, { views: number; copies: number }>(),
+  );
   const createForm = createFormState("topic");
   const renameForm = createFormState("topic");
 
@@ -111,6 +132,42 @@ export default function TopicsIndex() {
     }
   }
 
+  async function loadShareStats() {
+    if (!isDiscoverFullEnabled()) return;
+    try {
+      const stats = await profileApi.getShareStats();
+      const map = new Map<string, { views: number; copies: number }>();
+      for (const row of stats.topics) {
+        map.set(row.topicId, { views: row.views, copies: row.copies });
+      }
+      setShareStatsByTopic(map);
+    } catch {
+      setShareStatsByTopic(new Map());
+    }
+  }
+
+  async function loadTopicHints() {
+    if (!isDiscoverFullEnabled()) return;
+    try {
+      const res = await discoverApi.topicHints();
+      const map = new Map<
+        string,
+        { topicKey: string; practicerCount: number; publicListCount: number; topicName: string }
+      >();
+      for (const item of res.items) {
+        map.set(item.topicId, {
+          topicKey: item.topicKey,
+          practicerCount: item.practicerCount,
+          publicListCount: item.publicListCount,
+          topicName: item.topicName,
+        });
+      }
+      setTopicHints(map);
+    } catch {
+      setTopicHints(new Map());
+    }
+  }
+
   async function loadList() {
     setListStatus("loading");
     setListMessage(undefined);
@@ -119,10 +176,22 @@ export default function TopicsIndex() {
       setItems(result.items);
       setTruncatedTotal(result.meta.total > result.items.length);
       setListStatus("ready");
+      void loadTopicHints();
+      void loadShareStats();
     } catch (error) {
       setItems([]);
       setListStatus("unavailable");
       setListMessage(topicFormMessage(error));
+    }
+  }
+
+  async function loadPracticeVisibility() {
+    if (isDiscoverOff()) return;
+    try {
+      const profile = await profileApi.getProfile();
+      setPracticeVisibility(profile.practiceVisibility);
+    } catch {
+      setPracticeVisibility("private");
     }
   }
 
@@ -132,8 +201,31 @@ export default function TopicsIndex() {
       if (status !== "authenticated") return;
       void loadList();
       void loadProgress();
+      void loadPracticeVisibility();
     },
   );
+
+  async function enableTopicSharing() {
+    setShareTopicsPending(true);
+    try {
+      const profile = await profileApi.patchProfile({ practiceVisibility: "topics" });
+      setPracticeVisibility(profile.practiceVisibility);
+      setShareTopicsConfirmOpen(false);
+    } finally {
+      setShareTopicsPending(false);
+    }
+  }
+
+  async function patchTopicShare(
+    topicId: string,
+    input: Parameters<ReturnType<typeof createTopicsApi>["patch"]>[1],
+  ) {
+    await api.patch(topicId, input);
+    if (input.isPublic) {
+      trackDiscoverEvent("discover_share_visibility_save", "topics");
+    }
+    await loadList();
+  }
 
   createEffect(
     () => [deleteTarget()] as const,
@@ -282,6 +374,19 @@ export default function TopicsIndex() {
           </Panel>
         </div>
 
+        <Show when={!isDiscoverOff() && practiceVisibility() !== "topics"}>
+          <div class="mb-4 rounded-panel border border-line bg-surface-muted/40 px-4 py-3">
+            <p class="text-sm text-muted">{discoverCopy("topics.sharingOffBanner")}</p>
+            <Button
+              type="button"
+              class="mt-2"
+              variant="secondary"
+              onClick={() => setShareTopicsConfirmOpen(true)}
+            >
+              {discoverCopy("topics.shareTopicsCta")}
+            </Button>
+          </div>
+        </Show>
         <Panel
           title="Topics"
           description={listPanelDescription()}
@@ -334,6 +439,51 @@ export default function TopicsIndex() {
                 onCancelRename={cancelRename}
                 onRenameSave={(topicId, formEl) => void onRenameSave(topicId, formEl)}
                 onOpenDelete={openDelete}
+                shareControl={
+                  isDiscoverOff()
+                    ? undefined
+                    : (topic) => (
+                        <TopicShareControl
+                          topicId={topic.id}
+                          name={topic.name}
+                          isPublic={topic.isPublic}
+                          description={topic.description}
+                          ownerVisibility={practiceVisibility()}
+                          onPatch={patchTopicShare}
+                        />
+                      )
+                }
+                rowFooter={
+                  isDiscoverFullEnabled()
+                    ? (topic) => {
+                        const hint = topicHints().get(topic.id);
+                        const stats = shareStatsByTopic().get(topic.id);
+                        const statsLine =
+                          topic.isPublic && stats && stats.views + stats.copies > 0 ? (
+                            <p class="text-caption text-muted">
+                              {discoverCopy("topics.shareStatsRow", {
+                                views: stats.views,
+                                copies: stats.copies,
+                              })}
+                            </p>
+                          ) : null;
+                        if (!hint && !statsLine) return <></>;
+                        return (
+                          <div class="space-y-1">
+                            {statsLine}
+                            <Show when={hint}>
+                              <TopicCommunityHint
+                                topicName={hint!.topicName}
+                                topicKey={hint!.topicKey}
+                                practicerCount={hint!.practicerCount}
+                                publicListCount={hint!.publicListCount}
+                              />
+                            </Show>
+                          </div>
+                        );
+                      }
+                    : undefined
+                }
               />
             </Match>
           </Switch>
@@ -367,6 +517,18 @@ export default function TopicsIndex() {
           </Button>
         </div>
       </dialog>
+      <ConfirmDialog
+        open={shareTopicsConfirmOpen()}
+        title="Share topics on your practice profile?"
+        description={discoverCopy("visibility.optionTopicsHint")}
+        confirmLabel={discoverCopy("topics.shareTopicsCta")}
+        pending={shareTopicsPending()}
+        onConfirm={() => void enableTopicSharing()}
+        onCancel={() => {
+          if (shareTopicsPending()) return;
+          setShareTopicsConfirmOpen(false);
+        }}
+      />
     </>
   );
 }

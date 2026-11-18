@@ -9,6 +9,7 @@ const linkClass =
 
 type DashboardPlatformGridProps = {
   platforms: PlatformProgress[];
+  readOnly?: boolean;
 };
 
 export function DashboardPlatformGrid(props: DashboardPlatformGridProps) {
@@ -21,15 +22,21 @@ export function DashboardPlatformGrid(props: DashboardPlatformGridProps) {
         when={props.platforms.length > 0}
         fallback={
           <p class="mt-4 text-muted">
-            No problems yet.{" "}
-            <a class={linkClass} href={paths.app.problems()}>
-              Browse your library
-            </a>{" "}
-            or{" "}
-            <a class={linkClass} href={problemNewPath()}>
-              add a problem
-            </a>
-            .
+            {props.readOnly ? (
+              "No platform activity yet."
+            ) : (
+              <>
+                No problems yet.{" "}
+                <a class={linkClass} href={paths.app.problems()}>
+                  Browse your library
+                </a>{" "}
+                or{" "}
+                <a class={linkClass} href={problemNewPath()}>
+                  add a problem
+                </a>
+                .
+              </>
+            )}
           </p>
         }
       >
@@ -37,7 +44,7 @@ export function DashboardPlatformGrid(props: DashboardPlatformGridProps) {
           <For each={props.platforms}>
             {(row) => (
               <li>
-                <DashboardPlatformCell row={row} />
+                <DashboardPlatformCell row={row} readOnly={props.readOnly} />
               </li>
             )}
           </For>

@@ -1,26 +1,23 @@
-import { cleanup, render } from "@solidjs/testing-library";
-import { afterEach, describe, expect, test } from "vitest";
+import { render } from "@solidjs/testing-library";
+import { describe, expect, test } from "vitest";
 import { DashboardPlatformGrid } from "./DashboardPlatformGrid";
 
-afterEach(cleanup);
-
-describe("DashboardPlatformGrid", () => {
-  test("renders platform cell with filter link", () => {
-    const view = render(() => (
+describe("DashboardPlatformGrid readOnly", () => {
+  test("omits library links when readOnly", () => {
+    const { container } = render(() => (
       <DashboardPlatformGrid
+        readOnly
         platforms={[
           {
-            slug: "codeforces",
-            name: "Codeforces",
-            total: 4,
+            slug: "leetcode",
+            name: "LeetCode",
+            total: 2,
             solved: 1,
-            unsolved: 3,
+            unsolved: 1,
           },
         ]}
       />
     ));
-    expect(view.getByText("Codeforces")).toBeInTheDocument();
-    const link = view.getByRole("link", { name: /View on Codeforces/i });
-    expect(link.getAttribute("href") ?? "").toContain("platform=codeforces");
+    expect(container.innerHTML).not.toContain("/app/problems");
   });
 });

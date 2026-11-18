@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 import { createMemo, For, Show } from "solid-js";
 import type { TopicProgress } from "../../lib/api/modules/progress.api";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
@@ -28,6 +29,8 @@ export type TopicsManageListProps = {
   onCancelRename: () => void;
   onRenameSave: (topicId: string, formEl: HTMLFormElement) => void;
   onOpenDelete: (topic: TopicResponse) => void;
+  shareControl?: (topic: TopicResponse) => JSX.Element;
+  rowFooter?: (topic: TopicResponse) => JSX.Element;
 };
 
 export function TopicsManageList(props: TopicsManageListProps) {
@@ -49,12 +52,16 @@ export function TopicsManageList(props: TopicsManageListProps) {
             <Show
               when={props.editingId === catalog.id}
               fallback={
+                <div class="flex flex-col gap-2">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <TopicProgressRow
                     row={row}
                     progressUnavailable={props.progressUnavailable}
                   />
-                  <div class="flex shrink-0 flex-wrap gap-2">
+                  <div class="flex shrink-0 flex-wrap items-center gap-2">
+                    <Show when={props.shareControl}>
+                      {props.shareControl!(catalog)}
+                    </Show>
                     <Button variant="secondary" onClick={() => props.onStartRename(catalog)}>
                       Rename
                     </Button>
@@ -62,6 +69,8 @@ export function TopicsManageList(props: TopicsManageListProps) {
                       Delete
                     </Button>
                   </div>
+                </div>
+                <Show when={props.rowFooter}>{props.rowFooter!(catalog)}</Show>
                 </div>
               }
             >

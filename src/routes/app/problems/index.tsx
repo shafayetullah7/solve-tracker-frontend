@@ -46,6 +46,9 @@ import {
   progressMessage,
 } from "../../../lib/problems/messages";
 import { problemNewPath, problemsBrowseHref } from "../../../lib/problems/paths";
+import { DiscoverIdeasPanel } from "../../../components/discover/DiscoverIdeasPanel";
+import { isDiscoverFullEnabled } from "../../../lib/discover/flag";
+import { encodeTopicKey } from "../../../lib/discover/topic-key";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -242,6 +245,18 @@ export default function ProblemsIndex() {
   const addHref = () =>
     filterTopicId() ? problemNewPath(filterTopicId()) : problemNewPath();
 
+  const singleTopicForIdeas = createMemo(() => {
+    const q = listQuery();
+    const topicId =
+      q.topicIds?.length === 1
+        ? q.topicIds[0]
+        : q.topicId && !(q.topicIds && q.topicIds.length > 0)
+          ? q.topicId
+          : undefined;
+    if (!topicId) return undefined;
+    return topics().find((t) => t.id === topicId);
+  });
+
   const showTopicBanner = () => {
     const topicId = filterTopicId();
     if (!topicId) return false;
@@ -290,6 +305,18 @@ export default function ProblemsIndex() {
             Show all
           </a>
         </p>
+      </Show>
+
+      <Show when={isDiscoverFullEnabled() && singleTopicForIdeas()}>
+        {(topic) => (
+          <div class="mb-4">
+            <DiscoverIdeasPanel
+              topicId={topic().id}
+              topicName={topic().name}
+              normalizedName={topic().name.trim().toLocaleLowerCase("en-US")}
+            />
+          </div>
+        )}
       </Show>
 
       <Panel>

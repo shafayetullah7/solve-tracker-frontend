@@ -5,6 +5,8 @@ import { ApiError } from "../errors";
 const topic = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Arrays",
+  isPublic: false,
+  description: "",
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };

@@ -209,7 +209,7 @@ export interface paths {
         delete: operations["TopicsController_remove"];
         options?: never;
         head?: never;
-        patch: operations["TopicsController_rename"];
+        patch: operations["TopicsController_patch"];
         trace?: never;
     };
     "/problems": {
@@ -340,6 +340,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me/following": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfileController_listFollowing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/followers/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfileController_followersCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/share-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProfileController_shareStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me/profile": {
         parameters: {
             query?: never;
@@ -418,6 +466,454 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["ProfileController_updateEducation"];
+        trace?: never;
+    };
+    "/public/people/{handle}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPeopleController_getProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/people/{handle}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPeopleController_getActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/people/{handle}/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPeopleController_getTopics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/people/{handle}/topics/{topicId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPeopleController_getPublicTopic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/people/{handle}/topics/{topicId}/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PublicPeopleController_listPublicProblems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PeopleController_block"];
+        post?: never;
+        delete: operations["PeopleController_unblock"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PeopleController_follow"];
+        post?: never;
+        delete: operations["PeopleController_unfollow"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_getProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_getActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_getTopics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/topics/{topicId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_getPublicTopic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/topics/{topicId}/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_listPublicProblems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_getCompare"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/topics/{topicId}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PeopleController_copyTopic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/people/{handle}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PeopleController_similar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/for-you": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_forYou"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_people"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DiscoverController_events"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DiscoverController_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_benchmark"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/compare-peers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_comparePeers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_topicsDirectory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/topic-hints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_topicHints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/topics/{topicKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_topicHub"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/topics/{topicKey}/lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_topicLists"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/topics/{topicKey}/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_topicProblems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discover/problems/{problemId}/community": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DiscoverController_problemCommunity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -899,6 +1395,8 @@ export interface operations {
                             /** Format: uuid */
                             id: string;
                             name: string;
+                            isPublic: boolean;
+                            description: string;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -952,6 +1450,8 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         name: string;
+                        isPublic: boolean;
+                        description: string;
                         /** Format: date-time */
                         createdAt: string;
                         /** Format: date-time */
@@ -1007,7 +1507,7 @@ export interface operations {
             };
         };
     };
-    TopicsController_rename: {
+    TopicsController_patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -1020,7 +1520,9 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @description 1–100 Unicode code points after trim. */
-                    name: string;
+                    name?: string;
+                    isPublic?: boolean;
+                    description?: string;
                 };
             };
         };
@@ -1034,6 +1536,8 @@ export interface operations {
                         /** Format: uuid */
                         id: string;
                         name: string;
+                        isPublic: boolean;
+                        description: string;
                         /** Format: date-time */
                         createdAt: string;
                         /** Format: date-time */
@@ -1609,6 +2113,140 @@ export interface operations {
             };
         };
     };
+    ProfileController_listFollowing: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            handle: string;
+                            name: string;
+                            /** Format: uri */
+                            avatarUrl?: string;
+                            /** @enum {string|null} */
+                            practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                            solved: number;
+                            streakDays: number;
+                            platforms: (("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other")[];
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                        meta: {
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProfileController_followersCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        count: number;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProfileController_shareStats: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        profileViews: number;
+                        topicCopies: number;
+                        topics: {
+                            /** Format: uuid */
+                            topicId: string;
+                            views: number;
+                            copies: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
     ProfileController_get: {
         parameters: {
             query?: never;
@@ -1629,6 +2267,10 @@ export interface operations {
                         handle: string;
                         /** Format: uri */
                         avatarUrl?: string;
+                        /** @enum {string} */
+                        practiceVisibility: "private" | "summary" | "topics";
+                        practiceGoal: ("interview" | "contests" | "fundamentals" | "coaching") | (null);
+                        publicWeb: boolean;
                         work: {
                             /** Format: uuid */
                             id: string;
@@ -1676,6 +2318,10 @@ export interface operations {
                     /** Format: uuid */
                     avatarMediaId?: string | null;
                     handle?: string;
+                    /** @enum {string} */
+                    practiceVisibility?: "private" | "summary" | "topics";
+                    practiceGoal?: ("interview" | "contests" | "fundamentals" | "coaching") | (null);
+                    publicWeb?: boolean;
                 };
             };
         };
@@ -1691,6 +2337,10 @@ export interface operations {
                         handle: string;
                         /** Format: uri */
                         avatarUrl?: string;
+                        /** @enum {string} */
+                        practiceVisibility: "private" | "summary" | "topics";
+                        practiceGoal: ("interview" | "contests" | "fundamentals" | "coaching") | (null);
+                        publicWeb: boolean;
                         work: {
                             /** Format: uuid */
                             id: string;
@@ -1959,6 +2609,1618 @@ export interface operations {
                         institution: string;
                         program: string;
                         endYear?: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PublicPeopleController_getProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        handle: string;
+                        name: string;
+                        bio: string;
+                        /** Format: uri */
+                        avatarUrl?: string;
+                        /** @enum {string|null} */
+                        practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                        overall: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                        };
+                        streak: {
+                            currentDays: number;
+                            lastSolveDate: string | null;
+                        };
+                        platforms: {
+                            slug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                            name: string;
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                        }[];
+                        practicingSince: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PublicPeopleController_getActivity: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        weeks: {
+                            /** @description ISO calendar date (YYYY-MM-DD) of Monday UTC for this bucket. */
+                            weekStart: string;
+                            added: number;
+                            solved: number;
+                        }[];
+                        streak: {
+                            /** @description Consecutive solve days ending on the most recent solve day, if that day is today or yesterday (UTC); otherwise 0. */
+                            currentDays: number;
+                            /** @description ISO date (UTC) of the latest day with at least one solve. */
+                            lastSolveDate: string | null;
+                        };
+                        /** @enum {string} */
+                        timezone: "UTC";
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PublicPeopleController_getTopics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            name: string;
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                            percentComplete: number;
+                            isPublic: boolean;
+                            /** Format: uuid */
+                            id?: string;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PublicPeopleController_getPublicTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        name: string;
+                        description: string;
+                        ownerCompletion: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                            percentComplete: number;
+                        };
+                        copies30d: number;
+                        difficultyHistogram: number[];
+                        moreLists: {
+                            /** Format: uuid */
+                            topicId: string;
+                            handle: string;
+                            name: string;
+                            total: number;
+                            solved: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PublicPeopleController_listPublicProblems: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                status?: "unsolved" | "solved";
+                platform?: "codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu" | "other";
+            };
+            header?: never;
+            path: {
+                handle: string;
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            title: string;
+                            url: string;
+                            platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                            platformProblemId: string | null;
+                            difficulty: string | null;
+                            rating: number | null;
+                            /** @enum {string} */
+                            ownerStatus: "unsolved" | "solved";
+                        }[];
+                        meta: {
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_block: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Blocked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_unblock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unblocked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_follow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Followed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_unfollow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unfollowed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_getProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        handle: string;
+                        name: string;
+                        bio: string;
+                        /** Format: uri */
+                        avatarUrl?: string;
+                        /** @enum {string|null} */
+                        practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                        overall: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                        };
+                        streak: {
+                            currentDays: number;
+                            lastSolveDate: string | null;
+                        };
+                        platforms: {
+                            slug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                            name: string;
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                        }[];
+                        practicingSince: string;
+                        viewerFollows?: boolean;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_getActivity: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        weeks: {
+                            /** @description ISO calendar date (YYYY-MM-DD) of Monday UTC for this bucket. */
+                            weekStart: string;
+                            added: number;
+                            solved: number;
+                        }[];
+                        streak: {
+                            /** @description Consecutive solve days ending on the most recent solve day, if that day is today or yesterday (UTC); otherwise 0. */
+                            currentDays: number;
+                            /** @description ISO date (UTC) of the latest day with at least one solve. */
+                            lastSolveDate: string | null;
+                        };
+                        /** @enum {string} */
+                        timezone: "UTC";
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_getTopics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            name: string;
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                            percentComplete: number;
+                            isPublic: boolean;
+                            /** Format: uuid */
+                            id?: string;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_getPublicTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        name: string;
+                        description: string;
+                        ownerCompletion: {
+                            total: number;
+                            solved: number;
+                            unsolved: number;
+                            percentComplete: number;
+                        };
+                        copies30d: number;
+                        difficultyHistogram: number[];
+                        moreLists: {
+                            /** Format: uuid */
+                            topicId: string;
+                            handle: string;
+                            name: string;
+                            total: number;
+                            solved: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_listPublicProblems: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                status?: "unsolved" | "solved";
+                platform?: "codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu" | "other";
+            };
+            header?: never;
+            path: {
+                handle: string;
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            title: string;
+                            url: string;
+                            platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                            platformProblemId: string | null;
+                            difficulty: string | null;
+                            rating: number | null;
+                            /** @enum {string} */
+                            ownerStatus: "unsolved" | "solved";
+                            inViewerLibrary: boolean;
+                        }[];
+                        meta: {
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_getCompare: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        weeks: number;
+                        /** @enum {string} */
+                        mode: "person" | "peers";
+                        handle?: string;
+                        summaryOnlyTopics: boolean;
+                        me: {
+                            solved: number;
+                            total: number;
+                            unsolved: number;
+                            solvesPerWeek: number;
+                            activeWeeks: number;
+                            windowWeeks: number;
+                            streakDays: number;
+                            platformShares: {
+                                slug: string;
+                                percent: number;
+                            }[];
+                        };
+                        them: {
+                            solved: number;
+                            total: number;
+                            unsolved: number;
+                            solvesPerWeek: number;
+                            activeWeeks: number;
+                            windowWeeks: number;
+                            streakDays: number;
+                            platformShares: {
+                                slug: string;
+                                percent: number;
+                            }[];
+                        };
+                        topics: {
+                            normalizedName: string;
+                            name: string;
+                            yourPercent: number;
+                            theirPercent: number;
+                            yourCompletion: number;
+                            theirCompletion: number;
+                        }[];
+                        insights: {
+                            /** @enum {string} */
+                            kind: "cadence_gap" | "top_topic_concentration" | "topic_focus_gap" | "missing_topic" | "platform_concentration";
+                            text: string;
+                            action: {
+                                /** @enum {string} */
+                                kind: "openList" | "copyTopic" | "filterLibrary" | "viewProfile";
+                                handle?: string;
+                                /** Format: uuid */
+                                topicId?: string;
+                                topicName?: string;
+                                normalizedName?: string;
+                            } | null;
+                        }[];
+                        peerCount?: number;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_copyTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handle: string;
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        topicId: string;
+                        topicName: string;
+                        added: number;
+                        linked: number;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PeopleController_similar: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                handle: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            handle: string;
+                            name: string;
+                            /** Format: uri */
+                            avatarUrl?: string;
+                            /** @enum {string|null} */
+                            practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                            solved: number;
+                            streakDays: number;
+                            platforms: (("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other")[];
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_search: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            handle: string;
+                            name: string;
+                            /** Format: uri */
+                            avatarUrl?: string;
+                            /** @enum {string|null} */
+                            practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                            solved: number;
+                            streakDays: number;
+                            platforms: (("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other")[];
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_forYou: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        rails: {
+                            /** @enum {string} */
+                            kind: "peers" | "ahead" | "same_goal" | "consistent" | "active_week";
+                            people: {
+                                handle: string;
+                                name: string;
+                                /** Format: uri */
+                                avatarUrl?: string;
+                                /** @enum {string|null} */
+                                practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                                solved: number;
+                                streakDays: number;
+                                platforms: (("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other")[];
+                                reason: {
+                                    /** @enum {string} */
+                                    kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                    text: string;
+                                    sharedTopics?: string[];
+                                };
+                            }[];
+                        }[];
+                        goalPattern: {
+                            /** @enum {string} */
+                            goal: "interview" | "contests" | "fundamentals" | "coaching";
+                            items: {
+                                normalizedName: string;
+                                name: string;
+                                percent: number;
+                            }[];
+                        } | null;
+                        yourTopics: {
+                            name: string;
+                            normalizedName: string;
+                            listCount: number;
+                        }[];
+                        starterLists: {
+                            handle: string;
+                            name: string;
+                            total: number;
+                            /** Format: uuid */
+                            topicId: string;
+                            /** @enum {boolean} */
+                            isStarter: true;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_people: {
+        parameters: {
+            query?: {
+                rail?: "peers" | "ahead" | "same_goal" | "consistent" | "active_week" | "following";
+                goal?: "interview" | "contests" | "fundamentals" | "coaching";
+                platform?: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                topic?: string;
+                active?: "true";
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            handle: string;
+                            name: string;
+                            /** Format: uri */
+                            avatarUrl?: string;
+                            /** @enum {string|null} */
+                            practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                            solved: number;
+                            streakDays: number;
+                            platforms: (("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other")[];
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                        meta: {
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_events: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    events: {
+                        event: string;
+                        surface: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accepted: number;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    handle: string;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Report accepted */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_benchmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        peerCount: number;
+                        me: {
+                            solved: number;
+                            total: number;
+                            unsolved: number;
+                            solvesPerWeek: number;
+                            activeWeeks: number;
+                            windowWeeks: number;
+                            streakDays: number;
+                            platformShares: {
+                                slug: string;
+                                percent: number;
+                            }[];
+                        };
+                        peers: {
+                            solved: number;
+                            total: number;
+                            unsolved: number;
+                            solvesPerWeek: number;
+                            activeWeeks: number;
+                            windowWeeks: number;
+                            streakDays: number;
+                            platformShares: {
+                                slug: string;
+                                percent: number;
+                            }[];
+                        } | null;
+                        insight: {
+                            /** @enum {string} */
+                            kind: "cadence_gap" | "top_topic_concentration" | "topic_focus_gap" | "missing_topic" | "platform_concentration";
+                            text: string;
+                            action: {
+                                /** @enum {string} */
+                                kind: "openList" | "copyTopic" | "filterLibrary" | "viewProfile";
+                                handle?: string;
+                                /** Format: uuid */
+                                topicId?: string;
+                                topicName?: string;
+                                normalizedName?: string;
+                            } | null;
+                        } | null;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_comparePeers: {
+        parameters: {
+            query?: {
+                weeks?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        weeks: number;
+                        /** @enum {string} */
+                        mode: "person" | "peers";
+                        handle?: string;
+                        summaryOnlyTopics: boolean;
+                        me: {
+                            solved: number;
+                            total: number;
+                            unsolved: number;
+                            solvesPerWeek: number;
+                            activeWeeks: number;
+                            windowWeeks: number;
+                            streakDays: number;
+                            platformShares: {
+                                slug: string;
+                                percent: number;
+                            }[];
+                        };
+                        them: {
+                            solved: number;
+                            total: number;
+                            unsolved: number;
+                            solvesPerWeek: number;
+                            activeWeeks: number;
+                            windowWeeks: number;
+                            streakDays: number;
+                            platformShares: {
+                                slug: string;
+                                percent: number;
+                            }[];
+                        };
+                        topics: {
+                            normalizedName: string;
+                            name: string;
+                            yourPercent: number;
+                            theirPercent: number;
+                            yourCompletion: number;
+                            theirCompletion: number;
+                        }[];
+                        insights: {
+                            /** @enum {string} */
+                            kind: "cadence_gap" | "top_topic_concentration" | "topic_focus_gap" | "missing_topic" | "platform_concentration";
+                            text: string;
+                            action: {
+                                /** @enum {string} */
+                                kind: "openList" | "copyTopic" | "filterLibrary" | "viewProfile";
+                                handle?: string;
+                                /** Format: uuid */
+                                topicId?: string;
+                                topicName?: string;
+                                normalizedName?: string;
+                            } | null;
+                        }[];
+                        peerCount?: number;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_topicsDirectory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        yourTopics: {
+                            name: string;
+                            normalizedName: string;
+                            practicerCount: number;
+                            publicListCount: number;
+                        }[];
+                        popularTopics: {
+                            name: string;
+                            normalizedName: string;
+                            practicerCount: number;
+                            publicListCount: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_topicHints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            topicId: string;
+                            topicName: string;
+                            topicKey: string;
+                            practicerCount: number;
+                            publicListCount: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_topicHub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topicKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        topicKey: string;
+                        name: string;
+                        normalizedName: string;
+                        header: {
+                            practicerCount: number;
+                            publicListCount: number;
+                        };
+                        viewerTopic: {
+                            /** @enum {boolean} */
+                            hasTopic: true;
+                            /** Format: uuid */
+                            topicId: string;
+                            isPublic: boolean;
+                        } | {
+                            /** @enum {boolean} */
+                            hasTopic: false;
+                        };
+                        lists: {
+                            /** Format: uuid */
+                            topicId: string;
+                            handle: string;
+                            name: string;
+                            total: number;
+                            solved: number;
+                            copies30d: number;
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                        pattern: {
+                            items: {
+                                normalizedName: string;
+                                name: string;
+                                percent: number;
+                            }[];
+                        } | null;
+                        specialists: {
+                            /** @enum {string} */
+                            kind: "topic_specialists";
+                            people: {
+                                handle: string;
+                                name: string;
+                                /** Format: uri */
+                                avatarUrl?: string;
+                                /** @enum {string|null} */
+                                practiceGoal: "interview" | "contests" | "fundamentals" | "coaching" | null;
+                                solved: number;
+                                streakDays: number;
+                                platforms: (("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other")[];
+                                reason: {
+                                    /** @enum {string} */
+                                    kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                    text: string;
+                                    sharedTopics?: string[];
+                                };
+                            }[];
+                        } | null;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_topicLists: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path: {
+                topicKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            topicId: string;
+                            handle: string;
+                            name: string;
+                            total: number;
+                            solved: number;
+                            copies30d: number;
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                        meta: {
+                            page: number;
+                            pageSize: number;
+                            total: number;
+                        };
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_topicProblems: {
+        parameters: {
+            query?: {
+                excludeMine?: "true" | "false";
+            };
+            header?: never;
+            path: {
+                topicKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            title: string;
+                            platformSlug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
+                            difficulty: string | null;
+                            listCount: number;
+                            normalizedUrl: string;
+                            reason: {
+                                /** @enum {string} */
+                                kind: "shared_topics_platforms_cadence" | "ahead_in_shared_topics" | "same_goal" | "consistent_cadence" | "active_this_week" | "topic_specialist" | "list_card" | "in_n_lists" | "following";
+                                text: string;
+                                sharedTopics?: string[];
+                            };
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    DiscoverController_problemCommunity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        listCount: number;
+                        title?: string;
+                        platformSlug?: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
                     };
                 };
             };

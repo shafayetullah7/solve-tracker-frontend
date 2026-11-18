@@ -10,6 +10,7 @@ import { paths } from "../../router";
 
 type DashboardTopicProgressListProps = {
   topics: TopicProgress[];
+  hrefFor?: (row: TopicProgress) => string | undefined;
 };
 
 export function DashboardTopicProgressList(props: DashboardTopicProgressListProps) {
@@ -48,7 +49,14 @@ export function DashboardTopicProgressList(props: DashboardTopicProgressListProp
           <For each={sortedTopics()}>
             {(row) => (
               <li class="px-5 py-4">
-                <TopicProgressRow row={row} />
+                <TopicProgressRow
+                  row={row}
+                  nameHref={
+                    props.hrefFor
+                      ? (props.hrefFor(row) ?? null)
+                      : undefined
+                  }
+                />
               </li>
             )}
           </For>

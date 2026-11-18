@@ -53,6 +53,42 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/app/discover";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover"), Extract<"default", keyof typeof import("./src/routes/app/discover")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/discover/compare";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/compare"), Extract<"default", keyof typeof import("./src/routes/app/discover/compare")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/discover/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/index"), Extract<"default", keyof typeof import("./src/routes/app/discover/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/discover/people";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/people"), Extract<"default", keyof typeof import("./src/routes/app/discover/people")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/discover/topics/:topicKey";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/topics/[topicKey]"), Extract<"default", keyof typeof import("./src/routes/app/discover/topics/[topicKey]")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/discover/topics/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/topics/index"), Extract<"default", keyof typeof import("./src/routes/app/discover/topics/index")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/app/";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/index"), Extract<"default", keyof typeof import("./src/routes/app/index")>>>;
@@ -107,6 +143,24 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/app/u/:handle";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/u/[handle]"), Extract<"default", keyof typeof import("./src/routes/app/u/[handle]")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/u/:handle/compare";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/u/[handle]/compare"), Extract<"default", keyof typeof import("./src/routes/app/u/[handle]/compare")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/u/:handle/topics/:topicId";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/u/[handle]/topics/[topicId]"), Extract<"default", keyof typeof import("./src/routes/app/u/[handle]/topics/[topicId]")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/forgot-password";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/forgot-password"), Extract<"default", keyof typeof import("./src/routes/forgot-password")>>>;
@@ -134,6 +188,18 @@ declare module "virtual:file-routes" {
       path: "/reset-password";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/reset-password"), Extract<"default", keyof typeof import("./src/routes/reset-password")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/u/:handle";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/u/[handle]"), Extract<"default", keyof typeof import("./src/routes/u/[handle]")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/u/:handle/topics/:topicId";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/u/[handle]/topics/[topicId]"), Extract<"default", keyof typeof import("./src/routes/u/[handle]/topics/[topicId]")>>>;
       $$route?: undefined;
     }
   ];
@@ -190,6 +256,55 @@ declare module "virtual:file-routes" {
           children?: undefined;
         },
         {
+          path: "/discover";
+          id: "/discover";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover"), Extract<"default", keyof typeof import("./src/routes/app/discover")>>>;
+          $$route?: undefined;
+          children: readonly [
+            {
+              path: "/";
+              id: "/";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/index"), Extract<"default", keyof typeof import("./src/routes/app/discover/index")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/people";
+              id: "/people";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/people"), Extract<"default", keyof typeof import("./src/routes/app/discover/people")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/compare";
+              id: "/compare";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/compare"), Extract<"default", keyof typeof import("./src/routes/app/discover/compare")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/topics/";
+              id: "/topics/";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/topics/index"), Extract<"default", keyof typeof import("./src/routes/app/discover/topics/index")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/topics/:topicKey";
+              id: "/topics/:topicKey";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/discover/topics/[topicKey]"), Extract<"default", keyof typeof import("./src/routes/app/discover/topics/[topicKey]")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            }
+          ];
+        },
+        {
           path: "/problems";
           id: "/problems";
           page: true;
@@ -230,6 +345,31 @@ declare module "virtual:file-routes" {
               children?: undefined;
             }
           ];
+        },
+        {
+          path: "/u/:handle";
+          id: "/u/:handle";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/u/[handle]"), Extract<"default", keyof typeof import("./src/routes/app/u/[handle]")>>>;
+          $$route?: undefined;
+          children: readonly [
+            {
+              path: "/compare";
+              id: "/compare";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/u/[handle]/compare"), Extract<"default", keyof typeof import("./src/routes/app/u/[handle]/compare")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            },
+            {
+              path: "/topics/:topicId";
+              id: "/topics/:topicId";
+              page: true;
+              $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/u/[handle]/topics/[topicId]"), Extract<"default", keyof typeof import("./src/routes/app/u/[handle]/topics/[topicId]")>>>;
+              $$route?: undefined;
+              children?: undefined;
+            }
+          ];
         }
       ];
     },
@@ -264,6 +404,23 @@ declare module "virtual:file-routes" {
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/register"), Extract<"default", keyof typeof import("./src/routes/register")>>>;
       $$route?: undefined;
       children?: undefined;
+    },
+    {
+      path: "/u/:handle";
+      id: "/u/:handle";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/u/[handle]"), Extract<"default", keyof typeof import("./src/routes/u/[handle]")>>>;
+      $$route?: undefined;
+      children: readonly [
+        {
+          path: "/topics/:topicId";
+          id: "/topics/:topicId";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/u/[handle]/topics/[topicId]"), Extract<"default", keyof typeof import("./src/routes/u/[handle]/topics/[topicId]")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        }
+      ];
     },
     {
       path: "/reset-password";

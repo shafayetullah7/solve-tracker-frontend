@@ -1,5 +1,6 @@
-import { createMemo, For } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import type { ProgressActivityResponse } from "../../lib/api/modules/progress.api";
+import { discoverCopy } from "../../lib/discover/copy";
 import {
   formatActivityChartSummary,
   formatWeekLabel,
@@ -8,6 +9,7 @@ import {
 type DashboardActivityChartProps = {
   data: ProgressActivityResponse;
   dark?: boolean;
+  showTable?: boolean;
 };
 
 const BAR_MAX_PX = 120;
@@ -74,6 +76,34 @@ export function DashboardActivityChart(props: DashboardActivityChartProps) {
           Solved
         </span>
       </p>
+      <Show when={props.showTable}>
+        <details class="mt-3">
+          <summary class="cursor-pointer text-sm text-brand underline-offset-4 hover:underline">
+            {discoverCopy("activity.showTable")}
+          </summary>
+          <table class="mt-2 w-full text-sm">
+            <caption class="sr-only">{discoverCopy("activity.tableCaption")}</caption>
+            <thead>
+              <tr class={dark() ? "text-[#9aa8a3]" : "text-muted"}>
+                <th class="px-1 py-1 text-left font-medium">Week</th>
+                <th class="px-1 py-1 text-right font-medium">Added</th>
+                <th class="px-1 py-1 text-right font-medium">Solved</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={props.data.weeks}>
+                {(row) => (
+                  <tr>
+                    <td class="px-1 py-1 tabular-nums">{formatWeekLabel(row.weekStart)}</td>
+                    <td class="px-1 py-1 text-right tabular-nums">{row.added}</td>
+                    <td class="px-1 py-1 text-right tabular-nums">{row.solved}</td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
+        </details>
+      </Show>
     </div>
   );
 }

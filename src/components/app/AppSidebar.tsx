@@ -8,9 +8,13 @@ import {
   IconLibrary,
   IconLogOut,
   IconPlus,
+  IconDiscover,
   IconTopics,
   IconUser,
 } from "../../icons";
+import { isDiscoverFullEnabled } from "../../lib/discover/flag";
+import { discoverForYouPath } from "../../lib/discover/paths";
+import { discoverCopy } from "../../lib/discover/copy";
 import { resolveSidebarActive, type SidebarSectionKey } from "../../lib/app/nav-active";
 import { formatHandleLabel } from "../../lib/auth/user-handle";
 import { useAuth } from "../../lib/auth/context";
@@ -33,7 +37,7 @@ type NavItem = {
   icon: (props: IconProps) => JSX.Element;
 };
 
-const NAV_ITEMS: NavItem[] = [
+const BASE_NAV_ITEMS: NavItem[] = [
   {
     key: "dashboard",
     label: "Dashboard",
@@ -91,6 +95,20 @@ export function AppSidebar(props: AppSidebarProps) {
   const auth = useAuth();
   const [logoutPending, setLogoutPending] = createSignal(false);
 
+  const navItems = (): NavItem[] => {
+    const items = [...BASE_NAV_ITEMS];
+    if (isDiscoverFullEnabled()) {
+      const profileIdx = items.findIndex((i) => i.key === "profile");
+      items.splice(profileIdx, 0, {
+        key: "discover",
+        label: discoverCopy("nav.discover"),
+        href: discoverForYouPath(),
+        icon: IconDiscover,
+      });
+    }
+    return items;
+  };
+
   const active = () => resolveSidebarActive(location.pathname);
 
   async function onLogout() {
@@ -137,7 +155,7 @@ export function AppSidebar(props: AppSidebarProps) {
       ) : null}
 
       <nav aria-label="Product" class="flex flex-col gap-1">
-        <For each={NAV_ITEMS}>
+        <For each={navItems()}>
           {(item) => (
             <SidebarNavLink
               href={item.href}

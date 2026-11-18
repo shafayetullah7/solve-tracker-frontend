@@ -138,7 +138,7 @@ export default function Register() {
           <input
             class="ui-field"
             autocomplete="off"
-            spellcheck={false}
+            spellcheck="false"
             {...formFieldControlAttrs({
               id: "register-handle",
               hint: HANDLE_FIELD_HINT,

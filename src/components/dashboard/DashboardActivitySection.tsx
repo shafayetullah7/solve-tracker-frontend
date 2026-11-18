@@ -16,6 +16,7 @@ type DashboardActivitySectionProps = {
   data?: ProgressActivityResponse;
   errorMessage?: string;
   onRetry?: () => void;
+  readOnly?: boolean;
 };
 
 function isActivityEmpty(data: ProgressActivityResponse): boolean {
@@ -83,20 +84,28 @@ export function DashboardActivitySection(props: DashboardActivitySectionProps) {
             <>
               {isActivityEmpty(data()) ? (
                 <p class="mt-4 text-[#9aa8a3]">
-                  No activity in this window yet.{" "}
-                  <a class={linkClass} href={paths.app.problems()}>
-                    Browse library
-                  </a>{" "}
-                  or{" "}
-                  <a class={linkClass} href={problemNewPath()}>
-                    add a problem
-                  </a>
-                  .
+                  {props.readOnly ? (
+                    "No activity in this window yet."
+                  ) : (
+                    <>
+                      No activity in this window yet.{" "}
+                      <a class={linkClass} href={paths.app.problems()}>
+                        Browse library
+                      </a>{" "}
+                      or{" "}
+                      <a class={linkClass} href={problemNewPath()}>
+                        add a problem
+                      </a>
+                      .
+                    </>
+                  )}
                 </p>
               ) : (
                 <div class="mt-4">
                   <Show when={chartData()}>
-                    {(cd) => <DashboardActivityChart data={cd()} dark />}
+                    {(cd) => (
+                      <DashboardActivityChart data={cd()} dark showTable />
+                    )}
                   </Show>
                   <ul class="mt-6 space-y-3 border-t border-[#2a3330] pt-4" role="list">
                     <For each={recentWeekRows()}>

@@ -1,0 +1,1 @@
+export const TOPIC_DESCRIPTION_MAX = 280;

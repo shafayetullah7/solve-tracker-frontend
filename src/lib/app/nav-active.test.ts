@@ -60,6 +60,21 @@ describe("resolveSidebarActive", () => {
     });
   });
 
+  test("discover and people profile routes", () => {
+    expect(resolveSidebarActive("/app/discover")).toEqual({
+      section: "discover",
+      addProblem: false,
+    });
+    expect(resolveSidebarActive("/app/discover/people")).toEqual({
+      section: "discover",
+      addProblem: false,
+    });
+    expect(resolveSidebarActive("/app/u/demo-topics")).toEqual({
+      section: "discover",
+      addProblem: false,
+    });
+  });
+
   test("public routes", () => {
     expect(resolveSidebarActive("/")).toEqual({
       section: null,

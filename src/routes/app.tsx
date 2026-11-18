@@ -4,12 +4,14 @@ import { HandleCustomizeBanner } from "../components/auth/HandleCustomizeBanner"
 import { RequireSession } from "../components/auth/RequireSession";
 import { RouteBoundary } from "../components/ui/RouteBoundary";
 import { PlatformCatalogProvider } from "../lib/platforms/platform-catalog-context";
+import { DiscoverTrackBootstrap } from "../components/discover/DiscoverTrackBootstrap";
 
 export default function AppWorkspaceLayout(props: ParentProps) {
   return (
     <RequireSession>
       <PlatformCatalogProvider>
         <AppShell>
+          <DiscoverTrackBootstrap />
           <HandleCustomizeBanner />
           <RouteBoundary nestedInAppShell>{props.children}</RouteBoundary>
         </AppShell>
