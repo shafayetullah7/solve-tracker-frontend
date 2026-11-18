@@ -4,23 +4,13 @@ import {
   sortDashboardTopics,
   type DashboardTopicSortMode,
 } from "../../lib/dashboard/sort-dashboard-topics";
-import { formatTopicProgress } from "../../lib/problems/progress-display";
+import { TopicProgressRow } from "../topics/TopicProgressRow";
+import { TopicSortNav } from "../topics/TopicSortNav";
 import { paths } from "../../router";
-import { ProgressBar } from "../ui/ProgressBar";
 
 type DashboardTopicProgressListProps = {
   topics: TopicProgress[];
 };
-
-const sortLinkClass =
-  "text-brand underline-offset-4 hover:underline focus-visible:outline-offset-2";
-const sortIdleClass = "text-muted hover:text-foreground";
-
-const SORT_OPTIONS: { id: DashboardTopicSortMode; label: string }[] = [
-  { id: "default", label: "Default" },
-  { id: "mostIncomplete", label: "Incomplete" },
-  { id: "mostRemaining", label: "Remaining" },
-];
 
 export function DashboardTopicProgressList(props: DashboardTopicProgressListProps) {
   const [sortMode, setSortMode] = createSignal<DashboardTopicSortMode>("default");
@@ -36,29 +26,7 @@ export function DashboardTopicProgressList(props: DashboardTopicProgressListProp
           By topic
         </h2>
         <Show when={props.topics.length > 0}>
-          <nav aria-label="Sort topics" class="flex flex-wrap items-center gap-x-2 gap-y-1 text-label">
-            <For each={SORT_OPTIONS}>
-              {(option, index) => (
-                <span class="inline-flex items-center gap-x-2">
-                  <Show when={index() > 0}>
-                    <span class="text-muted" aria-hidden="true">
-                      ·
-                    </span>
-                  </Show>
-                  <button
-                    type="button"
-                    class={
-                      sortMode() === option.id ? sortLinkClass : sortIdleClass
-                    }
-                    aria-current={sortMode() === option.id ? "true" : undefined}
-                    onClick={() => setSortMode(option.id)}
-                  >
-                    {option.label}
-                  </button>
-                </span>
-              )}
-            </For>
-          </nav>
+          <TopicSortNav value={sortMode()} onChange={setSortMode} />
         </Show>
       </div>
       <Show
@@ -79,20 +47,8 @@ export function DashboardTopicProgressList(props: DashboardTopicProgressListProp
         <ul class="mt-4 divide-y divide-line rounded-panel border border-line bg-surface shadow-panel">
           <For each={sortedTopics()}>
             {(row) => (
-              <li class="space-y-2 px-5 py-4">
-                <a
-                  class="text-body font-medium text-brand underline-offset-4 hover:underline"
-                  href={`${paths.app.problems()}?topicId=${row.id}`}
-                >
-                  {row.name}
-                </a>
-                <ProgressBar
-                  value={row.percentComplete}
-                  label={`${row.name}: ${row.percentComplete}% complete`}
-                />
-                <p class="text-sm text-muted tabular-nums">
-                  {formatTopicProgress(row)}
-                </p>
+              <li class="px-5 py-4">
+                <TopicProgressRow row={row} />
               </li>
             )}
           </For>

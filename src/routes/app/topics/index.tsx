@@ -1,12 +1,15 @@
 import { Title } from "@solidjs/meta";
 import {
   createEffect,
+  createMemo,
   createSignal,
   For,
   Match,
   Show,
   Switch,
 } from "solid-js";
+import { TopicsManageList } from "../../../components/topics/TopicsManageList";
+import { TopicSortNav } from "../../../components/topics/TopicSortNav";
 import { Button } from "../../../components/ui/Button";
 import { FormAlert } from "../../../components/ui/FormAlert";
 import { FormField, formFieldControlAttrs } from "../../../components/ui/FormField";
@@ -14,16 +17,17 @@ import { Panel } from "../../../components/ui/Panel";
 import { useAuth } from "../../../lib/auth/context";
 import { createProgressApi, type TopicProgress } from "../../../lib/api/modules/progress.api";
 import { createTopicsApi, type TopicResponse } from "../../../lib/api/modules/topics.api";
+import type { DashboardTopicSortMode } from "../../../lib/dashboard/sort-dashboard-topics";
 import { progressMessage } from "../../../lib/problems/messages";
 import {
-  formatTopicProgress,
+  summarizeTopicsLibrary,
   topicProgressById,
+  topicProgressForItem,
 } from "../../../lib/problems/progress-display";
 import { createFormState } from "../../../lib/forms/create-form-state";
 import { focusFirstInvalid } from "../../../lib/forms/focus-first-invalid";
 import { validateTopicName } from "../../../lib/forms/validate-topic";
 import { topicFormMessage } from "../../../lib/topics/messages";
-import { paths } from "../../../router";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -31,14 +35,19 @@ const pulse = "motion-safe:animate-pulse rounded bg-surface-muted";
 
 function TopicsListSkeleton() {
   return (
-    <ul class="space-y-4" role="status" aria-label="Loading">
+    <ul
+      class="divide-y divide-line rounded-panel border border-line bg-surface shadow-panel"
+      role="status"
+      aria-label="Loading"
+    >
       <For each={[0, 1, 2]}>
         {() => (
-          <li class="border-b border-line pb-4 last:border-0">
-            <div class="flex flex-wrap items-center justify-between gap-3">
+          <li class="px-5 py-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
               <div class="min-w-0 flex-1 space-y-2">
                 <div class={`h-5 w-40 ${pulse}`} />
-                <div class={`h-4 w-24 ${pulse}`} />
+                <div class={`h-2 w-full ${pulse}`} />
+                <div class={`h-4 w-32 ${pulse}`} />
               </div>
               <div class="flex gap-2">
                 <div class={`h-11 w-24 ${pulse}`} />
@@ -69,6 +78,7 @@ export default function TopicsIndex() {
   const [listStatus, setListStatus] = createSignal<ListStatus>("idle");
   const [listMessage, setListMessage] = createSignal<string | undefined>();
   const [truncatedTotal, setTruncatedTotal] = createSignal(false);
+  const [sortMode, setSortMode] = createSignal<DashboardTopicSortMode>("default");
 
   const [createName, setCreateName] = createSignal("");
 
@@ -78,6 +88,17 @@ export default function TopicsIndex() {
   const [deleteTarget, setDeleteTarget] = createSignal<TopicResponse | undefined>();
   const [deletePending, setDeletePending] = createSignal(false);
   let deleteDialogRef: HTMLDialogElement | undefined;
+
+  const progressRows = createMemo(() =>
+    items().map((topic) => topicProgressForItem(topic, topicProgress())),
+  );
+
+  const listPanelDescription = createMemo(() => {
+    if (listStatus() === "ready" && items().length > 0) {
+      return `${summarizeTopicsLibrary(progressRows())}. Rename or remove topics you no longer need.`;
+    }
+    return "Rename or remove topics you no longer need.";
+  });
 
   async function loadProgress() {
     setProgressLoadMessage(undefined);
@@ -179,6 +200,7 @@ export default function TopicsIndex() {
       await api.rename(topicId, { name });
       cancelRename();
       await loadList();
+      await loadProgress();
     } catch (error) {
       renameForm.applyApiError(error);
       focusFirstInvalid(formEl);
@@ -224,41 +246,51 @@ export default function TopicsIndex() {
         </p>
       </header>
 
-      <div class="grid gap-6 lg:grid-cols-2">
-        <Panel title="Add a topic" description="Create a label for future problems.">
-          <form class="space-y-4" novalidate onSubmit={onCreate}>
-            <FormField
-              id="topic-create-name"
-              label="Topic name"
-              hint="1–100 characters."
-              error={createForm.fieldErrors().name}
-            >
-              <input
-                class="ui-field"
-                value={createName()}
-                onInput={(event) => {
-                  setCreateName(event.currentTarget.value);
-                  createForm.clearField("name");
-                }}
-                {...formFieldControlAttrs({
-                  id: "topic-create-name",
-                  hint: "1–100 characters.",
-                  error: createForm.fieldErrors().name,
-                })}
-              />
-            </FormField>
-            <Show when={createForm.formBanner()}>
-              <FormAlert variant="error" retryAfter={createForm.retryAfter()}>
-                {createForm.formBanner()}
-              </FormAlert>
-            </Show>
-            <Button type="submit" disabled={createForm.pending()}>
-              {createForm.pending() ? "Creating…" : "Create topic"}
-            </Button>
-          </form>
-        </Panel>
+      <div class="flex flex-col gap-6">
+        <div class="max-w-2xl">
+          <Panel title="Add a topic" description="Create a label for future problems.">
+            <form class="space-y-4" novalidate onSubmit={onCreate}>
+              <FormField
+                id="topic-create-name"
+                label="Topic name"
+                hint="1–100 characters."
+                error={createForm.fieldErrors().name}
+              >
+                <input
+                  class="ui-field"
+                  value={createName()}
+                  onInput={(event) => {
+                    setCreateName(event.currentTarget.value);
+                    createForm.clearField("name");
+                  }}
+                  {...formFieldControlAttrs({
+                    id: "topic-create-name",
+                    hint: "1–100 characters.",
+                    error: createForm.fieldErrors().name,
+                  })}
+                />
+              </FormField>
+              <Show when={createForm.formBanner()}>
+                <FormAlert variant="error" retryAfter={createForm.retryAfter()}>
+                  {createForm.formBanner()}
+                </FormAlert>
+              </Show>
+              <Button type="submit" disabled={createForm.pending()}>
+                {createForm.pending() ? "Creating…" : "Create topic"}
+              </Button>
+            </form>
+          </Panel>
+        </div>
 
-        <Panel title="Topic list" description="Rename or remove topics you no longer need.">
+        <Panel
+          title="Topics"
+          description={listPanelDescription()}
+          actions={
+            <Show when={listStatus() === "ready" && items().length > 0}>
+              <TopicSortNav value={sortMode()} onChange={setSortMode} />
+            </Show>
+          }
+        >
           <Show when={progressLoadMessage()}>
             <p class="mb-4 text-sm text-muted" role="status">
               {progressLoadMessage()}
@@ -276,7 +308,7 @@ export default function TopicsIndex() {
             </Match>
             <Match when={listStatus() === "ready" && items().length === 0}>
               <p class="text-muted">
-                No topics yet. Add one on the left to start organizing your practice.
+                No topics yet. Add one above to start organizing your practice.
               </p>
             </Match>
             <Match when={listStatus() === "ready" && items().length > 0}>
@@ -285,100 +317,24 @@ export default function TopicsIndex() {
                   Showing the first 100 topics. More exist in your library.
                 </p>
               </Show>
-              <ul class="space-y-4">
-                <For each={items()}>
-                  {(topic) => (
-                    <li class="border-b border-line pb-4 last:border-0">
-                      <Show
-                        when={editingId() === topic.id}
-                        fallback={
-                          <div class="flex flex-wrap items-center justify-between gap-3">
-                            <div class="min-w-0 space-y-1">
-                              <a
-                                class="text-body font-medium text-brand underline-offset-4 hover:underline"
-                                href={`${paths.app.problems()}?topicId=${topic.id}`}
-                              >
-                                {topic.name}
-                              </a>
-                              <Show when={topicProgress().get(topic.id)}>
-                                {(row) => (
-                                  <p class="text-sm text-muted tabular-nums">
-                                    {formatTopicProgress(row())}
-                                  </p>
-                                )}
-                              </Show>
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                              <Button variant="secondary" onClick={() => startRename(topic)}>
-                                Rename
-                              </Button>
-                              <Button
-                                variant="secondary"
-                                onClick={() => openDelete(topic)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        }
-                      >
-                        <form
-                          class="space-y-2"
-                          novalidate
-                          onSubmit={(event) => {
-                            event.preventDefault();
-                            void onRenameSave(
-                              topic.id,
-                              event.currentTarget as HTMLFormElement,
-                            );
-                          }}
-                        >
-                          <FormField
-                            id={`topic-rename-${topic.id}`}
-                            label="Rename topic"
-                            hint="1–100 characters."
-                            error={renameForm.fieldErrors().name}
-                          >
-                            <input
-                              class="ui-field"
-                              value={renameValue()}
-                              onInput={(event) => {
-                                setRenameValue(event.currentTarget.value);
-                                renameForm.clearField("name");
-                              }}
-                              {...formFieldControlAttrs({
-                                id: `topic-rename-${topic.id}`,
-                                hint: "1–100 characters.",
-                                error: renameForm.fieldErrors().name,
-                              })}
-                            />
-                          </FormField>
-                          <Show when={renameForm.formBanner()}>
-                            <FormAlert variant="error" retryAfter={renameForm.retryAfter()}>
-                              {renameForm.formBanner()}
-                            </FormAlert>
-                          </Show>
-                          <div class="flex flex-wrap gap-2">
-                            <Button
-                              type="submit"
-                              disabled={renameForm.pending()}
-                            >
-                              {renameForm.pending() ? "Saving…" : "Save"}
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              onClick={cancelRename}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </form>
-                      </Show>
-                    </li>
-                  )}
-                </For>
-              </ul>
+              <TopicsManageList
+                items={items()}
+                progressById={topicProgress()}
+                progressUnavailable={Boolean(progressLoadMessage())}
+                sortMode={sortMode()}
+                editingId={editingId()}
+                renameValue={renameValue()}
+                renameFieldError={renameForm.fieldErrors().name}
+                renameFormBanner={renameForm.formBanner()}
+                renameRetryAfter={renameForm.retryAfter()}
+                renamePending={renameForm.pending()}
+                onRenameValueInput={setRenameValue}
+                onRenameClearField={() => renameForm.clearField("name")}
+                onStartRename={startRename}
+                onCancelRename={cancelRename}
+                onRenameSave={(topicId, formEl) => void onRenameSave(topicId, formEl)}
+                onOpenDelete={openDelete}
+              />
             </Match>
           </Switch>
         </Panel>
