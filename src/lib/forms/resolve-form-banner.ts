@@ -36,5 +36,11 @@ export function resolveFormBanner(
   ) {
     return undefined;
   }
+  if (
+    fieldErrors.handle &&
+    (error.code === "HANDLE_IN_USE" || error.code === "HANDLE_CHANGE_COOLDOWN")
+  ) {
+    return undefined;
+  }
   return domainMessage(error, domain);
 }

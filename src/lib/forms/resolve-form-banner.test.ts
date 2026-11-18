@@ -24,6 +24,22 @@ describe("resolveFormBanner", () => {
     expect(resolveFormBanner(error, {}, "auth")).toBe("Invalid email or password.");
   });
 
+  test("handle business errors with field copy skip duplicate banner", () => {
+    const cooldown = new ApiError(
+      "http",
+      "You can change your handle again in 30 day(s).",
+      409,
+      "HANDLE_CHANGE_COOLDOWN",
+    );
+    const fields = {
+      handle: "You can change your handle again in 30 day(s).",
+    };
+    expect(resolveFormBanner(cooldown, fields, "profile")).toBeUndefined();
+    expect(resolveFormBanner(cooldown, {}, "profile")).toBe(
+      "You can change your handle again in 30 day(s).",
+    );
+  });
+
   test("non-ApiError returns undefined", () => {
     expect(resolveFormBanner(new Error("x"), {}, "auth")).toBeUndefined();
   });

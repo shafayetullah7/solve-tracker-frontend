@@ -1,6 +1,5 @@
 import { createEffect, createSignal, Show } from "solid-js";
 import { applyProfileApiError } from "../../lib/forms/apply-profile-api-error";
-import { fieldErrorsFromApiError } from "../../lib/forms/enrich-field-errors";
 import { HANDLE_FIELD_HINT, validateUserHandle } from "../../lib/auth/user-handle";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { FormAlert } from "../ui/FormAlert";
@@ -78,8 +77,7 @@ export function ProfileHandleEditorDialog(props: ProfileHandleEditorDialogProps)
     } catch (error) {
       const applied = applyProfileApiError(error);
       setFormError(applied.banner);
-      const fields = fieldErrorsFromApiError(error);
-      if (fields.handle) setFieldError(fields.handle);
+      if (applied.fieldErrors.handle) setFieldError(applied.fieldErrors.handle);
     } finally {
       setPending(false);
     }

@@ -29,6 +29,7 @@ import {
 import type { ProfileAvatarSaveInput } from "../../components/profile/ProfileAvatarEditorDialog";
 import { profileInitials } from "../../lib/profile/profile-initials";
 import type { EducationEntry, WorkEntry } from "../../lib/profile/profile-view.types";
+import { pathWithoutSearchKeys } from "../../lib/navigation/search-url";
 import { paths } from "../../router";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { FormAlert } from "../../components/ui/FormAlert";
@@ -173,12 +174,17 @@ export default function ProfilePage() {
   );
 
   createEffect(
-    () => [location.search, auth.status(), loadPending()] as const,
-    ([search, status, pending]) => {
+    () =>
+      [location.pathname, location.search, auth.status(), loadPending()] as const,
+    ([pathname, search, status, pending]) => {
       const params = new URLSearchParams(search);
-      if (params.get("focus") === "handle" && status === "authenticated" && !pending) {
-        setEditorTarget({ kind: "handle-edit" });
-      }
+      if (params.get("focus") !== "handle") return;
+      if (status !== "authenticated" || pending) return;
+      setEditorTarget({ kind: "handle-edit" });
+      navigate(
+        pathWithoutSearchKeys(pathname, search, ["focus"]),
+        { replace: true },
+      );
     },
   );
 

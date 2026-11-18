@@ -7,15 +7,21 @@ import { resolveFormBanner } from "./resolve-form-banner";
 
 export function applyProfileApiError(error: unknown): {
   fieldErrors: FieldErrors;
-  banner: string;
+  banner: string | undefined;
   retryAfter: string | undefined;
 } {
   if (error instanceof ProfileSaveError) {
     return { fieldErrors: {}, banner: error.message, retryAfter: undefined };
   }
   const fieldErrors = fieldErrorsFromApiError(error);
+  const resolvedBanner = resolveFormBanner(error, fieldErrors, "profile");
+  const fallbackBanner = profileFormMessage(error);
   const banner =
-    resolveFormBanner(error, fieldErrors, "profile") ?? profileFormMessage(error);
+    resolvedBanner !== undefined
+      ? resolvedBanner
+      : Object.keys(fieldErrors).length > 0
+        ? undefined
+        : fallbackBanner;
   const retryAfter = error instanceof ApiError ? error.retryAfter : undefined;
   return { fieldErrors, banner, retryAfter };
 }
