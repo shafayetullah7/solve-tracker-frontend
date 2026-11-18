@@ -160,6 +160,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/google/risc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Google Cross-Account Protection (RISC) receiver
+         * @description Accepts a raw Security Event Token (JWT) in the request body. Returns 404 when GOOGLE_RISC_ENABLED is false. No CSRF headers required (server-to-server).
+         */
+        post: operations["GoogleRiscController_receiveSecurityEventToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/topics": {
         parameters: {
             query?: never;
@@ -446,6 +466,7 @@ export interface operations {
                     email: string;
                     /** @description 8–128 Unicode code points; spaces are preserved. */
                     password: string;
+                    handle?: "" | string;
                 };
             };
         };
@@ -462,6 +483,7 @@ export interface operations {
                             name: string;
                             /** Format: email */
                             email: string;
+                            handle: string;
                         };
                     };
                 };
@@ -509,6 +531,7 @@ export interface operations {
                             name: string;
                             /** Format: email */
                             email: string;
+                            handle: string;
                         };
                     };
                 };
@@ -549,6 +572,7 @@ export interface operations {
                             name: string;
                             /** Format: email */
                             email: string;
+                            handle: string;
                         };
                         account: {
                             googleLinked: boolean;
@@ -593,6 +617,7 @@ export interface operations {
                             name: string;
                             /** Format: email */
                             email: string;
+                            handle: string;
                         };
                     };
                 };
@@ -796,6 +821,59 @@ export interface operations {
                         details?: unknown;
                     };
                 };
+            };
+        };
+    };
+    GoogleRiscController_receiveSecurityEventToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SET accepted and processed (or idempotent replay). */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Malformed SET or unknown signing key. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid SET signature or claims. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description RISC feature disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Webhook rate limit exceeded. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transient processing failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -1548,6 +1626,7 @@ export interface operations {
                     "application/json": {
                         name: string;
                         bio: string;
+                        handle: string;
                         /** Format: uri */
                         avatarUrl?: string;
                         work: {
@@ -1596,6 +1675,7 @@ export interface operations {
                     bio?: string;
                     /** Format: uuid */
                     avatarMediaId?: string | null;
+                    handle?: string;
                 };
             };
         };
@@ -1608,6 +1688,7 @@ export interface operations {
                     "application/json": {
                         name: string;
                         bio: string;
+                        handle: string;
                         /** Format: uri */
                         avatarUrl?: string;
                         work: {

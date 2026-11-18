@@ -23,7 +23,7 @@ const sample: PlatformListResponse = {
 function authStub(): AuthContextValue {
   return {
     status: () => "authenticated",
-    user: () => ({ id: "u1", name: "T", email: "t@e.test" }),
+    user: () => ({ id: "u1", name: "T", email: "t@e.test", handle: "test_user" }),
     account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],

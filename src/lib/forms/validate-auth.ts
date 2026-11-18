@@ -1,3 +1,4 @@
+import { validateUserHandle } from "../auth/user-handle";
 import type { FieldErrors } from "./field-errors";
 import { FORM_CLIENT_BANNER } from "./form-client-banner";
 import { PASSWORD_LENGTH_MESSAGE, passwordLengthError } from "./password-policy";
@@ -39,6 +40,7 @@ export function validateRegister(values: {
   name: string;
   email: string;
   password: string;
+  handle?: string;
 }): FieldErrors {
   const out: FieldErrors = {};
   const nameLen = codePointLength(values.name.trim());
@@ -47,6 +49,11 @@ export function validateRegister(values: {
   if (emailErr) out.email = emailErr;
   const pwdErr = validatePasswordLength(values.password);
   if (pwdErr) out.password = pwdErr;
+  const handleTrimmed = values.handle?.trim() ?? "";
+  if (handleTrimmed) {
+    const handleErr = validateUserHandle(handleTrimmed);
+    if (handleErr) out.handle = handleErr;
+  }
   return out;
 }
 

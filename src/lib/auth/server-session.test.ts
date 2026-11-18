@@ -12,6 +12,7 @@ const user = {
   id: "u1",
   name: "Ada",
   email: "ada@example.test",
+  handle: "ada_writer",
 };
 
 describe("probeServerAuthSession", () => {

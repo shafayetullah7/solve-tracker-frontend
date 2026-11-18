@@ -36,7 +36,7 @@ Use explicit states: `checking`, `authenticated`, `anonymous`, and `unavailable`
 
 Bootstrap once in browser lifecycle code using the installed Solid 2 `onSettled` pattern. Do not start authentication in component JSX, a reactive memo, every route component, or at module import time. `onSettled` callbacks may run again: use an explicit once-per-provider bootstrap guard and cleanup. Use Solid 2's two-function `createEffect` only where an effect is actually needed, and keep writes out of compute callbacks. Do not import React hooks, Next middleware, Solid 1.x `onMount`/`createResource`, or an unrelated auth framework.
 
-Session responses contain only necessary public user fields. A server session-revision protocol and expiry metadata are not required for the MVP: shared cookies and the read-only session probe are sufficient. Do not put passwords or credentials in a shared store.
+Session responses contain only necessary public user fields, including `handle` (unique public id; not a login credential). A server session-revision protocol and expiry metadata are not required for the MVP: shared cookies and the read-only session probe are sufficient. Do not put passwords or credentials in a shared store.
 
 ## One coordinator for all authenticated requests
 

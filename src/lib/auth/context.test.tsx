@@ -9,7 +9,7 @@ import { createAuthCoordinator } from "./coordinator";
 import { createMemoryLockAdapter } from "./locks";
 import { AUTH_BOOTSTRAP_ELEMENT_ID, bootstrapScriptTag } from "./server-session";
 
-const user = { id: "u1", name: "Test", email: "t@example.test" };
+const user = { id: "u1", name: "Test", email: "t@example.test", handle: "test_user" };
 
 function Probe(props: { onAuth?: (auth: ReturnType<typeof useAuth>) => void }) {
   const auth = useAuth();

@@ -7,6 +7,9 @@ describe("mapApiFieldErrors", () => {
       email: "Invalid email",
       name: "Too long",
     });
+    expect(mapApiFieldErrors({ handle: "This handle is already taken." })).toEqual({
+      handle: "This handle is already taken.",
+    });
   });
 
   test("maps pipe-shaped issue array", () => {

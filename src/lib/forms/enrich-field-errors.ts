@@ -24,6 +24,16 @@ export function enrichFieldErrorsFromError(
     const banner = topicFormMessage(error);
     if (banner) out.name = banner;
   }
+  if (
+    (error.code === "HANDLE_IN_USE" || error.code === "HANDLE_CHANGE_COOLDOWN") &&
+    !out.handle
+  ) {
+    const fromDetails =
+      typeof error.message === "string" && error.message.length > 0
+        ? error.message
+        : undefined;
+    if (fromDetails) out.handle = fromDetails;
+  }
   return out;
 }
 

@@ -23,7 +23,9 @@ export function parseSessionUser(body: unknown): AuthUser | undefined {
     !isRecord(body.user) ||
     typeof body.user.id !== "string" ||
     typeof body.user.name !== "string" ||
-    typeof body.user.email !== "string"
+    typeof body.user.email !== "string" ||
+    typeof body.user.handle !== "string" ||
+    body.user.handle.length === 0
   ) {
     return undefined;
   }
@@ -31,6 +33,7 @@ export function parseSessionUser(body: unknown): AuthUser | undefined {
     id: body.user.id,
     name: body.user.name,
     email: body.user.email,
+    handle: body.user.handle,
   };
 }
 
@@ -74,6 +77,7 @@ export function serializableBootstrap(
         id: bootstrap.user.id,
         name: bootstrap.user.name,
         email: bootstrap.user.email,
+        handle: bootstrap.user.handle,
       },
     };
   }

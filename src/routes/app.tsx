@@ -1,5 +1,6 @@
 import type { ParentProps } from "solid-js";
 import { AppShell } from "../components/app/AppShell";
+import { HandleCustomizeBanner } from "../components/auth/HandleCustomizeBanner";
 import { RequireSession } from "../components/auth/RequireSession";
 import { RouteBoundary } from "../components/ui/RouteBoundary";
 import { PlatformCatalogProvider } from "../lib/platforms/platform-catalog-context";
@@ -9,6 +10,7 @@ export default function AppWorkspaceLayout(props: ParentProps) {
     <RequireSession>
       <PlatformCatalogProvider>
         <AppShell>
+          <HandleCustomizeBanner />
           <RouteBoundary nestedInAppShell>{props.children}</RouteBoundary>
         </AppShell>
       </PlatformCatalogProvider>

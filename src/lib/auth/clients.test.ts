@@ -14,7 +14,7 @@ const expired = () =>
 describe("createAuthClients", () => {
   test("product client recovers through coordinator and retries once", async () => {
     const user = {
-      user: { id: "u1", name: "Jane", email: "jane@example.com" },
+      user: { id: "u1", name: "Jane", email: "jane@example.com", handle: "jane_cf" },
     };
     const fetcher = vi
       .fn<typeof fetch>()

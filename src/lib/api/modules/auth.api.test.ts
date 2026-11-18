@@ -10,6 +10,7 @@ describe("typed auth API", () => {
           id: "id",
           name: "Jane",
           email: "jane@example.com",
+          handle: "jane_cf",
           passwordHash: "secret",
         },
         access: "secret",
@@ -19,7 +20,9 @@ describe("typed auth API", () => {
         email: "jane@example.com",
         password: "long-password-here",
       }),
-    ).toEqual({ user: { id: "id", name: "Jane", email: "jane@example.com" } });
+    ).toEqual({
+      user: { id: "id", name: "Jane", email: "jane@example.com", handle: "jane_cf" },
+    });
     expect(request.mock.calls[0][0]).toMatchObject({
       path: "/auth/login",
       recoverAuth: false,

@@ -8,7 +8,7 @@ const refreshRequired = () =>
 const refreshInvalid = () =>
   new ApiError("http", "Session recovery failed.", 401, "AUTH_REFRESH_INVALID");
 const user = {
-  user: { id: "u1", name: "Test", email: "t@example.test" },
+  user: { id: "u1", name: "Test", email: "t@example.test", handle: "test_user" },
 };
 
 function authApi(overrides: Partial<AuthApi> = {}): AuthApi {

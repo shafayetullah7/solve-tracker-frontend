@@ -28,7 +28,7 @@ vi.mock("@solidjs/router", async (importOriginal) => {
   };
 });
 
-const user = { id: "u1", name: "Test", email: "t@example.test" };
+const user = { id: "u1", name: "Test", email: "t@example.test", handle: "test_user" };
 
 function authValue(): AuthContextValue {
   const [status] = createSignal<"authenticated">("authenticated");

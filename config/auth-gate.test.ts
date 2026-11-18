@@ -8,7 +8,7 @@ vi.mock("../src/lib/auth/server-session-probe.ts", () => ({
 
 import { authGate, authRedirectTarget, injectBeforeHeadClose } from "./auth-gate";
 
-const user = { id: "u1", name: "Ada", email: "ada@example.test" };
+const user = { id: "u1", name: "Ada", email: "ada@example.test", handle: "ada_writer" };
 
 function pageEvent(path: string, init?: RequestInit) {
   return {

@@ -43,6 +43,25 @@ describe("validateRegister", () => {
       }),
     ).toEqual({ email: AUTH_MSG.emailInvalid });
   });
+
+  test("optional handle validated when provided", () => {
+    expect(
+      validateRegister({
+        name: "Test",
+        email: "a@b.co",
+        password: "a".repeat(8),
+        handle: "ok_handle",
+      }),
+    ).toEqual({});
+    expect(
+      validateRegister({
+        name: "Test",
+        email: "a@b.co",
+        password: "a".repeat(8),
+        handle: "ab",
+      }),
+    ).toHaveProperty("handle");
+  });
 });
 
 describe("validateLogin", () => {

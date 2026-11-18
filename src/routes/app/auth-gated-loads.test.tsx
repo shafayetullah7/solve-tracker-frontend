@@ -37,7 +37,7 @@ vi.mock("../../lib/api/modules/profile.api", () => ({
 import ProfilePage from "./profile";
 import TopicsIndex from "./topics/index";
 
-const user = { id: "u1", name: "Ada", email: "ada@example.test" };
+const user = { id: "u1", name: "Ada", email: "ada@example.test", handle: "ada_writer" };
 
 function fakeAuth(initial: AuthStatus) {
   const [status, setStatus] = createSignal<AuthStatus>(initial);

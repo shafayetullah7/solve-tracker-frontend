@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "@solidjs/router";
 import type { JSX } from "@solidjs/web";
-import { createSignal, For, type ParentProps } from "solid-js";
+import { createSignal, For, Show, type ParentProps } from "solid-js";
 import type { IconProps } from "../../icons/icon-props";
 import {
   IconClose,
@@ -12,6 +12,7 @@ import {
   IconUser,
 } from "../../icons";
 import { resolveSidebarActive, type SidebarSectionKey } from "../../lib/app/nav-active";
+import { formatHandleLabel } from "../../lib/auth/user-handle";
 import { useAuth } from "../../lib/auth/context";
 import { problemNewPath } from "../../lib/problems/paths";
 import { paths } from "../../router";
@@ -155,6 +156,16 @@ export function AppSidebar(props: AppSidebarProps) {
       </nav>
 
       <div class="mt-auto flex flex-col gap-4 border-t border-line pt-4">
+        <Show when={auth.user()}>
+          {(user) => (
+            <div class="min-w-0 px-1 text-left" aria-label="Signed in as">
+              <p class="truncate text-sm font-medium text-ink">{user().name}</p>
+              <p class="truncate text-xs text-muted tabular-nums">
+                {formatHandleLabel(user().handle)}
+              </p>
+            </div>
+          )}
+        </Show>
         <a
           class="ui-button inline-flex w-full items-center justify-center gap-2"
           data-variant="primary"

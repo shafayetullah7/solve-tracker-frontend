@@ -14,6 +14,7 @@ export type WorkEntry = {
 
 export type ProfileViewModel = {
   displayName: string;
+  handle: string;
   bio: string;
   avatarUrl?: string;
   avatarInitials: string;

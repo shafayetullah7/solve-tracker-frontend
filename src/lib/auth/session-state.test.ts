@@ -4,7 +4,7 @@ import { resolveBootstrapSession } from "./session-state";
 import { createMemoryLockAdapter } from "./locks";
 import { createAuthCoordinator, type AuthApi } from "./coordinator";
 
-const user = { id: "u1", name: "Test", email: "t@example.test" };
+const user = { id: "u1", name: "Test", email: "t@example.test", handle: "test_user" };
 
 function coordinator(
   recoverImpl: () => Promise<boolean> = () => Promise.resolve(false),

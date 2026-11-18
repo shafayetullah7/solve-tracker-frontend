@@ -2,6 +2,7 @@ import { Title } from "@solidjs/meta";
 import { useLocation, useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
 import { ProfileAboutEditorDialog } from "../../components/profile/ProfileAboutEditorDialog";
+import { ProfileHandleEditorDialog } from "../../components/profile/ProfileHandleEditorDialog";
 import { ProfileAvatarEditorDialog } from "../../components/profile/ProfileAvatarEditorDialog";
 import { ProfileAboutSection } from "../../components/profile/ProfileAboutSection";
 import { ProfileAccountPanel } from "../../components/profile/ProfileAccountPanel";
@@ -124,7 +125,7 @@ export default function ProfilePage() {
   const [loadPending, setLoadPending] = createSignal(true);
   const [loadError, setLoadError] = createSignal<string | undefined>();
 
-  const [about, setAbout] = createSignal({ displayName: "", bio: "" });
+  const [about, setAbout] = createSignal({ displayName: "", bio: "", handle: "" });
   const [work, setWork] = createSignal<WorkEntry[]>([]);
   const [education, setEducation] = createSignal<EducationEntry[]>([]);
   const [avatarUrl, setAvatarUrl] = createSignal<string | undefined>();
@@ -144,14 +145,11 @@ export default function ProfilePage() {
     setLoadError(undefined);
     try {
       const profile = await profileApi().getProfile();
-      setAbout({ displayName: profile.name, bio: profile.bio });
+      setAbout({ displayName: profile.name, bio: profile.bio, handle: profile.handle });
       setWork(profile.work);
       setEducation(profile.education);
       setAvatarUrl(profile.avatarUrl);
-      const sessionUser = auth.user();
-      if (sessionUser && sessionUser.name !== profile.name) {
-        auth.establishSession({ ...sessionUser, name: profile.name });
-      }
+      syncSessionUser(profile.name, profile.handle);
     } catch (error) {
       setLoadError(applyProfileApiError(error).banner);
     } finally {
@@ -159,10 +157,28 @@ export default function ProfilePage() {
     }
   }
 
+  function syncSessionUser(name: string, handle: string) {
+    const sessionUser = auth.user();
+    if (!sessionUser) return;
+    if (sessionUser.name !== name || sessionUser.handle !== handle) {
+      auth.establishSession({ ...sessionUser, name, handle });
+    }
+  }
+
   createEffect(
     () => auth.status(),
     (status) => {
       if (status === "authenticated") void refreshProfile();
+    },
+  );
+
+  createEffect(
+    () => [location.search, auth.status(), loadPending()] as const,
+    ([search, status, pending]) => {
+      const params = new URLSearchParams(search);
+      if (params.get("focus") === "handle" && status === "authenticated" && !pending) {
+        setEditorTarget({ kind: "handle-edit" });
+      }
     },
   );
 
@@ -188,11 +204,14 @@ export default function ProfilePage() {
       name: values.displayName.trim(),
       bio: values.bio,
     });
-    setAbout({ displayName: profile.name, bio: profile.bio });
-    const sessionUser = auth.user();
-    if (sessionUser) {
-      auth.establishSession({ ...sessionUser, name: profile.name });
-    }
+    setAbout({ displayName: profile.name, bio: profile.bio, handle: profile.handle });
+    syncSessionUser(profile.name, profile.handle);
+  }
+
+  async function persistHandle(handle: string) {
+    const profile = await profileApi().patchProfile({ handle });
+    setAbout((prev) => ({ ...prev, handle: profile.handle }));
+    syncSessionUser(about().displayName, profile.handle);
   }
 
   async function persistWorkEntry(entry: WorkEntry) {
@@ -327,11 +346,13 @@ export default function ProfilePage() {
         <div class="mt-8 space-y-8">
           <ProfileAboutSection
             displayName={about().displayName}
+            handle={about().handle || auth.user()?.handle || ""}
             bio={about().bio}
             email={auth.user()?.email}
             avatarUrl={avatarUrl()}
             avatarInitials={aboutInitials()}
             onEdit={() => setEditorTarget({ kind: "about-edit" })}
+            onEditHandle={() => setEditorTarget({ kind: "handle-edit" })}
             onEditPhoto={() => setEditorTarget({ kind: "avatar-edit" })}
           />
           <Show when={entryRemoveError()}>
@@ -391,6 +412,12 @@ export default function ProfilePage() {
         bio={about().bio}
         onClose={closeEditor}
         onSave={persistAbout}
+      />
+      <ProfileHandleEditorDialog
+        open={editorTarget()?.kind === "handle-edit"}
+        currentHandle={about().handle || auth.user()?.handle || ""}
+        onClose={closeEditor}
+        onSave={persistHandle}
       />
       <ProfileEntryEditorDialog
         target={entryEditorTarget()}

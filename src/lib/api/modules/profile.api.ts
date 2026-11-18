@@ -67,6 +67,8 @@ function decodeProfile(value: unknown): ProfileResponse {
     !isRecord(value) ||
     typeof value.name !== "string" ||
     typeof value.bio !== "string" ||
+    typeof value.handle !== "string" ||
+    value.handle.length === 0 ||
     !Array.isArray(value.work) ||
     !Array.isArray(value.education)
   ) {
@@ -75,6 +77,7 @@ function decodeProfile(value: unknown): ProfileResponse {
   return {
     name: value.name,
     bio: value.bio,
+    handle: value.handle,
     ...(typeof value.avatarUrl === "string" ? { avatarUrl: value.avatarUrl } : {}),
     work: value.work.map(decodeWorkEntry),
     education: value.education.map(decodeEducationEntry),

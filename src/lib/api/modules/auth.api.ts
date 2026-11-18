@@ -43,12 +43,19 @@ function session(value: unknown): SessionResponse {
     !isRecord(value.user) ||
     typeof value.user.id !== "string" ||
     typeof value.user.name !== "string" ||
-    typeof value.user.email !== "string"
+    typeof value.user.email !== "string" ||
+    typeof value.user.handle !== "string" ||
+    value.user.handle.length === 0
   )
     throw new ApiError("contract", "Invalid session response.");
   const account = parseAccount(value.account);
   return {
-    user: { id: value.user.id, name: value.user.name, email: value.user.email },
+    user: {
+      id: value.user.id,
+      name: value.user.name,
+      email: value.user.email,
+      handle: value.user.handle,
+    },
     ...(account ? { account } : {}),
   };
 }

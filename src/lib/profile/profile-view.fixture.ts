@@ -3,6 +3,7 @@ import type { ProfileViewModel } from "./profile-view.types";
 /** Static design preview — not loaded from the API. */
 export const SAMPLE_PROFILE: ProfileViewModel = {
   displayName: "Alex Rivera",
+  handle: "alex_rivera",
   avatarUrl: "/profile-mockup-avatar.svg",
   avatarInitials: "AR",
   bio: "Preparing for technical interviews while keeping a steady LeetCode and Codeforces rhythm. I use Practice to queue weak topics, log solves, and avoid losing good problems in browser tabs.",

@@ -17,7 +17,7 @@ import { createMemoryBroadcastHub } from "./broadcast";
 import { AuthProvider, useAuth, type AuthClientsBundle } from "./context";
 import { createMemoryLockAdapter } from "./locks";
 
-const user = { id: "u1", name: "Ada", email: "ada@example.test" };
+const user = { id: "u1", name: "Ada", email: "ada@example.test", handle: "ada_writer" };
 
 function Status() {
   const auth = useAuth();

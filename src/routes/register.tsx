@@ -11,6 +11,7 @@ import {
 } from "../components/ui/PasswordCodePointMeter";
 import { createFormState } from "../lib/forms/create-form-state";
 import { focusFirstInvalid } from "../lib/forms/focus-first-invalid";
+import { HANDLE_FIELD_HINT } from "../lib/auth/user-handle";
 import { AUTH_NAME_HINT, AUTH_PASSWORD_HINT } from "../lib/forms/auth-field-copy";
 import { validateRegister } from "../lib/forms/validate-auth";
 import { useAuth } from "../lib/auth/context";
@@ -34,6 +35,7 @@ export default function Register() {
   const form = createFormState("auth");
   const [name, setName] = createSignal("");
   const [email, setEmail] = createSignal("");
+  const [handle, setHandle] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [passwordFocused, setPasswordFocused] = createSignal(false);
   const [passwordBlurred, setPasswordBlurred] = createSignal(false);
@@ -54,6 +56,7 @@ export default function Register() {
       name: name(),
       email: email(),
       password: password(),
+      handle: handle(),
     });
     if (Object.keys(clientErrors).length > 0) {
       form.applyClientErrors(clientErrors);
@@ -64,10 +67,12 @@ export default function Register() {
     form.setPending(true);
     const pwd = password();
     try {
+      const trimmedHandle = handle().trim();
       await auth.authApi.register({
         name: name().trim(),
         email: email().trim(),
         password: pwd,
+        ...(trimmedHandle ? { handle: trimmedHandle } : {}),
       });
       setPassword("");
       navigate(`${paths.login()}?registered=1`);
@@ -121,6 +126,28 @@ export default function Register() {
             onInput={(event) => {
               setEmail(event.currentTarget.value);
               form.clearField("email");
+            }}
+          />
+        </FormField>
+        <FormField
+          id="register-handle"
+          label="Handle"
+          hint={HANDLE_FIELD_HINT}
+          error={form.fieldErrors().handle}
+        >
+          <input
+            class="ui-field"
+            autocomplete="off"
+            spellcheck={false}
+            {...formFieldControlAttrs({
+              id: "register-handle",
+              hint: HANDLE_FIELD_HINT,
+              error: form.fieldErrors().handle,
+            })}
+            value={handle()}
+            onInput={(event) => {
+              setHandle(event.currentTarget.value);
+              form.clearField("handle");
             }}
           />
         </FormField>
