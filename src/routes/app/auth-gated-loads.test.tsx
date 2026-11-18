@@ -14,6 +14,14 @@ vi.mock("@solidjs/meta", () => ({ Title: () => null }));
 vi.mock("@solidjs/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@solidjs/router")>()),
   useNavigate: () => vi.fn(),
+  useLocation: () => ({
+    pathname: "/app/profile",
+    search: "",
+    hash: "",
+    state: {},
+    query: {},
+    key: "",
+  }),
 }));
 vi.mock("../../lib/auth/context", () => ({ useAuth: () => mocks.auth }));
 vi.mock("../../lib/api/modules/topics.api", () => ({
@@ -36,8 +44,15 @@ function fakeAuth(initial: AuthStatus) {
   mocks.auth = {
     status,
     user: () => (status() === "authenticated" ? user : undefined),
+    account: () => undefined,
     productClient: {},
+    authApi: {
+      changePassword: vi.fn(),
+      setPassword: vi.fn(),
+      unlinkGoogle: vi.fn(),
+    },
     establishSession: vi.fn(),
+    reloadSession: vi.fn(),
     logout: vi.fn(),
     retryLogout: vi.fn(),
     revocationUnconfirmed: () => false,

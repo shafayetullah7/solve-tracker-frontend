@@ -35,6 +35,7 @@ function authValue(partial: {
   return {
     status,
     user,
+    account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],
     coordinator: {} as AuthContextValue["coordinator"],
@@ -42,6 +43,7 @@ function authValue(partial: {
     establishSession: vi.fn(),
     clearSession: vi.fn(),
     retryBootstrap: partial.retryBootstrap ?? (async () => {}),
+    reloadSession: async () => {},
     login: vi.fn(),
     logout: vi.fn(),
     revocationUnconfirmed: () => false,

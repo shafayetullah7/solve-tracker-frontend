@@ -9,6 +9,7 @@ export function landingAuthStub(
   return {
     status: () => "anonymous",
     user: () => undefined,
+    account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],
     coordinator: {} as AuthContextValue["coordinator"],
@@ -17,6 +18,7 @@ export function landingAuthStub(
     establishSession: vi.fn(),
     clearSession: vi.fn(),
     retryBootstrap: vi.fn(),
+    reloadSession: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
     retryLogout: vi.fn(),

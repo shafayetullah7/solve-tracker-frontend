@@ -17,6 +17,7 @@ const MAX_HEAD_BUFFER = 256 * 1024;
 function isDocumentRequest(request: Request, url: URL): boolean {
   if (request.method !== "GET" && request.method !== "HEAD") return false;
   const path = url.pathname;
+  // OAuth start/callback and all JSON APIs proxy via /api — never SSR the app shell.
   if (/^\/api(?:\/|$)/.test(path)) return false;
   if (path.startsWith("/@") || path.startsWith("/__")) return false;
   const lastSegment = path.slice(path.lastIndexOf("/") + 1);

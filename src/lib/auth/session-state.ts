@@ -1,11 +1,11 @@
 import { ApiError } from "../api/errors";
-import type { SessionResponse } from "../api/modules/auth.api";
+import type { AccountFlags, SessionResponse } from "../api/modules/auth.api";
 import type { AuthCoordinator } from "./coordinator";
 
 export type AuthUser = SessionResponse["user"];
 
 export type BootstrapResult =
-  | { kind: "authenticated"; user: AuthUser }
+  | { kind: "authenticated"; user: AuthUser; account?: AccountFlags }
   | { kind: "anonymous" }
   | { kind: "unavailable" }
   | { kind: "cancelled" };
@@ -34,7 +34,11 @@ export async function resolveBootstrapSession(
     const session = await authApi.getSession();
     if (options?.isAborted?.()) return { kind: "cancelled" };
     if (coordinator.getEpoch() !== startEpoch) return { kind: "cancelled" };
-    return { kind: "authenticated", user: session.user };
+    return {
+      kind: "authenticated",
+      user: session.user,
+      account: session.account,
+    };
   }
 
   try {

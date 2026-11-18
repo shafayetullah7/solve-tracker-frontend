@@ -88,7 +88,19 @@ Do not issue two active successor refresh credentials for one generation. Do not
 
 **Revocation tradeoff:** the current backend requirements demand immediate session invalidation, so one session-validity lookup on protected requests is intentional. Use the planned PostgreSQL session row; do not add Redis, a second token denylist, or a distributed lock service. Stateless access JWT verification with short expiry is simpler, but permits already-issued tokens until expiry after logout/reset; adopting that behavior requires changing the product requirement explicitly.
 
-The rotation/replay principle is supported by [RFC 9700 section 4.14](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.14). This application uses first-party password authentication, not OAuth; these token-protection principles are applicable without introducing OAuth grants or a third-party identity provider.
+The rotation/replay principle is supported by [RFC 9700 section 4.14](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.14). Optional Google sign-in reuses the same JWT cookie contract below; it is not a parallel bearer-auth path.
+
+## Google OAuth (server redirect)
+
+Optional **Continue with Google** on login/register when `VITE_GOOGLE_OAUTH_ENABLED=true` (must match backend `GOOGLE_OAUTH_ENABLED` in dev). Reference: [GOOGLE_OAUTH_RESULTS.md](../solve-tracker-backend/docs/GOOGLE_OAUTH_RESULTS.md) (redirect routes, ops, checklist).
+
+- **Start:** full-page navigation to `/api/auth/google?next=` (same-origin proxy → Nest). Do **not** call OAuth through the JSON `productClient` or attach `X-Requested-With`; OAuth start/callback are **GET** routes on the backend.
+- **No Google SDK** in the frontend bundle; no Google tokens or JWT strings in JavaScript.
+- **Callback:** the browser hits `/api/auth/google/callback` on the proxy; Nest sets HttpOnly access/refresh cookies and redirects to `FRONTEND_ORIGIN` with a safe `next` path. The SPA does not define a route for the callback URL.
+- **Errors:** login/register redirects use `/login?oauth_error=<code>`; profile link/unlink uses `/app/profile?oauth_error=<code>` or `?google_linked=1`. Map codes via `oauth-error-copy.ts`.
+- **Profile linking:** signed-in users link Google from **Profile → Connected accounts** (`GET /api/auth/google?mode=link`). Unlink requires a password (`POST /auth/set-password` for Google-only accounts, then `DELETE /auth/google/link`).
+- **Session flags:** `GET /auth/session` returns `account.googleLinked` and `account.hasPassword` (see `useAuth().account()`).
+- **Google vs Practice logout:** signing out of Google in the browser does not end the Practice session; use Practice **Sign out** (see backend GOOGLE OAuth docs).
 
 ## SSR session (enabled — Track B)
 

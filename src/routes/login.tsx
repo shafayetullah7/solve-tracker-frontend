@@ -9,6 +9,13 @@ import { createFormState } from "../lib/forms/create-form-state";
 import { focusFirstInvalid } from "../lib/forms/focus-first-invalid";
 import { validateLogin } from "../lib/forms/validate-auth";
 import { safeReturnPath } from "../lib/auth/forms";
+import { isGoogleOAuthEnabled } from "../lib/auth/google-oauth";
+import {
+  GOOGLE_PRACTICE_LOGOUT_NOTE,
+  oauthErrorMessage,
+} from "../lib/auth/oauth-error-copy";
+import { AuthOAuthDivider } from "../components/auth/AuthOAuthDivider";
+import { ContinueWithGoogle } from "../components/auth/ContinueWithGoogle";
 import { useAuth } from "../lib/auth/context";
 import { useRedirectIfAuthenticated } from "../lib/auth/guest-auth-page";
 import { paths } from "../router";
@@ -26,6 +33,10 @@ export default function Login() {
     new URLSearchParams(location.search).get("registered") === "1";
   const returnPath = () =>
     safeReturnPath(new URLSearchParams(location.search).get("next"));
+  const oauthError = () =>
+    oauthErrorMessage(
+      new URLSearchParams(location.search).get("oauth_error"),
+    );
 
   async function onSubmit(event: Event) {
     event.preventDefault();
@@ -63,6 +74,11 @@ export default function Login() {
       <Show when={registered()}>
         <FormAlert variant="success" prominent class="mb-4">
           Account created. Sign in when you are ready.
+        </FormAlert>
+      </Show>
+      <Show when={oauthError()}>
+        <FormAlert variant="error" prominent class="mb-4">
+          {oauthError()}
         </FormAlert>
       </Show>
       <form class="space-y-4" novalidate onSubmit={onSubmit}>
@@ -114,6 +130,11 @@ export default function Login() {
           </a>
         </AuthFormActions>
       </form>
+      <Show when={isGoogleOAuthEnabled()}>
+        <AuthOAuthDivider />
+        <ContinueWithGoogle returnTo={returnPath()} />
+        <p class="mt-3 text-center text-xs text-muted">{GOOGLE_PRACTICE_LOGOUT_NOTE}</p>
+      </Show>
     </AuthLayout>
   );
 }

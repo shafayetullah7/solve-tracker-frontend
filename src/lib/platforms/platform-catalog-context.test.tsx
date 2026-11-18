@@ -24,6 +24,7 @@ function authStub(): AuthContextValue {
   return {
     status: () => "authenticated",
     user: () => ({ id: "u1", name: "T", email: "t@e.test" }),
+    account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],
     coordinator: {} as AuthContextValue["coordinator"],
@@ -32,6 +33,7 @@ function authStub(): AuthContextValue {
     establishSession: vi.fn(),
     clearSession: vi.fn(),
     retryBootstrap: vi.fn(),
+    reloadSession: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
     retryLogout: vi.fn(),

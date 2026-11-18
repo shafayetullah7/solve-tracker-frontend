@@ -108,11 +108,13 @@ describe("authGate", () => {
   test("ignores API, asset, and non-GET requests", async () => {
     const next = vi.fn().mockResolvedValue(new Response("x"));
     await authGate(pageEvent("/api/auth/session") as never, next);
+    await authGate(pageEvent("/api/auth/google") as never, next);
+    await authGate(pageEvent("/api/auth/google/callback") as never, next);
     await authGate(pageEvent("/assets/app.js") as never, next);
     await authGate(pageEvent("/@vite/client") as never, next);
     await authGate(pageEvent("/login", { method: "POST" }) as never, next);
     expect(probe).not.toHaveBeenCalled();
-    expect(next).toHaveBeenCalledTimes(4);
+    expect(next).toHaveBeenCalledTimes(6);
   });
 
   test("anonymous /app gets a no-store 302 without rendering", async () => {

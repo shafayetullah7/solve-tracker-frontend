@@ -1,5 +1,5 @@
 import { Title } from "@solidjs/meta";
-import { useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
 import { ProfileAboutEditorDialog } from "../../components/profile/ProfileAboutEditorDialog";
 import { ProfileAvatarEditorDialog } from "../../components/profile/ProfileAvatarEditorDialog";
@@ -8,7 +8,10 @@ import { ProfileAccountPanel } from "../../components/profile/ProfileAccountPane
 import { ProfileEducationSection } from "../../components/profile/ProfileEducationSection";
 import { ProfileEntryEditorDialog } from "../../components/profile/ProfileEntryEditorDialog";
 import { ProfilePageHeader } from "../../components/profile/ProfilePageHeader";
+import { ProfileConnectedAccountsPanel } from "../../components/profile/ProfileConnectedAccountsPanel";
 import { ProfilePasswordEditorDialog } from "../../components/profile/ProfilePasswordEditorDialog";
+import { ProfileSetPasswordDialog } from "../../components/profile/ProfileSetPasswordDialog";
+import { oauthErrorMessage } from "../../lib/auth/oauth-error-copy";
 import { AppPageContainer } from "../../components/app/AppPageContainer";
 import { ProfileWorkSection } from "../../components/profile/ProfileWorkSection";
 import { useAuth } from "../../lib/auth/context";
@@ -99,12 +102,25 @@ function removeById<T extends { id: string }>(items: T[], id: string): T[] {
 export default function ProfilePage() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const profileApi = () => createProfileApi(auth.productClient);
   const mediaApi = () => createMediaApi();
 
   const [logoutPending, setLogoutPending] = createSignal(false);
   const [editorTarget, setEditorTarget] = createSignal<ProfileEditorTarget | null>(null);
   const [passwordOpen, setPasswordOpen] = createSignal(false);
+  const [setPasswordDialogOpen, setSetPasswordDialogOpen] = createSignal(false);
+  const [unlinkPending, setUnlinkPending] = createSignal(false);
+  const [accountActionError, setAccountActionError] = createSignal<
+    string | undefined
+  >();
+
+  const oauthAccountBanner = () => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("google_linked") === "1")
+      return "Google account linked to this profile.";
+    return oauthErrorMessage(params.get("oauth_error"));
+  };
   const [loadPending, setLoadPending] = createSignal(true);
   const [loadError, setLoadError] = createSignal<string | undefined>();
 
@@ -263,6 +279,25 @@ export default function ProfilePage() {
     navigate(paths.login());
   }
 
+  async function persistSetPassword(input: { newPassword: string }) {
+    await auth.authApi.setPassword(input);
+    await auth.reloadSession();
+  }
+
+  async function unlinkGoogle() {
+    if (unlinkPending()) return;
+    setUnlinkPending(true);
+    setAccountActionError(undefined);
+    try {
+      await auth.authApi.unlinkGoogle();
+      await auth.reloadSession();
+    } catch (error) {
+      setAccountActionError(applyProfileApiError(error).banner);
+    } finally {
+      setUnlinkPending(false);
+    }
+  }
+
   async function onLogout() {
     if (logoutPending()) return;
     setLogoutPending(true);
@@ -322,12 +357,24 @@ export default function ProfilePage() {
               onDelete={requestRemoveEducation}
             />
           </div>
+          <ProfileConnectedAccountsPanel
+            account={auth.account}
+            unlinkPending={unlinkPending()}
+            oauthBanner={oauthAccountBanner()}
+            onUnlink={() => void unlinkGoogle()}
+            onSetPassword={() => setSetPasswordDialogOpen(true)}
+          />
+          <Show when={accountActionError()}>
+            <FormAlert variant="error">{accountActionError()}</FormAlert>
+          </Show>
           <ProfileAccountPanel
             logoutPending={logoutPending()}
             revocationUnconfirmed={auth.revocationUnconfirmed()}
             onLogout={() => void onLogout()}
             onRetryLogout={() => void auth.retryLogout()}
-            onChangePassword={() => setPasswordOpen(true)}
+            onChangePassword={
+              auth.account()?.hasPassword ? () => setPasswordOpen(true) : undefined
+            }
           />
         </div>
       </Show>
@@ -380,6 +427,11 @@ export default function ProfilePage() {
         open={passwordOpen()}
         onClose={() => setPasswordOpen(false)}
         onSave={persistPassword}
+      />
+      <ProfileSetPasswordDialog
+        open={setPasswordDialogOpen()}
+        onClose={() => setSetPasswordDialogOpen(false)}
+        onSave={persistSetPassword}
       />
     </AppPageContainer>
   );

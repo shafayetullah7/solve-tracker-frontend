@@ -36,6 +36,7 @@ function authValue(): AuthContextValue {
   return {
     status,
     user: userSignal,
+    account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],
     coordinator: {} as AuthContextValue["coordinator"],
@@ -43,6 +44,7 @@ function authValue(): AuthContextValue {
     establishSession: vi.fn(),
     clearSession: vi.fn(),
     retryBootstrap: async () => {},
+    reloadSession: async () => {},
     login: vi.fn(),
     logout,
     revocationUnconfirmed: () => false,

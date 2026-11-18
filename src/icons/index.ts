@@ -3,6 +3,7 @@ export { IconDashboard } from "./IconDashboard";
 export { IconEdit } from "./IconEdit";
 export { IconEye } from "./IconEye";
 export { IconEyeOff } from "./IconEyeOff";
+export { IconGoogle } from "./IconGoogle";
 export { IconLibrary } from "./IconLibrary";
 export { IconLogOut } from "./IconLogOut";
 export { IconMenu } from "./IconMenu";

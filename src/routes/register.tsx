@@ -1,4 +1,4 @@
-import { useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate } from "@solidjs/router";
 import { createSignal, Show } from "solid-js";
 import { AuthFormActions, authFormLinkClass } from "../components/auth/AuthFormActions";
 import { AuthLayout } from "../components/auth/AuthLayout";
@@ -15,6 +15,11 @@ import { AUTH_NAME_HINT, AUTH_PASSWORD_HINT } from "../lib/forms/auth-field-copy
 import { validateRegister } from "../lib/forms/validate-auth";
 import { useAuth } from "../lib/auth/context";
 import { useRedirectIfAuthenticated } from "../lib/auth/guest-auth-page";
+import { safeReturnPath } from "../lib/auth/forms";
+import { isGoogleOAuthEnabled } from "../lib/auth/google-oauth";
+import { GOOGLE_PRACTICE_LOGOUT_NOTE } from "../lib/auth/oauth-error-copy";
+import { AuthOAuthDivider } from "../components/auth/AuthOAuthDivider";
+import { ContinueWithGoogle } from "../components/auth/ContinueWithGoogle";
 import { paths } from "../router";
 
 const REGISTER_PASSWORD_ID = "register-password";
@@ -22,7 +27,10 @@ const REGISTER_PASSWORD_ID = "register-password";
 export default function Register() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   useRedirectIfAuthenticated();
+  const returnPath = () =>
+    safeReturnPath(new URLSearchParams(location.search).get("next")) ?? "/app";
   const form = createFormState("auth");
   const [name, setName] = createSignal("");
   const [email, setEmail] = createSignal("");
@@ -163,6 +171,11 @@ export default function Register() {
           </a>
         </AuthFormActions>
       </form>
+      <Show when={isGoogleOAuthEnabled()}>
+        <AuthOAuthDivider />
+        <ContinueWithGoogle returnTo={returnPath()} />
+        <p class="mt-3 text-center text-xs text-muted">{GOOGLE_PRACTICE_LOGOUT_NOTE}</p>
+      </Show>
     </AuthLayout>
   );
 }

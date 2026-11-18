@@ -144,6 +144,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/set-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuthController_setPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/topics": {
         parameters: {
             query?: never;
@@ -534,6 +550,10 @@ export interface operations {
                             /** Format: email */
                             email: string;
                         };
+                        account: {
+                            googleLinked: boolean;
+                            hasPassword: boolean;
+                        };
                     };
                 };
             };
@@ -720,6 +740,44 @@ export interface operations {
         };
         responses: {
             /** @description Password changed; all sessions revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AuthController_setPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 8–128 Unicode code points; spaces are preserved. */
+                    newPassword: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Initial password set for Google-only account; current session retained (unlike change-password). Errors: PASSWORD_ALREADY_SET, VALIDATION_ERROR. */
             204: {
                 headers: {
                     [name: string]: unknown;

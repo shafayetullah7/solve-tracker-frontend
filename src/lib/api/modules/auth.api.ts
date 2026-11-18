@@ -12,13 +12,31 @@ export type ForgotPasswordInput = JsonInput<
 >;
 export type ResetPasswordInput = JsonInput<operations["AuthController_reset"]>;
 export type ChangePasswordInput = JsonInput<operations["AuthController_changePassword"]>;
-export type SessionResponse =
+export type SetPasswordInput = JsonInput<operations["AuthController_setPassword"]>;
+type SessionJson =
   operations["AuthController_session"]["responses"][200]["content"]["application/json"];
+export type AccountFlags = SessionJson["account"];
+export type AuthUser = SessionJson["user"];
+/** Session probe includes `account`; login/register/refresh return `{ user }` only. */
+export type SessionResponse = {
+  user: AuthUser;
+  account?: AccountFlags;
+};
 export type ForgotPasswordResponse =
   operations["AuthController_forgot"]["responses"][202]["content"]["application/json"];
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+function parseAccount(value: unknown): AccountFlags | undefined {
+  if (!isRecord(value)) return undefined;
+  if (
+    typeof value.googleLinked !== "boolean" ||
+    typeof value.hasPassword !== "boolean"
+  )
+    return undefined;
+  return { googleLinked: value.googleLinked, hasPassword: value.hasPassword };
+}
+
 function session(value: unknown): SessionResponse {
   if (
     !isRecord(value) ||
@@ -28,8 +46,10 @@ function session(value: unknown): SessionResponse {
     typeof value.user.email !== "string"
   )
     throw new ApiError("contract", "Invalid session response.");
+  const account = parseAccount(value.account);
   return {
     user: { id: value.user.id, name: value.user.name, email: value.user.email },
+    ...(account ? { account } : {}),
   };
 }
 // Every auth operation explicitly disables recovery, including the coordinator's
@@ -101,6 +121,28 @@ export function createAuthApi(client: ApiClient) {
         path: "/auth/change-password",
         method: "POST",
         body: input,
+        response: "empty",
+        signal,
+        recoverAuth: false,
+      });
+    },
+    async setPassword(
+      input: SetPasswordInput,
+      signal?: AbortSignal,
+    ): Promise<void> {
+      await client.request({
+        path: "/auth/set-password",
+        method: "POST",
+        body: input,
+        response: "empty",
+        signal,
+        recoverAuth: false,
+      });
+    },
+    async unlinkGoogle(signal?: AbortSignal): Promise<void> {
+      await client.request({
+        path: "/auth/google/link",
+        method: "DELETE",
         response: "empty",
         signal,
         recoverAuth: false,

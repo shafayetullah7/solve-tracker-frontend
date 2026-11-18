@@ -10,6 +10,7 @@ import {
 import { ApiError } from "../api/errors";
 import type { ApiClient } from "../api/client";
 import type {
+  AccountFlags,
   createAuthApi,
   LoginInput,
 } from "../api/modules/auth.api";
@@ -37,6 +38,7 @@ export type AuthClientsBundle = ReturnType<typeof createAuthClients>;
 export type AuthContextValue = {
   status: () => AuthStatus;
   user: () => AuthUser | undefined;
+  account: () => AccountFlags | undefined;
   productClient: ApiClient;
   authApi: ReturnType<typeof createAuthApi>;
   coordinator: AuthCoordinator;
@@ -45,6 +47,7 @@ export type AuthContextValue = {
   establishSession: (user: AuthUser) => void;
   clearSession: () => void;
   retryBootstrap: () => Promise<void>;
+  reloadSession: () => Promise<void>;
   login: (input: LoginInput) => Promise<void>;
   logout: () => Promise<void>;
   retryLogout: () => Promise<void>;
@@ -89,18 +92,22 @@ function applyBootstrapResult(
   result: BootstrapResult,
   setStatus: (value: AuthStatus) => void,
   setUser: (value: AuthUser | undefined) => void,
+  setAccount: (value: AccountFlags | undefined) => void,
 ) {
   switch (result.kind) {
     case "authenticated":
       setUser(result.user);
+      setAccount(result.account);
       setStatus("authenticated");
       break;
     case "anonymous":
       setUser(undefined);
+      setAccount(undefined);
       setStatus("anonymous");
       break;
     case "unavailable":
       setUser(undefined);
+      setAccount(undefined);
       setStatus("unavailable");
       break;
     case "cancelled":
@@ -130,6 +137,7 @@ export function AuthProvider(
     userFromSeed(seed),
   );
   const [revocationUnconfirmed, setRevocationUnconfirmed] = createSignal(false);
+  const [account, setAccount] = createSignal<AccountFlags | undefined>();
 
   let bootstrapGeneration = 0;
   let crossTab: AuthCrossTab | undefined;
@@ -145,6 +153,7 @@ export function AuthProvider(
     invalidateBootstrapProbe();
     bundle.coordinator.bumpEpoch();
     setUser(undefined);
+    setAccount(undefined);
     setStatus("anonymous");
   }
 
@@ -158,6 +167,7 @@ export function AuthProvider(
     if (!soft) {
       setStatus("checking");
       setUser(undefined);
+      setAccount(undefined);
     }
     const result = await resolveBootstrapSession(
       bundle.authApi,
@@ -165,7 +175,16 @@ export function AuthProvider(
       { isAborted: () => generation !== bootstrapGeneration },
     );
     if (generation !== bootstrapGeneration) return;
-    applyBootstrapResult(result, setStatus, setUser);
+    applyBootstrapResult(result, setStatus, setUser, setAccount);
+  }
+
+  async function reloadSession() {
+    const session = await bundle.coordinator.runWithSessionLock(() =>
+      bundle.authApi.getSession(),
+    );
+    setUser(session.user);
+    setAccount(session.account);
+    setStatus("authenticated");
   }
 
   async function onPeerInvalidate() {
@@ -210,6 +229,7 @@ export function AuthProvider(
   const value: AuthContextValue = {
     status,
     user,
+    account,
     productClient: bundle.productClient,
     authApi: bundle.authApi,
     coordinator: bundle.coordinator,
@@ -218,10 +238,12 @@ export function AuthProvider(
     establishSession(sessionUser) {
       invalidateBootstrapProbe();
       setUser(sessionUser);
+      setAccount(undefined);
       setStatus("authenticated");
     },
     clearSession: invalidateLocalSession,
     retryBootstrap: () => runBootstrap({ forceChecking: true }),
+    reloadSession,
     notifyPeersLoggedOut() {
       crossTab?.publishLoggedOut();
     },
@@ -238,6 +260,7 @@ export function AuthProvider(
         );
       }
       setUser(session.user);
+      setAccount(session.account);
       setStatus("authenticated");
       setRevocationUnconfirmed(false);
       crossTab?.publishSessionChanged();
