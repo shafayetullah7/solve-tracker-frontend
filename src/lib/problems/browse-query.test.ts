@@ -3,6 +3,7 @@ import {
   browseClearHref,
   DEFAULT_BROWSE_QUERY,
   hasActiveBrowseFilters,
+  hasAdvancedBrowseFilters,
   parseBrowseSearch,
   serializeBrowseSearch,
 } from "./browse-query";
@@ -14,7 +15,15 @@ describe("browse-query", () => {
   test("defaults when search is empty", () => {
     expect(parseBrowseSearch("")).toEqual(DEFAULT_BROWSE_QUERY);
     expect(hasActiveBrowseFilters("")).toBe(false);
+    expect(hasAdvancedBrowseFilters("")).toBe(false);
     expect(browseClearHref()).toBe("/app/problems");
+  });
+
+  test("hasAdvancedBrowseFilters ignores primary-only filters", () => {
+    expect(hasAdvancedBrowseFilters("?status=unsolved&q=foo&platform=leetcode"))
+      .toBe(false);
+    expect(hasAdvancedBrowseFilters(`?topicId=${topicA}`)).toBe(true);
+    expect(hasAdvancedBrowseFilters("?sort=title")).toBe(true);
   });
 
   test("round-trip full filter set", () => {

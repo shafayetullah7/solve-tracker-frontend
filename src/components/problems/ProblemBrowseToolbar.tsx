@@ -13,10 +13,33 @@ import {
   type BrowseStatusFilter,
 } from "../../lib/problems/browse-toolbar-state";
 import { toggleTopicId } from "../../lib/problems/form-state";
+import { hasAdvancedBrowseFilters } from "../../lib/problems/browse-query";
 import {
   usePlatformCatalog,
   usePlatformFilterOptions,
 } from "../../lib/platforms/platform-catalog-context";
+
+const ADVANCED_EXPANDED_STORAGE_KEY =
+  "practice.problems.browseAdvancedFiltersExpanded";
+
+function readAdvancedExpandedPreference(): boolean | undefined {
+  try {
+    const stored = sessionStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
+    if (stored === "1") return true;
+    if (stored === "0") return false;
+  } catch {
+    /* private mode */
+  }
+  return undefined;
+}
+
+function writeAdvancedExpandedPreference(expanded: boolean) {
+  try {
+    sessionStorage.setItem(ADVANCED_EXPANDED_STORAGE_KEY, expanded ? "1" : "0");
+  } catch {
+    /* private mode */
+  }
+}
 
 type ProblemBrowseToolbarProps = {
   searchKey: string;
@@ -28,6 +51,8 @@ type ProblemBrowseToolbarProps = {
 };
 
 const FIELD = "ui-field min-h-10 w-full py-2 text-label";
+const ADVANCED_TOGGLE =
+  "ui-field flex size-[2.75rem] shrink-0 items-center justify-center !p-0 text-muted transition-transform hover:bg-surface-muted";
 const SEARCH_DEBOUNCE_MS = 400;
 
 type LegendProps = { children: string };
@@ -60,8 +85,20 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   >("desc");
   const [pageSize, setPageSize] = createSignal(25);
   const [searchPending, setSearchPending] = createSignal(false);
+  const [advancedOpen, setAdvancedOpen] = createSignal(
+    readAdvancedExpandedPreference() ??
+      hasAdvancedBrowseFilters(props.searchKey),
+  );
 
   const orderLabels = createMemo(() => browseOrderOptions(sort()));
+
+  function toggleAdvanced() {
+    setAdvancedOpen((open) => {
+      const next = !open;
+      writeAdvancedExpandedPreference(next);
+      return next;
+    });
+  }
 
   const toolbarFields = () => ({
     q: q(),
@@ -137,25 +174,23 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   }
 
   const formId = "problem-browse-filters";
+  const advancedPanelId = `${formId}-advanced`;
 
   return (
     <form
       id={formId}
-      class="space-y-3"
+      class="space-y-2"
       onSubmit={onSearchSubmit}
-      aria-describedby={`${formId}-hint`}
+      aria-describedby={
+        advancedOpen() ? `${formId}-hint` : undefined
+      }
     >
-      <p id={`${formId}-hint`} class="text-caption text-muted">
-        Filters and display update as you change them. Search waits briefly after
-        you stop typing.
-      </p>
-
       <fieldset class="min-w-0 border-0 p-0">
         <FieldLegend>Filter problems</FieldLegend>
-        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-12">
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-12 md:items-end">
           <input
             id={`${formId}-q`}
-            class={`${FIELD} sm:col-span-2 md:col-span-6`}
+            class={`${FIELD} sm:col-span-2 md:col-span-5`}
             type="search"
             value={q()}
             aria-label="Search title or platform problem id"
@@ -204,6 +239,31 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
               {(entry) => <option value={entry.slug}>{entry.label}</option>}
             </For>
           </select>
+
+          <button
+            type="button"
+            class={`${ADVANCED_TOGGLE} sm:col-span-2 sm:justify-self-end md:col-span-1 md:justify-self-end`}
+            aria-expanded={advancedOpen() ? "true" : "false"}
+            aria-controls={advancedPanelId}
+            aria-label={
+              advancedOpen()
+                ? "Hide sort and topic filters"
+                : "Show sort and topic filters"
+            }
+            onClick={toggleAdvanced}
+          >
+            <span
+              aria-hidden="true"
+              class={[
+                "inline-block text-lg leading-none",
+                advancedOpen() && "rotate-180",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              ▾
+            </span>
+          </button>
         </div>
         <Show when={catalog.status() === "error"}>
           <p class="mt-2 text-caption text-muted">
@@ -218,6 +278,22 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
           </p>
         </Show>
       </fieldset>
+
+      <Show when={searchPending()}>
+        <p class="text-caption text-muted" role="status">
+          Updating search…
+        </p>
+      </Show>
+
+      <Show when={advancedOpen()}>
+        <div
+          id={advancedPanelId}
+          class="space-y-3 border-t border-line pt-3"
+        >
+          <p id={`${formId}-hint`} class="text-caption text-muted">
+            Filters and display update as you change them. Search waits briefly
+            after you stop typing.
+          </p>
 
       <fieldset class="min-w-0 border-0 p-0">
         <FieldLegend>Sort &amp; display</FieldLegend>
@@ -286,12 +362,6 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
         </div>
       </fieldset>
 
-      <Show when={searchPending()}>
-        <p class="text-caption text-muted" role="status">
-          Updating search…
-        </p>
-      </Show>
-
       <Show when={props.topicsLoading()}>
         <p class="text-caption text-muted">Loading topics…</p>
       </Show>
@@ -356,6 +426,8 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
           />
           Untagged only
         </label>
+      </Show>
+        </div>
       </Show>
     </form>
   );

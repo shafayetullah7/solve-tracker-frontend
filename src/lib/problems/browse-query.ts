@@ -140,3 +140,21 @@ export function hasActiveBrowseFilters(search: string): boolean {
     return true;
   return false;
 }
+
+/** Sort, topics, untagged, or page size — controls in the collapsible block. */
+export function hasAdvancedBrowseFilters(search: string): boolean {
+  const params = searchParams(search);
+  if (params.get("untagged") === "true") return true;
+  if (params.get("topicId") && UUID.test(params.get("topicId")!)) return true;
+  if (params.getAll("topicIds").some((id) => UUID.test(id))) return true;
+  if (params.get("sort") && params.get("sort") !== DEFAULT_BROWSE_QUERY.sort)
+    return true;
+  if (params.get("order") && params.get("order") !== DEFAULT_BROWSE_QUERY.order)
+    return true;
+  if (
+    params.get("pageSize") &&
+    params.get("pageSize") !== String(DEFAULT_BROWSE_QUERY.pageSize)
+  )
+    return true;
+  return false;
+}

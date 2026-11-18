@@ -227,3 +227,22 @@ export function buildBrowseActiveChips(
 export function serializedBrowseFromSearch(search: string): string {
   return serializeBrowseSearch(parseBrowseSearch(search));
 }
+
+/** One-line summary for the collapsed library filter bar. */
+export function browseFiltersCollapsedSummary(
+  search: string,
+  topicNameById: Map<string, string>,
+  platformOptions: BrowsePlatformOption[] = [],
+): string {
+  const chips = buildBrowseActiveChips(
+    search,
+    topicNameById,
+    platformOptions,
+  );
+  if (chips.length === 0) return "All problems";
+  if (chips.length === 1) return chips[0]!.label;
+  if (chips.length === 2) {
+    return `${chips[0]!.label} · ${chips[1]!.label}`;
+  }
+  return `${chips.length} active settings`;
+}

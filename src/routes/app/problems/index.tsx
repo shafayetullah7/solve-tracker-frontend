@@ -14,8 +14,7 @@ import {
   LibraryProgressStrip,
   type ProgressLoadStatus,
 } from "../../../components/problems/LibraryProgressStrip";
-import { BrowseActiveFilters } from "../../../components/problems/BrowseActiveFilters";
-import { ProblemBrowseToolbar } from "../../../components/problems/ProblemBrowseToolbar";
+import { ProblemBrowseFiltersSection } from "../../../components/problems/ProblemBrowseFiltersSection";
 import { ProblemLibraryRow } from "../../../components/problems/ProblemLibraryRow";
 import { Button } from "../../../components/ui/Button";
 import { LoadingPlaceholder } from "../../../components/ui/LoadingPlaceholder";
@@ -294,24 +293,14 @@ export default function ProblemsIndex() {
       </Show>
 
       <Panel>
-        <div
-          class="sticky top-0 z-10 -mx-5 mb-3 border-b border-line bg-surface px-5 py-2 sm:-mx-6 sm:px-6"
-          role="search"
-          aria-label="Filter saved problems"
-        >
-          <ProblemBrowseToolbar
+        <div class="sticky top-0 z-10 -mx-5 mb-3 border-b border-line bg-surface px-5 py-2 sm:-mx-6 sm:px-6">
+          <ProblemBrowseFiltersSection
             searchKey={location.search}
             topics={topics}
             topicsLoading={topicsLoading}
             topicsTruncated={topicsTruncated}
             clearHref={browseClearHref()}
             onApply={applyBrowse}
-          />
-
-          <BrowseActiveFilters
-            searchKey={location.search}
-            topics={topics}
-            clearHref={browseClearHref()}
           />
         </div>
 
