@@ -4,6 +4,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  untrack,
   useContext,
 } from "solid-js";
 import { createPlatformsApi } from "../api/modules/platforms.api";
@@ -149,7 +150,8 @@ export function PlatformCatalogProvider(
   }
 
   async function loadCatalog(force = false): Promise<void> {
-    if (!force && status() === "ready") return;
+    const catalogStatus = untrack(status);
+    if (!force && catalogStatus === "ready") return;
     if (!force && inflight) return inflight;
     setStatus("loading");
     setError(undefined);
@@ -179,10 +181,12 @@ export function PlatformCatalogProvider(
     reloadCatalog,
   };
 
+  /** Kick load when session is ready — track auth only (`loadCatalog` mutates `status`). */
   createEffect(
-    () => status(),
-    (current) => {
-      if (current === "idle") void loadCatalog(false);
+    () => auth.status(),
+    (authStatus) => {
+      if (authStatus !== "authenticated") return;
+      void loadCatalog(false);
     },
   );
 

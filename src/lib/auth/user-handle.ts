@@ -32,9 +32,3 @@ export function validateUserHandle(raw: string): string | undefined {
   if (!HANDLE_EDGES.test(trimmed)) return HANDLE_FORMAT_MESSAGE;
   return undefined;
 }
-
-export const HANDLE_NUDGE_STORAGE_PREFIX = "practice.handle-nudge.dismissed:";
-
-export function handleNudgeStorageKey(userId: string): string {
-  return `${HANDLE_NUDGE_STORAGE_PREFIX}${userId}`;
-}

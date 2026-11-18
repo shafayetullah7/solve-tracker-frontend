@@ -1,7 +1,7 @@
 import {
-  createEffect,
   createMemo,
   createSignal,
+  onSettled,
   For,
   Match,
   Switch,
@@ -73,12 +73,9 @@ export function LandingPlatforms(props: LandingPlatformsProps = {}) {
     return inflight;
   }
 
-  createEffect(
-    () => status(),
-    (current) => {
-      if (current === "idle") void loadCatalog();
-    },
-  );
+  onSettled(() => {
+    void loadCatalog();
+  });
 
   const platforms = createMemo(() => resolveAllPlatforms(entries()));
 

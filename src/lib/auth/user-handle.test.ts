@@ -22,4 +22,5 @@ describe("user-handle", () => {
     expect(validateUserHandle("_bad")).toBeTruthy();
     expect(validateUserHandle("has space")).toBeTruthy();
   });
+
 });

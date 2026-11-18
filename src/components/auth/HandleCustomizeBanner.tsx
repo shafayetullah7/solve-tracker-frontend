@@ -1,47 +1,25 @@
-import { createEffect, createSignal, Show } from "solid-js";
-import {
-  formatHandleLabel,
-  handleNudgeStorageKey,
-  isSystemAssignedHandle,
-} from "../../lib/auth/user-handle";
+import { createMemo, createSignal, Show } from "solid-js";
+import { formatHandleLabel, isSystemAssignedHandle } from "../../lib/auth/user-handle";
 import { useAuth } from "../../lib/auth/context";
 import { paths } from "../../router";
 
+/**
+ * Nudge while the account still has a system-assigned handle (session/API truth).
+ * Dismiss is session-only: we remember which user id dismissed — no browser storage, no effects.
+ */
 export function HandleCustomizeBanner() {
   const auth = useAuth();
-  const [dismissed, setDismissed] = createSignal(false);
+  /** User id that clicked Dismiss this SPA session; does not apply after account switch. */
+  const [dismissedForUserId, setDismissedForUserId] = createSignal<string | null>(
+    null,
+  );
 
-  createEffect(() => {
+  const visible = createMemo(() => {
+    if (auth.status() !== "authenticated") return false;
     const user = auth.user();
-    if (!user) {
-      setDismissed(false);
-      return;
-    }
-    try {
-      setDismissed(localStorage.getItem(handleNudgeStorageKey(user.id)) === "1");
-    } catch {
-      setDismissed(false);
-    }
+    if (!user?.handle || !isSystemAssignedHandle(user.handle)) return false;
+    return dismissedForUserId() !== user.id;
   });
-
-  const visible = () =>
-    auth.status() === "authenticated" &&
-    !dismissed() &&
-    (() => {
-      const handle = auth.user()?.handle;
-      return handle ? isSystemAssignedHandle(handle) : false;
-    })();
-
-  function dismiss() {
-    const user = auth.user();
-    if (!user) return;
-    try {
-      localStorage.setItem(handleNudgeStorageKey(user.id), "1");
-    } catch {
-      // ignore
-    }
-    setDismissed(true);
-  }
 
   return (
     <Show when={visible()}>
@@ -58,7 +36,15 @@ export function HandleCustomizeBanner() {
             <a class="ui-button" data-variant="secondary" href={`${paths.app.profile()}?focus=handle`}>
               Set handle
             </a>
-            <button type="button" class="ui-button" data-variant="ghost" onClick={dismiss}>
+            <button
+              type="button"
+              class="ui-button"
+              data-variant="ghost"
+              onClick={() => {
+                const id = auth.user()?.id;
+                if (id) setDismissedForUserId(id);
+              }}
+            >
               Dismiss
             </button>
           </div>
