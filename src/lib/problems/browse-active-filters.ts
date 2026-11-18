@@ -6,7 +6,7 @@ import {
 } from "./browse-query";
 import { browseOrderOptionLabel } from "./browse-order-labels";
 import { problemsBrowseHref } from "./paths";
-import { PLATFORM_FILTER_OPTIONS } from "./platform-display";
+export type BrowsePlatformOption = { slug: string; label: string };
 
 export type BrowseFilterOmit =
   | "q"
@@ -37,11 +37,12 @@ const SORT_LABELS: Record<NonNullable<ListProblemsQuery["sort"]>, string> = {
   solvedAt: "Date solved",
 };
 
-function platformLabel(slug: NonNullable<ListProblemsQuery["platform"]>): string {
+function platformLabel(
+  slug: NonNullable<ListProblemsQuery["platform"]>,
+  platformOptions: BrowsePlatformOption[],
+): string {
   if (slug === "other") return "Other";
-  return (
-    PLATFORM_FILTER_OPTIONS.find((entry) => entry.slug === slug)?.label ?? slug
-  );
+  return platformOptions.find((entry) => entry.slug === slug)?.label ?? slug;
 }
 
 export function browseQueryOmitting(
@@ -110,6 +111,7 @@ export type BrowseActiveChipGroups = {
 export function buildBrowseActiveChipGroups(
   search: string,
   topicNameById: Map<string, string>,
+  platformOptions: BrowsePlatformOption[] = [],
 ): BrowseActiveChipGroups {
   const query = parseBrowseSearch(search);
   const filters: BrowseFilterChip[] = [];
@@ -125,7 +127,7 @@ export function buildBrowseActiveChipGroups(
   }
 
   if (query.platform) {
-    const label = `Platform: ${platformLabel(query.platform)}`;
+    const label = `Platform: ${platformLabel(query.platform, platformOptions)}`;
     filters.push(chip("platform", label, browseHrefOmitting(query, "platform")));
   }
 
@@ -211,8 +213,13 @@ export function buildBrowseActiveChipGroups(
 export function buildBrowseActiveChips(
   search: string,
   topicNameById: Map<string, string>,
+  platformOptions: BrowsePlatformOption[] = [],
 ): BrowseFilterChip[] {
-  const groups = buildBrowseActiveChipGroups(search, topicNameById);
+  const groups = buildBrowseActiveChipGroups(
+    search,
+    topicNameById,
+    platformOptions,
+  );
   return [...groups.filters, ...groups.view];
 }
 

@@ -13,6 +13,7 @@ export function createAuthClients(options?: {
   locks?: LockAdapter;
   broadcast?: BroadcastAdapter;
   timeoutMs?: number;
+  onSessionInvalidated?: () => void;
 }) {
   const rawClient = createApiClient({
     fetch: options?.fetch,
@@ -31,6 +32,7 @@ export function createAuthClients(options?: {
     timeoutMs: options?.timeoutMs,
     recoverSession: () => coordinator.recoverSession(),
     getAuthEpoch: () => coordinator.getEpoch(),
+    onSessionInvalidated: options?.onSessionInvalidated,
   });
   return { authApi, productClient, coordinator, rawClient, broadcast };
 }

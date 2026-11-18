@@ -1,6 +1,6 @@
 # Frontend hardening — phased plan
 
-**Status:** SSR-1 complete (2026-11-17). **SSR-2 complete (2026-11-17, Track B).** **DEPLOY-1 complete (2026-11-17).** **DATA-1 complete (2026-11-17, Option B):** `pnpm verify:catalog`. **REPO-1 complete (2026-11-17):** `pnpm verify:repo-paths`. **QUALITY-1 complete (2026-11-17):** `292` unit tests, SSR/middleware coverage. **UX-1 complete (2026-11-17):** single `main-content` in `/app`, chunk preload recovery. **SEC-1 complete (2026-11-17):** CSP nonce opt-in, proxy header policy, SSR ops logging.  
+**Status:** SSR-1 complete (2026-11-17). **SSR-2 complete (2026-11-17, Track B).** **DEPLOY-1 complete (2026-11-17).** **DATA-1 / PLATFORM-API A6 (2026-11-18):** `pnpm verify:platform-api` (API-backed catalog contract; `verify:catalog` alias). **REPO-1 complete (2026-11-17):** `pnpm verify:repo-paths`. **QUALITY-1 complete (2026-11-17):** `292` unit tests, SSR/middleware coverage. **UX-1 complete (2026-11-17):** single `main-content` in `/app`, chunk preload recovery. **SEC-1 complete (2026-11-17):** CSP nonce opt-in, proxy header policy, SSR ops logging.  
 **Goal:** Make the frontend deployable and maintainable without shortcuts—SSR, same-origin API, catalog, tests, and docs aligned with [`@solidjs/vite-plugin`](../../node_modules/@solidjs/vite-plugin/README.md) Start mode and product conventions.  
 **Related:** [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md), [AUTH_CONVENTIONS.md](../AUTH_CONVENTIONS.md), [API_CLIENT.md](../API_CLIENT.md), [README.md](../README.md), backend [PRODUCTION.md](../../solve-tracker-backend/PRODUCTION.md).
 
@@ -14,7 +14,7 @@
 | Production Node entry | `pnpm build` → `dist/server/node.js`; `pnpm start` (port **3001**) |
 | API proxy middleware | [`config/start-middleware.ts`](../config/start-middleware.ts) — `/api` → `API_PROXY_TARGET` |
 | Loading layout | `App.tsx` / `AppShell` flex chain for centered `RouteLoadingScreen` |
-| Local platform catalog | [`src/lib/platforms/platform-catalog.ts`](../src/lib/platforms/platform-catalog.ts) (no backend import at build time) |
+| Platform catalog runtime | `GET /platforms` via [`platform-catalog-context.tsx`](../src/lib/platforms/platform-catalog-context.tsx); slug guards in [`platform-slugs.ts`](../src/lib/platforms/platform-slugs.ts) |
 | Route error boundaries | [`RouteBoundary`](../src/components/ui/RouteBoundary.tsx) |
 
 **Do not regress:** independent frontend/backend deploys; no filesystem imports from `solve-tracker-backend` into the client bundle (OpenAPI generate is the only build-time bridge).
@@ -30,7 +30,7 @@
 | ~~**No HTML cache policy**~~ | **Done (SSR-1):** `private, no-store` + `Vary: Cookie` on HTML |
 | ~~**Auth only after hydrate**~~ | **Done (SSR-2 Track B):** cookie-forwarded probe seeds `AuthProvider` on SSR |
 | ~~**Duplicate `#main-content`**~~ | **Done (UX-1):** `RouteBoundary nestedInAppShell` + `mainContent={false}` |
-| ~~**Platform catalog drift**~~ | **Done (DATA-1 B):** [`verify-platform-catalog.mjs`](../scripts/verify-platform-catalog.mjs) |
+| ~~**Platform catalog drift**~~ | **Done (PLATFORM-API A6):** [`verify-platform-api.mjs`](../scripts/verify-platform-api.mjs) |
 | ~~**Stale repo paths**~~ | **Done (REPO-1):** scripts, e2e, contributor + phase docs; `pnpm verify:repo-paths` |
 | ~~**Unstable `pnpm test`**~~ | **Done (QUALITY-1):** dashboard/problem suites green; SSR + middleware unit tests added |
 | ~~**Chunk load failures**~~ | **Done (UX-1):** `client-setup.ts` + `vite:preloadError` banner |
@@ -127,25 +127,18 @@ Hydrate-gate only: document loader-first auth; no server probe.
 
 **Outcome:** UI platform labels/slugs cannot silently diverge from API reference data.
 
-**Chosen: Option B** — CI drift check (no new API; no shared package).
+**Evolution:** DATA-1 began as a **dual-file** drift check (pre–PLATFORM-API). **PLATFORM-API A5** removed the frontend catalog copy; **A6** replaced file-to-file parity with **`verify:platform-api`** (catalog ↔ `openapi.json` ↔ `CATALOG_SLUGS` ↔ `PlatformsService` list shape).
 
 ### Delivered
 
-1. [`catalog-canonical.ts`](../src/lib/platforms/catalog-canonical.ts) — order-sensitive compare of slug, name, baseUrl, urlHosts.
-2. [`scripts/verify-platform-catalog.mjs`](../scripts/verify-platform-catalog.mjs) — `pnpm verify:catalog` (dev/verify only; not in client bundle).
-3. Contributor workflow in [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md); backend header comment on twin file.
-
-### Options not chosen (reference)
-
-| Option | Work |
-| --- | --- |
-| **A — API-first** | Load platform filter options from backend `GET` reference |
-| **C — Shared package** | Workspace package both apps depend on |
+1. [`catalog-canonical.ts`](../src/lib/platforms/catalog-canonical.ts) — order-sensitive compare of slug, name, baseUrl, urlHosts (used by verify script).
+2. [`scripts/verify-platform-api.mjs`](../scripts/verify-platform-api.mjs) — `pnpm verify:platform-api` (`verify:catalog` alias; dev/verify only).
+3. Runtime catalog via `GET /platforms` + [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md) § Platform catalog.
 
 ### Verification
 
-- [x] Deliberate slug change on one side fails `pnpm verify:catalog`.
-- [x] Matching catalogs pass (`16` entries as of implementation).
+- [x] Deliberate slug drift fails `pnpm verify:platform-api`.
+- [x] Matching contract passes (`16` slugs as of PLATFORM-API A6).
 
 ---
 
@@ -168,7 +161,7 @@ Hydrate-gate only: document loader-first auth; no server probe.
 ### Verification
 
 - [ ] `pnpm verify:phase-4.7` (or relevant verify) from documented cwd without path edits.
-- [x] No `cp-frontend` / `../backend` in `scripts/`, `e2e/`, `package.json`, `AGENTS.md` (`pnpm verify:repo-paths`).
+- [x] No short `cp-frontend` / `backend` sibling paths in `scripts/`, `e2e/`, `package.json`, `AGENTS.md` (`pnpm verify:repo-paths`).
 
 ---
 
@@ -240,7 +233,7 @@ SEC-1 (before public production URL)
 - [x] SSR: shell-only render hydrates without key misses; auth redirects are server `302`s (SSR-FIX).
 - [ ] One `/api` proxy story (local + prod documented).
 - [ ] Auth track chosen, documented, tested (A or B).
-- [x] Catalog strategy implemented and enforced (`pnpm verify:catalog`).
+- [x] Catalog strategy implemented and enforced (`pnpm verify:platform-api`).
 - [x] `pnpm test` / `pnpm lint` green; SSR smoke script passes (`pnpm verify:deploy`) — unit/lint gate done in QUALITY-1; run `verify:deploy` before release.
 - [ ] Deploy runbook: backend + `pnpm start` or edge proxy; no reliance on undeclared `pnpm start` on wrong package.
 - [x] No duplicate `main-content`; preload error banner (UX-1).
@@ -253,7 +246,7 @@ SEC-1 (before public production URL)
 | --- | --- | --- |
 | 2026-11-17 | `@solidjs/vite-plugin` Start mode, not `@solidjs/start` | Matches installed Solid 2 RC stack |
 | 2026-11-17 | `nodeServer: true`, port 3001 | Nest on 3000 |
-| 2026-11-17 | Catalog **Option B** — drift check | Independent deploys; duplicated TS; no GET reference API |
+| 2026-11-17 | Catalog **Option B** — drift check (evolved **PLATFORM-API**) | Started as dual-file drift; **A0–A6** → `GET /platforms` + `verify:platform-api` |
 | 2026-11-17 | SSR auth **Track B** | Per-request session probe + hydration seed |
 | 2026-11-17 | **REPO-1** path/doc normalization | `solve-tracker-*` layout; `verify:repo-paths`; password docs **8–128** |
 | 2026-11-17 | **QUALITY-1** test gate | SSR middleware + session probe unit tests; full vitest green |

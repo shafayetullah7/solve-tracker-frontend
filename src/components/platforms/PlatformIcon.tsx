@@ -1,13 +1,20 @@
+import { createMemo } from "solid-js";
 import {
-  isPlatformSlug,
-  platformLabelBySlug,
-  platformSlugFromUrl,
-  type PlatformSlug,
-} from "../../lib/platforms/catalog";
+  useOptionalPlatformCatalog,
+} from "../../lib/platforms/platform-catalog-context";
+import {
+  platformLabelBySlug as runtimeLabelBySlug,
+  platformSlugFromUrl as runtimeSlugFromUrl,
+} from "../../lib/platforms/catalog-runtime";
+import type { CatalogSlug } from "../../lib/platforms/catalog-runtime";
+import {
+  fallbackLabelForStoredSlug,
+  isKnownCatalogSlug,
+} from "../../lib/platforms/platform-slugs";
 import { platformIconHex, platformIconPath } from "../../lib/platforms/icon-registry";
 
 export type PlatformIconProps = {
-  slug?: PlatformSlug | string;
+  slug?: CatalogSlug | string;
   url?: string;
   class?: string;
   /** Use brand hex when set; default uses currentColor for theme fit. */
@@ -15,22 +22,33 @@ export type PlatformIconProps = {
   title?: string;
 };
 
-function resolvedSlug(props: PlatformIconProps): PlatformSlug | null {
-  if (props.slug && isPlatformSlug(props.slug)) return props.slug;
-  if (props.url) return platformSlugFromUrl(props.url);
-  return null;
-}
-
 export function PlatformIcon(props: PlatformIconProps) {
-  const slug = () => resolvedSlug(props);
+  const catalog = useOptionalPlatformCatalog();
+
+  const slug = createMemo((): CatalogSlug | null => {
+    if (props.slug && isKnownCatalogSlug(props.slug)) return props.slug;
+    const ready = catalog?.status() === "ready";
+    if (props.url && ready) {
+      const fromRuntime = runtimeSlugFromUrl(catalog!.entries(), props.url);
+      if (fromRuntime) return fromRuntime;
+    }
+    return null;
+  });
+
   const path = () => {
     const s = slug();
     return s ? platformIconPath(s) : undefined;
   };
+
   const label = () => {
-    const s = slug();
-    if (s) return platformLabelBySlug(s);
     if (props.title) return props.title;
+    const s = slug();
+    if (s) {
+      if (catalog?.status() === "ready") {
+        return runtimeLabelBySlug(catalog.entries(), s);
+      }
+      return fallbackLabelForStoredSlug(s);
+    }
     return "Platform";
   };
 

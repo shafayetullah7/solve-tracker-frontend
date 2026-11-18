@@ -10,11 +10,11 @@ import {
   siSpoj,
   siTopcoder,
 } from "simple-icons";
-import type { PlatformSlug } from "./catalog";
+import type { CatalogSlug } from "./catalog-runtime";
 
 /** simple-icons entries keyed by our platform slug (when available). */
 export const PLATFORM_SIMPLE_ICONS: Partial<
-  Record<PlatformSlug, SimpleIcon>
+  Record<CatalogSlug, SimpleIcon>
 > = {
   codeforces: siCodeforces,
   leetcode: siLeetcode,
@@ -27,10 +27,10 @@ export const PLATFORM_SIMPLE_ICONS: Partial<
   topcoder: siTopcoder,
 };
 
-export function platformIconPath(slug: PlatformSlug): string | undefined {
+export function platformIconPath(slug: CatalogSlug): string | undefined {
   return PLATFORM_SIMPLE_ICONS[slug]?.path;
 }
 
-export function platformIconHex(slug: PlatformSlug): string | undefined {
+export function platformIconHex(slug: CatalogSlug): string | undefined {
   return PLATFORM_SIMPLE_ICONS[slug]?.hex;
 }

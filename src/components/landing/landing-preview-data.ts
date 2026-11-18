@@ -1,8 +1,8 @@
-import type { PlatformSlug } from "../../lib/platforms/catalog";
+import type { CatalogSlug } from "../../lib/platforms/catalog-runtime";
 
 export type LandingPreviewProblem = {
   title: string;
-  slug: PlatformSlug;
+  slug: CatalogSlug;
   topics: string[];
   status: "solved" | "unsolved";
 };

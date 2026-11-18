@@ -1,15 +1,12 @@
 import type { ParentProps } from "solid-js";
-import {
-  platformLabelForStoredSlug,
-  platformLabelFromUrl,
-  type PlatformSlug,
-} from "../../lib/platforms/catalog";
+import { usePlatformLabels } from "../../lib/platforms/platform-catalog-context";
+import type { CatalogSlug } from "../../lib/platforms/catalog-runtime";
 import { PlatformIcon, type PlatformIconProps } from "./PlatformIcon";
 
 export type PlatformMarkProps = ParentProps<
   Omit<PlatformIconProps, "title"> & {
     url?: string;
-    slug?: PlatformSlug | string;
+    slug?: CatalogSlug | string;
     /** Override display text (default: label from slug or URL). */
     label?: string;
     class?: string;
@@ -17,10 +14,12 @@ export type PlatformMarkProps = ParentProps<
 >;
 
 export function PlatformMark(props: PlatformMarkProps) {
+  const labels = usePlatformLabels();
   const text = () => {
     if (props.label) return props.label;
-    if (props.slug) return platformLabelForStoredSlug(props.slug);
-    if (props.url) return platformLabelFromUrl(props.url);
+    const helpers = labels();
+    if (props.slug) return helpers.labelForStoredSlug(props.slug);
+    if (props.url) return helpers.labelFromUrl(props.url);
     return "Other";
   };
 
@@ -31,7 +30,12 @@ export function PlatformMark(props: PlatformMarkProps) {
         props.class,
       ]}
     >
-      <PlatformIcon slug={props.slug} url={props.url} brandColor />
+      <PlatformIcon
+        slug={props.slug}
+        url={props.url}
+        brandColor
+        title={text()}
+      />
       <span class="truncate">{text()}</span>
       {props.children}
     </span>

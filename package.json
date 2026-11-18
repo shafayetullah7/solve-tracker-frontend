@@ -24,7 +24,9 @@
     "verify:ssr-1": "node scripts/verify-ssr-1.mjs",
     "verify:ssr-2": "node scripts/verify-ssr-2.mjs",
     "verify:deploy": "node scripts/verify-deploy.mjs",
-    "verify:catalog": "node scripts/verify-platform-catalog.mjs",
+    "verify:catalog": "node scripts/verify-platform-api.mjs",
+    "verify:platform-api": "node scripts/verify-platform-api.mjs",
+    "verify:platform-api:full": "pnpm --dir ../solve-tracker-backend api:check && pnpm api:check && pnpm verify:platform-api",
     "verify:repo-paths": "node scripts/verify-repo-paths.mjs",
     "test:e2e": "playwright test -c e2e/playwright.config.ts"
   },

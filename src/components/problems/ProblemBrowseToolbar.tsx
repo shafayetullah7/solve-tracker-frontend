@@ -13,7 +13,10 @@ import {
   type BrowseStatusFilter,
 } from "../../lib/problems/browse-toolbar-state";
 import { toggleTopicId } from "../../lib/problems/form-state";
-import { PLATFORM_FILTER_OPTIONS } from "../../lib/platforms/catalog";
+import {
+  usePlatformCatalog,
+  usePlatformFilterOptions,
+} from "../../lib/platforms/platform-catalog-context";
 
 type ProblemBrowseToolbarProps = {
   searchKey: string;
@@ -38,6 +41,8 @@ function FieldLegend(props: LegendProps) {
 }
 
 export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
+  const catalog = usePlatformCatalog();
+  const platformFilterOptions = usePlatformFilterOptions();
   const [q, setQ] = createSignal("");
   const [status, setStatus] = createSignal<BrowseStatusFilter>("");
   const [platform, setPlatform] = createSignal<
@@ -179,6 +184,7 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             value={platform()}
             aria-label="Platform"
             title="Filters by stored platform on each problem"
+            disabled={catalog.status() === "loading"}
             onChange={(event) => {
               setPlatform(
                 event.currentTarget.value as
@@ -189,12 +195,28 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
             }}
           >
             <option value="">Any platform</option>
-            <For each={PLATFORM_FILTER_OPTIONS}>
+            <Show when={catalog.status() !== "ready"}>
+              <option value="" disabled>
+                Loading platforms…
+              </option>
+            </Show>
+            <For each={platformFilterOptions()}>
               {(entry) => <option value={entry.slug}>{entry.label}</option>}
             </For>
-            <option value="other">Other</option>
           </select>
         </div>
+        <Show when={catalog.status() === "error"}>
+          <p class="mt-2 text-caption text-muted">
+            Could not load platform list.{" "}
+            <button
+              type="button"
+              class="text-brand underline-offset-4 hover:underline"
+              onClick={() => void catalog.reloadCatalog()}
+            >
+              Try again
+            </button>
+          </p>
+        </Show>
       </fieldset>
 
       <fieldset class="min-w-0 border-0 p-0">

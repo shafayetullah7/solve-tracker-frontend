@@ -1,4 +1,4 @@
-import { PLATFORM_SLUGS } from "../../platforms/catalog";
+import { STORED_PLATFORM_SLUGS } from "../../platforms/platform-slugs";
 import type { ApiClient } from "../client";
 import { ApiError } from "../errors";
 import type { operations } from "../generated/backend";
@@ -37,8 +37,6 @@ function decodeNullableString(value: unknown): string | null {
   if (typeof value !== "string") throw new ApiError("contract", "Invalid problem response.");
   return value;
 }
-
-const STORED_PLATFORM_SLUGS = new Set<string>([...PLATFORM_SLUGS, "other"]);
 
 function decodePlatformSlug(value: unknown): ProblemResponse["platformSlug"] {
   if (typeof value !== "string" || !STORED_PLATFORM_SLUGS.has(value))

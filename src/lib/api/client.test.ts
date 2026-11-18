@@ -252,6 +252,53 @@ describe("API transport", () => {
     ).rejects.toMatchObject({ kind: "contract" });
     expect(fetcher).not.toHaveBeenCalled();
   });
+  test("invalidates session when recovery fails", async () => {
+    const invalidate = vi.fn();
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(expired());
+    const recover = vi.fn().mockResolvedValue(false);
+    await expect(
+      createApiClient({
+        fetch: fetcher,
+        recoverSession: recover,
+        onSessionInvalidated: invalidate,
+      }).request({ path: "/", recoverAuth: true }),
+    ).rejects.toMatchObject({ code: "AUTH_REFRESH_REQUIRED" });
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
+  test("invalidates session on terminal auth without refresh", async () => {
+    const invalidate = vi.fn();
+    await expect(
+      createApiClient({
+        fetch: vi
+          .fn<typeof fetch>()
+          .mockResolvedValue(
+            json({ code: "AUTH_SESSION_INVALID", message: "Invalid session." }, 401),
+          ),
+        onSessionInvalidated: invalidate,
+      }).request({ path: "/", recoverAuth: true }),
+    ).rejects.toMatchObject({ code: "AUTH_SESSION_INVALID" });
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
+  test("invalidates session when retry after recovery is unauthorized", async () => {
+    const invalidate = vi.fn();
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(expired())
+      .mockResolvedValueOnce(
+        json({ code: "AUTH_SESSION_INVALID", message: "Invalid session." }, 401),
+      );
+    await expect(
+      createApiClient({
+        fetch: fetcher,
+        recoverSession: async () => true,
+        onSessionInvalidated: invalidate,
+      }).request({ path: "/", recoverAuth: true }),
+    ).rejects.toMatchObject({ code: "AUTH_SESSION_INVALID" });
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
   test("ignores a late failed retry after account change", async () => {
     let epoch = 0;
     const fetcher = vi

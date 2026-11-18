@@ -115,10 +115,9 @@ export function AuthProvider(
     initialBootstrap?: ServerAuthBootstrap;
   }>,
 ) {
-  const { bundle, hadSeed, seed } = untrack(() => {
+  const { hadSeed, seed } = untrack(() => {
     const resolved = props.initialBootstrap ?? resolveBootstrapSeed();
     return {
-      bundle: props.clients ?? createAuthClients(),
       hadSeed: resolved !== undefined,
       seed: resolved,
     };
@@ -139,6 +138,19 @@ export function AuthProvider(
   function invalidateBootstrapProbe() {
     bootstrapGeneration += 1;
   }
+
+  let bundle: AuthClientsBundle;
+
+  function invalidateLocalSession() {
+    invalidateBootstrapProbe();
+    bundle.coordinator.bumpEpoch();
+    setUser(undefined);
+    setStatus("anonymous");
+  }
+
+  bundle =
+    props.clients ??
+    createAuthClients({ onSessionInvalidated: invalidateLocalSession });
 
   async function runBootstrap(options?: { forceChecking?: boolean }) {
     const generation = ++bootstrapGeneration;
@@ -208,12 +220,7 @@ export function AuthProvider(
       setUser(sessionUser);
       setStatus("authenticated");
     },
-    clearSession() {
-      invalidateBootstrapProbe();
-      bundle.coordinator.bumpEpoch();
-      setUser(undefined);
-      setStatus("anonymous");
-    },
+    clearSession: invalidateLocalSession,
     retryBootstrap: () => runBootstrap({ forceChecking: true }),
     notifyPeersLoggedOut() {
       crossTab?.publishLoggedOut();

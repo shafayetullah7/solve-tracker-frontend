@@ -2,6 +2,7 @@ import { For, Show } from "solid-js";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
 import { hasActiveBrowseFilters } from "../../lib/problems/browse-query";
 import { buildBrowseActiveChipGroups } from "../../lib/problems/browse-active-filters";
+import { usePlatformFilterOptions } from "../../lib/platforms/platform-catalog-context";
 import { IconClose } from "../../icons";
 
 type BrowseActiveFiltersProps = {
@@ -32,9 +33,14 @@ function ChipRow(props: {
 }
 
 export function BrowseActiveFilters(props: BrowseActiveFiltersProps) {
+  const platformOptions = usePlatformFilterOptions();
   const groups = () => {
     const nameById = new Map(props.topics().map((t) => [t.id, t.name]));
-    return buildBrowseActiveChipGroups(props.searchKey, nameById);
+    return buildBrowseActiveChipGroups(
+      props.searchKey,
+      nameById,
+      platformOptions(),
+    );
   };
 
   return (

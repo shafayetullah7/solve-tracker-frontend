@@ -9,9 +9,22 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const STALE_PATTERNS = [
-  { label: "cp-frontend", re: /cp-frontend/ },
-  { label: "../backend (not solve-tracker-backend)", re: /\.\.\/backend(?!\/)/ },
-  { label: "../backend/", re: /\.\.\/backend\// },
+  {
+    label: "../backend (use ../solve-tracker-backend)",
+    re: /\.\.\/backend(?:\/|["'\s,]|$)/,
+  },
+  {
+    label: "../cp-frontend (use ../solve-tracker-frontend)",
+    re: /\.\.\/cp-frontend(?:\/|["'\s,]|$)/,
+  },
+  {
+    label: "../../backend (use ../../solve-tracker-backend)",
+    re: /\.\.\/\.\.\/backend(?:\/|["'\s,]|$)/,
+  },
+  {
+    label: "../../cp-frontend (use ../../solve-tracker-frontend)",
+    re: /\.\.\/\.\.\/cp-frontend(?:\/|["'\s,]|$)/,
+  },
 ];
 
 function walkFiles(dir) {
@@ -42,16 +55,26 @@ function readTargets() {
   return files;
 }
 
+function scanText(text, rel, offenders) {
+  for (const { label, re } of STALE_PATTERNS) {
+    if (re.test(text)) offenders.push({ rel, label });
+  }
+}
+
 function main() {
   const offenders = [];
   for (const file of readTargets()) {
     if (path.basename(file) === "verify-repo-paths.mjs") continue;
     if (!/\.(mjs|ts|tsx|json|md)$/.test(file)) continue;
-    const text = fs.readFileSync(file, "utf8");
     const rel = path.relative(root, file);
-    for (const { label, re } of STALE_PATTERNS) {
-      if (re.test(text)) offenders.push({ rel, label });
+    if (path.basename(file) === "package.json") {
+      const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+      const scriptBlock = JSON.stringify(pkg.scripts ?? {});
+      scanText(scriptBlock, rel, offenders);
+      continue;
     }
+    const text = fs.readFileSync(file, "utf8");
+    scanText(text, rel, offenders);
   }
   if (offenders.length) {
     console.error("Stale repo path references found:\n");
@@ -60,7 +83,9 @@ function main() {
     }
     process.exit(1);
   }
-  console.log("OK: no stale cp-frontend or ../backend paths in scripts, e2e, package.json, AGENTS.md");
+  console.log(
+    "OK: sibling paths use solve-tracker-backend / solve-tracker-frontend in scripts, e2e, package.json, AGENTS.md",
+  );
 }
 
 main();

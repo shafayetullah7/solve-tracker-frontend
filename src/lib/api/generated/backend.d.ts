@@ -240,6 +240,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/platforms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlatformsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1300,6 +1316,47 @@ export interface operations {
                             unsolved: number;
                             slug: ("codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu") | "other";
                             name: string;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    PlatformsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** @enum {string} */
+                            slug: "codeforces" | "leetcode" | "codechef" | "atcoder" | "hackerrank" | "geeksforgeeks" | "kattis" | "spoj" | "cses" | "beecrowd" | "codewars" | "hackerearth" | "topcoder" | "projecteuler" | "uva" | "aizu";
+                            name: string;
+                            /** Format: uri */
+                            baseUrl: string;
+                            urlHosts: string[];
                         }[];
                     };
                 };

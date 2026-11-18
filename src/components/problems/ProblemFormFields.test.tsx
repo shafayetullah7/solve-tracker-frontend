@@ -1,7 +1,22 @@
 import { render, screen } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { afterEach, describe, expect, test } from "vitest";
+import { mockPlatformEntries } from "../../lib/platforms/catalog-fixture";
+import {
+  PlatformCatalogContextOverride,
+  type PlatformCatalogContextValue,
+} from "../../lib/platforms/platform-catalog-context";
 import { ProblemFormFields } from "./ProblemFormFields";
+
+function readyCatalogStub(): PlatformCatalogContextValue {
+  return {
+    status: () => "ready",
+    entries: () => mockPlatformEntries,
+    error: () => undefined,
+    loadCatalog: async () => {},
+    reloadCatalog: async () => {},
+  };
+}
 
 function noop() {}
 
@@ -12,6 +27,7 @@ afterEach(() => {
 function renderFields(initialUrl: string) {
   const [url, setUrl] = createSignal(initialUrl);
   render(() => (
+    <PlatformCatalogContextOverride value={readyCatalogStub()}>
     <ProblemFormFields
       mode="create"
       formId="test-form"
@@ -38,6 +54,7 @@ function renderFields(initialUrl: string) {
       formError={() => undefined}
       existingProblemId={() => undefined}
     />
+    </PlatformCatalogContextOverride>
   ));
 }
 

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { mockPlatformFilterOptions } from "../platforms/catalog-fixture";
 import {
   browseHrefOmitting,
   buildBrowseActiveChips,
@@ -7,11 +8,12 @@ import { parseBrowseSearch } from "./browse-query";
 
 const topicA = "11111111-1111-4111-8111-111111111111";
 const topicNames = new Map([[topicA, "Arrays"]]);
+const platformOptions = mockPlatformFilterOptions;
 
 describe("browse-active-filters", () => {
   test("builds chips for combined q, platform, status", () => {
     const search = "?q=two&platform=leetcode&status=unsolved";
-    const chips = buildBrowseActiveChips(search, topicNames);
+    const chips = buildBrowseActiveChips(search, topicNames, platformOptions);
     expect(chips.map((c) => c.label)).toEqual([
       'Search: "two"',
       "Status: Unsolved",
@@ -33,7 +35,11 @@ describe("browse-active-filters", () => {
   });
 
   test("topic chip uses name from map", () => {
-    const chips = buildBrowseActiveChips(`?topicId=${topicA}`, topicNames);
+    const chips = buildBrowseActiveChips(
+      `?topicId=${topicA}`,
+      topicNames,
+      platformOptions,
+    );
     expect(chips).toHaveLength(1);
     expect(chips[0]!.label).toBe("Topic: Arrays");
     expect(chips[0]!.href).toBe("/app/problems");

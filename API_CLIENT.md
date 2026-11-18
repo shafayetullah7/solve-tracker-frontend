@@ -14,6 +14,10 @@ All backend calls go through `src/lib/api/client.ts`. Feature API modules own en
 
 `modules/progress.api.ts` wraps `GET /progress` (`getSummaries`) with `recoverAuth: true`. Progress counts reflect the full library, not active list filters (FR-05). UI wiring arrives in Phase 7.7.
 
+`modules/platforms.api.ts` wraps public `GET /platforms` (`listPlatforms`) with `recoverAuth: false`. Response items: `slug`, `name`, `baseUrl`, `urlHosts` (same shape as backend `PLATFORM_CATALOG`). **`PlatformCatalogProvider`** (under `/app`) loads the list once per session; prefer `usePlatformCatalog`, `usePlatformFilterOptions`, `useRuntimePlatformHelpers`, and [`catalog-runtime.ts`](src/lib/platforms/catalog-runtime.ts) over calling `listPlatforms` from routes. Guest landing (`LandingPlatforms`) calls `listPlatforms` directly (not the provider) and renders one sorted tile grid.
+
+**Platform catalog contract:** The backend module [`platform-catalog.ts`](../solve-tracker-backend/src/shared/platform-catalog.ts) is the only source of judge rows. [`platform-slugs.ts`](src/lib/platforms/platform-slugs.ts) holds a **slug-only** mirror for API decode and browse URL validation (no `urlHosts` in the bundle). After catalog edits: `api:export` / `api:generate`, update `CATALOG_SLUGS` when needed, then `pnpm verify:platform-api`. See [FRONTEND_CONVENTIONS.md](FRONTEND_CONVENTIONS.md) § Platform catalog.
+
 ```ts
 import { createApiClient } from './src/lib/api';
 import { createSystemApi } from './src/lib/api/modules/system.api';
@@ -40,6 +44,8 @@ Create the browser client at the app composition boundary when real consumers ne
 `createApiClient` accepts optional `recoverSession: () => Promise<boolean>` and `getAuthEpoch: () => number`. Recovery also requires explicit `recoverAuth: true` on the operation. It is disabled by default.
 
 Only 401 with code `AUTH_REFRESH_REQUIRED` invokes recovery; successful recovery permits one retry. Other statuses, arbitrary 401s, network failures, and a second rejection are not retried. The coordinator in `src/lib/auth/` owns single-flight, Web Locks, session rechecks, and epoch changes. It must use raw/recovery-disabled transport to avoid recursion. Cancellation of a waiting caller does not cancel shared recovery, and stale-account responses are rejected using the epoch.
+
+When `recoverAuth: true` and `onSessionInvalidated` is set (browser `productClient` from `createAuthClients`), terminal auth codes (`AUTH_SESSION_INVALID`, `AUTH_REFRESH_INVALID`), failed recovery, or any 401 on the post-recovery retry clear local session UI (`anonymous`); route guards handle login redirect. `AUTH_REFRESH_REQUIRED` alone does not invalidate before the one recovery attempt.
 
 For browser apps, prefer **`createAuthClients()`** from `src/lib/auth` (Step 4.2): it returns a recovery-disabled `authApi` on `rawClient` and a `productClient` wired to `coordinator.recoverSession()` / `getEpoch()`. Do not hand-wire `recoverSession` in routes.
 

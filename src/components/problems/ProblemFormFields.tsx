@@ -1,5 +1,5 @@
 import { createMemo, type Accessor, For, Show } from "solid-js";
-import { platformPreviewFromUrl } from "../../lib/platforms/catalog";
+import { useRuntimePlatformHelpers } from "../../lib/platforms/platform-catalog-context";
 import { PlatformMark } from "../platforms/PlatformMark";
 import type { TopicResponse } from "../../lib/api/modules/topics.api";
 import type { FieldErrors } from "../../lib/forms/field-errors";
@@ -49,6 +49,7 @@ type ProblemFormFieldsProps = {
 };
 
 export function ProblemFormFields(props: ProblemFormFieldsProps) {
+  const platformHelpers = useRuntimePlatformHelpers();
   const isSelected = (id: string) => props.selectedTopicIds().has(id);
   const titleId = () => `${props.formId}-title`;
   const urlId = () => `${props.formId}-url`;
@@ -61,7 +62,9 @@ export function ProblemFormFields(props: ProblemFormFieldsProps) {
   const urlHint = () => `${PROBLEM_URL_HINT} Up to ${PROBLEM_URL_MAX} characters.`;
   const platformHint = () =>
     `Up to ${PROBLEM_PLATFORM_ID_MAX} characters. The judge site is detected from the problem URL above.`;
-  const platformPreview = createMemo(() => platformPreviewFromUrl(props.url()));
+  const platformPreview = createMemo(() =>
+    platformHelpers().previewFromUrl(props.url()),
+  );
   const difficultyHint = () => `Up to ${PROBLEM_DIFFICULTY_MAX} characters.`;
   const ratingHint = () =>
     `Integer from ${PROBLEM_RATING_MIN.toLocaleString()} to ${PROBLEM_RATING_MAX.toLocaleString()}.`;

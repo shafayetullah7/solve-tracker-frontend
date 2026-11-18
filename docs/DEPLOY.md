@@ -97,13 +97,13 @@ With the server already running on the URL you intend to test:
 
 ```bash
 pnpm verify:deploy      # smoke-ssr + verify:ssr-1 + verify:ssr-2
-pnpm verify:catalog     # frontend ↔ backend platform-catalog.ts (no server)
+pnpm verify:platform-api   # catalog ↔ openapi.json ↔ CATALOG_SLUGS (no server; alias verify:catalog)
 pnpm verify:ssr-1       # optional individual gates
 pnpm verify:ssr-2
 BASE_URL=http://127.0.0.1:3001 pnpm verify:deploy
 ```
 
-After editing judge slugs or `urlHosts`, run **`pnpm verify:catalog`** before release.
+After editing judge slugs or `urlHosts` in **solve-tracker-backend** `platform-catalog.ts`: run **`pnpm verify:platform-api:full`** (or `api:export` + `api:generate` + `pnpm verify:platform-api`) before release; deploy the backend so `GET /platforms` updates; run **`pnpm db:backfill:platform-slugs`** on prod if host rules changed.
 
 Full auth browser checks (not part of `verify:deploy`): backend on :3000, `pnpm exec playwright install chromium`, then `pnpm test:e2e e2e/ssr-auth-ssr.spec.ts`.
 

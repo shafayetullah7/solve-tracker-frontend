@@ -70,11 +70,8 @@ export const LANDING_FEATURES = {
 } as const;
 
 export const LANDING_PLATFORMS = {
-  title: "Problems stay on their sites",
-  subtitle:
-    "Practice stores references and your progress. You still submit and get feedback on each platform.",
-  /** Slugs shown on the landing strip (subset of PLATFORM_CATALOG). */
-  featuredSlugs: ["leetcode", "codeforces", "codechef", "atcoder", "hackerrank"] as const,
+  sectionAriaLabel: "Supported coding judges",
+  gridLoadError: "We couldn't load the full list right now.",
 } as const;
 
 export const LANDING_PRIVACY = {

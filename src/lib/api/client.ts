@@ -1,3 +1,4 @@
+import { shouldInvalidateProductSession } from "../auth/terminal-auth";
 import { ApiError } from "./errors";
 
 type QueryValue = string | number | boolean | undefined;
@@ -14,6 +15,8 @@ export interface ApiClientOptions {
   fetch?: typeof fetch;
   timeoutMs?: number;
   recoverSession?: () => Promise<boolean>;
+  /** Clears client session UI when product auth is terminal or recovery fails. */
+  onSessionInvalidated?: () => void;
   // Changes only on logout/account change, not normal token rotation.
   getAuthEpoch?: () => number;
 }
@@ -161,22 +164,43 @@ export function createApiClient(options: ApiClientOptions = {}) {
         return result;
       } catch (error) {
         check(input.signal, initialEpoch);
-        if (
-          !(error instanceof ApiError) ||
-          error.status !== 401 ||
-          error.code !== "AUTH_REFRESH_REQUIRED" ||
-          !input.recoverAuth ||
-          !options.recoverSession
-        )
+        const recoverable =
+          error instanceof ApiError &&
+          error.status === 401 &&
+          error.code === "AUTH_REFRESH_REQUIRED" &&
+          input.recoverAuth &&
+          options.recoverSession;
+        if (!recoverable) {
+          if (
+            input.recoverAuth &&
+            options.onSessionInvalidated &&
+            shouldInvalidateProductSession(error)
+          ) {
+            options.onSessionInvalidated();
+          }
           throw error;
+        }
         // The coordinator owns single-flight/locks. Do not pass this caller's signal.
-        const recovered = await options.recoverSession();
+        const recovered = await options.recoverSession!();
         check(input.signal, initialEpoch);
-        if (!recovered) throw error;
+        if (!recovered) {
+          options.onSessionInvalidated?.();
+          throw error;
+        }
         try {
-          return await attempt(input, url, body);
-        } finally {
+          const result = await attempt(input, url, body);
           check(input.signal, initialEpoch);
+          return result;
+        } catch (retryError) {
+          check(input.signal, initialEpoch);
+          if (
+            input.recoverAuth &&
+            options.onSessionInvalidated &&
+            shouldInvalidateProductSession(retryError, { afterRecoveryRetry: true })
+          ) {
+            options.onSessionInvalidated();
+          }
+          throw retryError;
         }
       }
     },

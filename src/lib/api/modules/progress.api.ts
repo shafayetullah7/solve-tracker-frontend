@@ -1,7 +1,7 @@
 import type { ApiClient } from "../client";
 import { ApiError } from "../errors";
 import type { operations } from "../generated/backend";
-import { isPlatformSlug } from "../../platforms/catalog";
+import { isKnownCatalogSlug } from "../../platforms/platform-slugs";
 
 export type ProgressResponse =
   operations["ProgressController_getSummaries"]["responses"][200]["content"]["application/json"];
@@ -66,7 +66,7 @@ function decodePlatformProgress(value: unknown): PlatformProgress {
   if (!isRecord(value) || typeof value.name !== "string")
     throw new ApiError("contract", "Invalid progress response.");
   const slug = value.slug;
-  if (slug !== "other" && (typeof slug !== "string" || !isPlatformSlug(slug)))
+  if (slug !== "other" && (typeof slug !== "string" || !isKnownCatalogSlug(slug)))
     throw new ApiError("contract", "Invalid progress response.");
   const counts = decodeCounts(value);
   return {
