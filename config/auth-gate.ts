@@ -120,7 +120,12 @@ export function injectBeforeHeadClose(
  */
 export const authGate: StartMiddleware = async (event, next) => {
   const url = new URL(event.request.url);
-  if (!isDocumentRequest(event.request, url) || url.pathname === "/") return next();
+  if (!isDocumentRequest(event.request, url)) return next();
+  // Only routes with a server-side auth redirect need a session snapshot.
+  // Share-only and recovery pages bootstrap in the browser instead.
+  if (!isProtectedPath(url.pathname) && !GUEST_ONLY_PATHS.has(url.pathname)) {
+    return next();
+  }
 
   const cookie = event.request.headers.get("cookie");
   const bootstrap: ServerAuthBootstrap = cookie
