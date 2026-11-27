@@ -32,11 +32,11 @@ export function ProfileAvatarUploadField(props: ProfileAvatarUploadFieldProps) {
   return (
     <div class="space-y-3">
       <div
-        class={`rounded-panel border-2 border-dashed px-5 py-8 text-center transition-colors ${
+        class={["rounded-panel border-2 border-dashed px-5 py-8 text-center transition-colors", 
           dragOver()
             ? "border-brand bg-brand-soft/40"
             : "border-line bg-surface-muted/50"
-        }`}
+        ]}
         onDragEnter={(event) => {
           event.preventDefault();
           if (!props.disabled) setDragOver(true);
