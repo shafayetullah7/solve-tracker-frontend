@@ -30,6 +30,11 @@ export function learningEditPath(guideId: string, nodeId: string): string {
   return `${learningGuidePath(guideId)}/edit/${nodeId}`;
 }
 
+export function learningAssessmentPath(guideId: string, assessmentId: string): string {
+  if (!GUIDE_ID.test(assessmentId)) throw new Error("Invalid assessment id.");
+  return `${learningGuidePath(guideId)}/assessments/${assessmentId}`;
+}
+
 export function learningStructurePath(guideId: string, nodeId?: string): string {
   const base = `${learningGuidePath(guideId)}/structure`;
   if (!nodeId) return base;

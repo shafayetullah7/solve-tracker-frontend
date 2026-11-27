@@ -10,6 +10,7 @@ export type CompletionMode = (typeof completionMode)[keyof typeof completionMode
 export const writableCompletionModes = [
   completionMode.Structural,
   completionMode.Manual,
+  completionMode.Gated,
 ] as const;
 
 export type WritableCompletionMode = (typeof writableCompletionModes)[number];

@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 import type { ContentBlock } from "../../../lib/api/modules/learning-guides.api";
+import { learningAssessmentPath } from "../../../lib/learning/paths";
 
 function textBody(payload: Record<string, unknown>): string {
   return typeof payload.body === "string" ? payload.body : "";
@@ -23,7 +24,11 @@ function checklistItems(payload: Record<string, unknown>) {
   );
 }
 
-export function BlockList(props: { blocks: readonly ContentBlock[] }) {
+export function BlockList(props: {
+  blocks: readonly ContentBlock[];
+  guideId?: string;
+  returnNodeId?: string;
+}) {
   return (
     <div class="space-y-6">
       <Show when={props.blocks.length === 0}>
@@ -67,6 +72,35 @@ export function BlockList(props: { blocks: readonly ContentBlock[] }) {
                   {(item) => <li>{item.label}</li>}
                 </For>
               </ul>
+            </Show>
+            <Show when={block.type === "assessment"}>
+              {(() => {
+                const assessmentId =
+                  typeof block.payload.assessmentId === "string" ? block.payload.assessmentId : "";
+                const label =
+                  typeof block.payload.label === "string" && block.payload.label.trim().length > 0
+                    ? block.payload.label
+                    : "Take assessment";
+                const guideId = props.guideId;
+                return (
+                  <Show
+                    when={guideId && assessmentId}
+                    fallback={<p class="text-body text-muted">Assessment block</p>}
+                  >
+                    <a
+                      class="ui-button inline-flex items-center"
+                      data-variant="primary"
+                      href={
+                        props.returnNodeId
+                          ? `${learningAssessmentPath(guideId!, assessmentId)}?step=${encodeURIComponent(props.returnNodeId)}`
+                          : learningAssessmentPath(guideId!, assessmentId)
+                      }
+                    >
+                      {label}
+                    </a>
+                  </Show>
+                );
+              })()}
             </Show>
           </section>
         )}

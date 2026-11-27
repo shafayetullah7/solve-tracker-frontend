@@ -1204,6 +1204,182 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learning/guides/{guideId}/assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AssessmentsController_list"];
+        put?: never;
+        post: operations["AssessmentsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AssessmentsController_getDraft"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AssessmentsController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AssessmentsController_patch"];
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AssessmentsController_addQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AssessmentsController_publishRevision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AssessmentsController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AttemptsController_startAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/attempts/{attemptId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AttemptsController_getAttempt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/attempts/{attemptId}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AttemptsController_saveAnswer"];
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/attempts/{attemptId}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AttemptsController_submitAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/assessments/{assessmentId}/attempts/{attemptId}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AttemptsController_submitAttemptViaSubmissionsAlias"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4966,7 +5142,7 @@ export interface operations {
     LearningGuidesController_exportGuide: {
         parameters: {
             query?: {
-                format?: "json" | "markdown";
+                format?: "markdown" | "json";
             };
             header?: never;
             path: {
@@ -5068,7 +5244,7 @@ export interface operations {
                      * @default structural
                      * @enum {string}
                      */
-                    completionMode?: "structural" | "manual";
+                    completionMode?: "structural" | "manual" | "gated";
                 };
             };
         };
@@ -5153,7 +5329,7 @@ export interface operations {
                     title?: string;
                     required?: boolean;
                     /** @enum {string} */
-                    completionMode?: "structural" | "manual";
+                    completionMode?: "structural" | "manual" | "gated";
                     expectedStructureRevision: string;
                     /** Format: uuid */
                     operationId: string;
@@ -5365,7 +5541,7 @@ export interface operations {
                             id: string;
                             position: number;
                             /** @enum {string} */
-                            type: "text" | "code" | "checklist" | "link";
+                            type: "text" | "code" | "checklist" | "link" | "assessment";
                             payload: {
                                 [key: string]: unknown;
                             };
@@ -5433,6 +5609,14 @@ export interface operations {
                         payload: {
                             url: string;
                             label: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "assessment";
+                        payload: {
+                            /** Format: uuid */
+                            assessmentId: string;
+                            label?: string;
                         };
                     })[];
                 };
@@ -5642,6 +5826,1053 @@ export interface operations {
                         /** Format: uuid */
                         resourceId: string;
                         replayed: boolean;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            /** Format: uuid */
+                            activeRevisionId: string | null;
+                            questionCount: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title: string;
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_getDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    title?: string;
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_addQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    operationId: string;
+                    /** @enum {string} */
+                    kind: "single_choice";
+                    prompt: {
+                        stem: string;
+                        options: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                        }[];
+                    };
+                    gradingConfig: {
+                        /** Format: uuid */
+                        correctOptionId: string;
+                    };
+                    /** @default 1 */
+                    points?: number;
+                } | {
+                    /** Format: uuid */
+                    operationId: string;
+                    /** @enum {string} */
+                    kind: "true_false";
+                    prompt: {
+                        stem: string;
+                    };
+                    gradingConfig: {
+                        correctValue: boolean;
+                    };
+                    /** @default 1 */
+                    points?: number;
+                } | {
+                    /** Format: uuid */
+                    operationId: string;
+                    /** @enum {string} */
+                    kind: "multiple_choice";
+                    prompt: {
+                        stem: string;
+                        options: {
+                            /** Format: uuid */
+                            id: string;
+                            label: string;
+                        }[];
+                    };
+                    gradingConfig: {
+                        correctOptionIds: string[];
+                    };
+                    /** @default 1 */
+                    points?: number;
+                } | {
+                    /** Format: uuid */
+                    operationId: string;
+                    /** @enum {string} */
+                    kind: "numerical";
+                    prompt: {
+                        stem: string;
+                        unit?: string;
+                    };
+                    gradingConfig: {
+                        correctValueScaled: number;
+                        /** @default 0 */
+                        toleranceScaled?: number;
+                    };
+                    /** @default 1 */
+                    points?: number;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_publishRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @default 7000 */
+                    passingBasisPoints?: number;
+                    /**
+                     * @default after_submit
+                     * @enum {string}
+                     */
+                    feedbackPolicy?: "never" | "after_submit";
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AssessmentsController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @default 7000 */
+                    passingBasisPoints?: number;
+                    /**
+                     * @default after_submit
+                     * @enum {string}
+                     */
+                    feedbackPolicy?: "never" | "after_submit";
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        guideId: string;
+                        title: string;
+                        /** Format: uuid */
+                        activeRevisionId: string | null;
+                        /** Format: date-time */
+                        archivedAt: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                        /** Format: uuid */
+                        draftRevisionId: string;
+                        draftQuestions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            gradingConfig: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AttemptsController_startAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        assessmentId: string;
+                        /** Format: uuid */
+                        revisionId: string;
+                        /** @enum {string} */
+                        status: "in_progress" | "finalized";
+                        /** Format: date-time */
+                        startedAt: string;
+                        /** Format: date-time */
+                        submittedAt: string | null;
+                        /** Format: date-time */
+                        finalizedAt: string | null;
+                        earnedPoints: number | null;
+                        possiblePoints: number | null;
+                        scoreBasisPoints: number | null;
+                        passingBasisPoints: number;
+                        passed: boolean | null;
+                        questions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            response: unknown;
+                        }[];
+                    };
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        assessmentId: string;
+                        /** Format: uuid */
+                        revisionId: string;
+                        /** @enum {string} */
+                        status: "in_progress" | "finalized";
+                        /** Format: date-time */
+                        startedAt: string;
+                        /** Format: date-time */
+                        submittedAt: string | null;
+                        /** Format: date-time */
+                        finalizedAt: string | null;
+                        earnedPoints: number | null;
+                        possiblePoints: number | null;
+                        scoreBasisPoints: number | null;
+                        passingBasisPoints: number;
+                        passed: boolean | null;
+                        questions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            response: unknown;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AttemptsController_getAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        assessmentId: string;
+                        /** Format: uuid */
+                        revisionId: string;
+                        /** @enum {string} */
+                        status: "in_progress" | "finalized";
+                        /** Format: date-time */
+                        startedAt: string;
+                        /** Format: date-time */
+                        submittedAt: string | null;
+                        /** Format: date-time */
+                        finalizedAt: string | null;
+                        earnedPoints: number | null;
+                        possiblePoints: number | null;
+                        scoreBasisPoints: number | null;
+                        passingBasisPoints: number;
+                        passed: boolean | null;
+                        questions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            response: unknown;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AttemptsController_saveAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    questionId: string;
+                    response: {
+                        /** Format: uuid */
+                        selectedOptionId: string;
+                    } | {
+                        selectedOptionIds: string[];
+                    } | {
+                        value: boolean;
+                    } | {
+                        valueScaled: number;
+                    } | (null);
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        assessmentId: string;
+                        /** Format: uuid */
+                        revisionId: string;
+                        /** @enum {string} */
+                        status: "in_progress" | "finalized";
+                        /** Format: date-time */
+                        startedAt: string;
+                        /** Format: date-time */
+                        submittedAt: string | null;
+                        /** Format: date-time */
+                        finalizedAt: string | null;
+                        earnedPoints: number | null;
+                        possiblePoints: number | null;
+                        scoreBasisPoints: number | null;
+                        passingBasisPoints: number;
+                        passed: boolean | null;
+                        questions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            response: unknown;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AttemptsController_submitAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        assessmentId: string;
+                        /** Format: uuid */
+                        revisionId: string;
+                        /** @enum {string} */
+                        status: "in_progress" | "finalized";
+                        /** Format: date-time */
+                        startedAt: string;
+                        /** Format: date-time */
+                        submittedAt: string | null;
+                        /** Format: date-time */
+                        finalizedAt: string | null;
+                        earnedPoints: number | null;
+                        possiblePoints: number | null;
+                        scoreBasisPoints: number | null;
+                        passingBasisPoints: number;
+                        passed: boolean | null;
+                        questions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            response: unknown;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    AttemptsController_submitAttemptViaSubmissionsAlias: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                assessmentId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        assessmentId: string;
+                        /** Format: uuid */
+                        revisionId: string;
+                        /** @enum {string} */
+                        status: "in_progress" | "finalized";
+                        /** Format: date-time */
+                        startedAt: string;
+                        /** Format: date-time */
+                        submittedAt: string | null;
+                        /** Format: date-time */
+                        finalizedAt: string | null;
+                        earnedPoints: number | null;
+                        possiblePoints: number | null;
+                        scoreBasisPoints: number | null;
+                        passingBasisPoints: number;
+                        passed: boolean | null;
+                        questions: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            kind: "single_choice" | "true_false" | "multiple_choice" | "numerical";
+                            prompt: {
+                                [key: string]: unknown;
+                            };
+                            points: number;
+                        }[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            response: unknown;
+                        }[];
                     };
                 };
             };

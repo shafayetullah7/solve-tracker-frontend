@@ -4,6 +4,7 @@ export const blockType = {
   Code: "code",
   Checklist: "checklist",
   Link: "link",
+  Assessment: "assessment",
 } as const;
 
 export type BlockType = (typeof blockType)[keyof typeof blockType];

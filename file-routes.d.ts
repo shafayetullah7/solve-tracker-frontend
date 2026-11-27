@@ -95,6 +95,12 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/app/learning/:guideId/assessments/:assessmentId";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/assessments/[assessmentId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/assessments/[assessmentId]")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/app/learning/:guideId/edit/:nodeId";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/edit/[nodeId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/edit/[nodeId]")>>>;
@@ -466,6 +472,14 @@ declare module "virtual:file-routes" {
           id: "/learning/:guideId/study/:nodeId";
           page: true;
           $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/learning/:guideId/assessments/:assessmentId";
+          id: "/learning/:guideId/assessments/:assessmentId";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/assessments/[assessmentId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/assessments/[assessmentId]")>>>;
           $$route?: undefined;
           children?: undefined;
         }

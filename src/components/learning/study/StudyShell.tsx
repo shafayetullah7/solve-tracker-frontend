@@ -90,6 +90,13 @@ export function StudyShell(props: StudyShellProps) {
             Edit content
           </a>
         </header>
+        <Show when={props.node.completionMode === completionMode.Gated}>
+          <p class="rounded-panel border border-line bg-surface-muted px-4 py-3 text-sm text-ink">
+            {props.node.completed
+              ? "Required assessment passed — this step is complete."
+              : "Pass the required assessment on this step to complete it."}
+          </p>
+        </Show>
         <Show when={props.node.completionMode === completionMode.Manual}>
           <div>
             <Button
@@ -106,7 +113,16 @@ export function StudyShell(props: StudyShellProps) {
             </Button>
           </div>
         </Show>
-        <Show when={props.contentLoading} fallback={<BlockList blocks={props.blocks} />}>
+        <Show
+          when={props.contentLoading}
+          fallback={
+            <BlockList
+              blocks={props.blocks}
+              guideId={props.guideId}
+              returnNodeId={props.node.id}
+            />
+          }
+        >
           <p class="text-body text-muted">Loading content…</p>
         </Show>
         <div class="flex flex-wrap gap-2">
