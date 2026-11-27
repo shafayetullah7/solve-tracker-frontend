@@ -127,7 +127,7 @@ if (problems.length > 0) {
   console.error("fail platform API contract check:\n");
   for (const line of problems) console.error(" -", line);
   console.error(
-    "\nFix: edit solve-tracker-backend/src/shared/platform-catalog.ts → pnpm --dir ../solve-tracker-backend api:export → pnpm api:generate → sync CATALOG_SLUGS in platform-slugs.ts → pnpm verify:platform-api",
+    "\nFix: edit solve-tracker-backend/src/shared/platform-catalog.ts → pnpm --dir ../solve-tracker-backend api:export → pnpm api:generate → sync CATALOG_SLUGS in platform-slugs.ts → node scripts/verify-platform-api.mjs",
   );
   process.exit(1);
 }

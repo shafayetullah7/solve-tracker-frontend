@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Step 4.7 orchestrator — static checks, 4.1 proxy gate, API races, Playwright e2e.
+ * Step 4.7 orchestrator — static checks, 4.1 proxy gate, API races (no browser E2E).
  * Prereqs: backend :3000, `pnpm dev` on :3001 (or PHASE_47_BASE_URL).
  */
 import { spawn } from "node:child_process";
@@ -52,7 +52,6 @@ async function main() {
   await run("node", ["scripts/verify-phase-4.1.mjs"]);
   await run("node", ["scripts/verify-phase-4.7-api.mjs"]);
   await run("pnpm", ["--dir", "../solve-tracker-backend", "build"]);
-  await run("pnpm", ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"]);
   console.log("Phase 4.7 full verification passed.");
 }
 

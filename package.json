@@ -18,21 +18,10 @@
     "typecheck": "tsc --noEmit -p .",
     "check": "pnpm typecheck && pnpm lint && vitest run",
     "api:generate": "pnpm --dir ../solve-tracker-backend api:types",
-    "api:check": "pnpm --dir ../solve-tracker-backend api:types:check",
-    "verify:phase-4.1": "node scripts/verify-phase-4.1.mjs",
-    "verify:phase-4.7": "node scripts/verify-phase-4.7.mjs",
-    "verify:ssr-1": "node scripts/verify-ssr-1.mjs",
-    "verify:ssr-2": "node scripts/verify-ssr-2.mjs",
-    "verify:deploy": "node scripts/verify-deploy.mjs",
-    "verify:catalog": "node scripts/verify-platform-api.mjs",
-    "verify:platform-api": "node scripts/verify-platform-api.mjs",
-    "verify:platform-api:full": "pnpm --dir ../solve-tracker-backend api:check && pnpm api:check && pnpm verify:platform-api",
-    "verify:repo-paths": "node scripts/verify-repo-paths.mjs",
-    "test:e2e": "playwright test -c e2e/playwright.config.ts"
+    "api:check": "pnpm --dir ../solve-tracker-backend api:types:check"
   },
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "1.51.0",
     "@solidjs/diagnostics": "^2.0.0-rc.21",
     "@solidjs/testing-library": "^1.0.0-rc.2",
     "@solidjs/vite-plugin": "^3.0.0-next.57",

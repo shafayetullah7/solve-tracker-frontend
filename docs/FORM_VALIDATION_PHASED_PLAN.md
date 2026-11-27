@@ -237,7 +237,7 @@ Set `fieldErrors.email` + optional short banner.
 
 ```bash
 cd solve-tracker-frontend && pnpm test --run src/lib/forms src/routes
-# optional: pnpm test:e2e e2e/auth-flow.spec.ts
+# optional: pnpm verify:phase-4.7 (with backend + dev server up)
 ```
 
 ---

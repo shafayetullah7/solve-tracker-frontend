@@ -95,7 +95,7 @@ Hydrate-gate only: document loader-first auth; no server probe.
 
 ### Verification
 
-- [x] View-source / `curl` on `/app` after login: no JWT, no refresh token, no password fields in HTML (Playwright + `verify:ssr-2` anonymous checks).
+- [x] View-source / `curl` on `/app` after login: no JWT, no refresh token, no password fields in HTML (`verify:ssr-2` anonymous checks).
 - [x] Track B described in README deploy section.
 
 ---

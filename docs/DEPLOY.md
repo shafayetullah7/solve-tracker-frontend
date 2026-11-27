@@ -107,16 +107,18 @@ Once verified, cache only successful GET/HEAD HTML for the canonical host and ex
 With the server already running on the URL you intend to test:
 
 ```bash
-pnpm verify:deploy      # smoke-ssr + verify:ssr-1 + verify:ssr-2
-pnpm verify:platform-api   # catalog ↔ openapi.json ↔ CATALOG_SLUGS (no server; alias verify:catalog)
-pnpm verify:ssr-1       # optional individual gates
-pnpm verify:ssr-2
-BASE_URL=http://127.0.0.1:3001 pnpm verify:deploy
+node scripts/verify-deploy.mjs       # smoke-ssr + ssr-1 + ssr-2
+node scripts/verify-platform-api.mjs # catalog ↔ openapi.json ↔ CATALOG_SLUGS (no server)
+node scripts/verify-ssr-1.mjs      # optional individual gates
+node scripts/verify-ssr-2.mjs
+BASE_URL=http://127.0.0.1:3001 node scripts/verify-deploy.mjs
 ```
 
-After editing judge slugs or `urlHosts` in **solve-tracker-backend** `platform-catalog.ts`: run **`pnpm verify:platform-api:full`** (or `api:export` + `api:generate` + `pnpm verify:platform-api`) before release; deploy the backend so `GET /platforms` updates; run **`pnpm db:backfill:platform-slugs`** on prod if host rules changed.
+See [scripts/README.md](../scripts/README.md). Do not add new `verify:*` scripts to `package.json`.
 
-Full auth browser checks (not part of `verify:deploy`): backend on :3000, `pnpm exec playwright install chromium`, then `pnpm test:e2e e2e/ssr-auth-ssr.spec.ts`.
+After editing judge slugs or `urlHosts` in **solve-tracker-backend** `platform-catalog.ts`: run **`pnpm --dir ../solve-tracker-backend api:check && pnpm api:check && node scripts/verify-platform-api.mjs`** before release; deploy the backend so `GET /platforms` updates; run **`pnpm db:backfill:platform-slugs`** on prod if host rules changed.
+
+Full auth checks beyond deploy smoke: backend on :3000, frontend `pnpm dev` or `pnpm start` on :3001, then `node scripts/verify-phase-4.7.mjs` and `node scripts/verify-ssr-2.mjs` as needed.
 
 ## Troubleshooting
 

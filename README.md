@@ -1,6 +1,6 @@
 API access and generation: [API_CLIENT.md](./API_CLIENT.md). Development requires `API_PROXY_TARGET` in `.env` (see `.env.example`); **`pnpm start` still needs it at runtime** for `/api` proxy and SSR auth probe.
 
-**Deploy:** [docs/DEPLOY.md](./docs/DEPLOY.md) (Node **26.13.1 (26.x)**, `pnpm build`, `pnpm start`, `pnpm verify:deploy`).
+**Deploy:** [docs/DEPLOY.md](./docs/DEPLOY.md) (Node **26.13.1 (26.x)**, `pnpm build`, `pnpm start`, `node scripts/verify-deploy.mjs`).
 
 Authentication implementation reference: [Auth and refresh conventions](./AUTH_CONVENTIONS.md).
 
@@ -10,13 +10,13 @@ Read [FRONTEND_CONVENTIONS.md](./FRONTEND_CONVENTIONS.md) for the UI scheme and 
 
 **Product UI:** after sign-in, open **Library** (`/problems`) to browse saved problems; **Topics** (`/topics`) to create, rename, and delete topic labels.
 
-**Phase 4.7 auth verification:** start the Nest backend on port **3000** and `pnpm dev` on **3001**; first time run `pnpm exec playwright install chromium`; then `pnpm verify:phase-4.7` (unit tests, API races, Playwright E2E). See [AGENTS.md](./AGENTS.md).
+**Auth verification:** backend on **3000**, `pnpm dev` on **3001**, then `node scripts/verify-phase-4.7.mjs`. Other smoke gates: [scripts/README.md](./scripts/README.md). See [AGENTS.md](./AGENTS.md).
 
 ## Solid `with-tailwindcss` template
 
 This is `basic` plus [Tailwind CSS](https://tailwindcss.com) v4 — same routes, same demo, same tests; the pages are restyled with utility classes and `src/App.css` shrinks to one line. The diff against `basic` is the documentation of what Tailwind changes.
 
-**Deployment:** SSR start mode (`ssr: true` in `vite.config.ts`). `pnpm build` emits `dist/client` and `dist/server/node.js`. Run **`pnpm start`** (port **3001** by default) for the Node server that streams HTML and serves static assets; it proxies `/api` when `API_PROXY_TARGET` is set (same as dev). **Auth on SSR (Track B):** each HTML request probes `GET /auth/session` with the visitor’s cookies (direct to Nest via `API_PROXY_TARGET`); only public user fields appear in HTML—never JWTs. Client refresh after hydrate is unchanged. Production smoke: **`pnpm verify:deploy`** (server must already be running). Finer gates: `verify:ssr-1`, `verify:ssr-2`. Logged-in SSR isolation: `e2e/ssr-auth-ssr.spec.ts` (backend on **3000**).
+**Deployment:** SSR start mode (`ssr: true` in `vite.config.ts`). `pnpm build` emits `dist/client` and `dist/server/node.js`. Run **`pnpm start`** (port **3001** by default) for the Node server that streams HTML and serves static assets; it proxies `/api` when `API_PROXY_TARGET` is set (same as dev). **Auth on SSR (Track B):** each HTML request probes `GET /auth/session` with the visitor’s cookies (direct to Nest via `API_PROXY_TARGET`); only public user fields appear in HTML—never JWTs. Client refresh after hydrate is unchanged. Production smoke: **`node scripts/verify-deploy.mjs`** (server must already be running). Finer gates: `scripts/verify-ssr-1.mjs`, `verify-ssr-2.mjs`. Logged-in SSR isolation: `node scripts/verify-ssr-2.mjs` with backend on **3000**.
 
 ## How Tailwind fits this stack
 
@@ -85,7 +85,7 @@ cp .env.example .env          # set API_PROXY_TARGET
 pnpm install                  # Node 26.13.1 (26.x)
 pnpm build
 pnpm start                    # separate terminal; default :3001
-pnpm verify:deploy            # smoke + SSR-1/2 checks
+node scripts/verify-deploy.mjs  # smoke + SSR-1/2 checks
 ```
 
 Static-only hosting of `dist/client` without the Node SSR entry is only valid if you deliberately accept hydrate-only auth and no SSR-2 first paint — see DEPLOY.md option B.

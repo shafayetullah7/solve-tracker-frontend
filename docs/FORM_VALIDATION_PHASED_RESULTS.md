@@ -36,7 +36,7 @@ cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run \
 
 ```bash
 cd solve-tracker-frontend && pnpm exec tsc --noEmit && pnpm test --run src/lib/forms
-# optional: pnpm test:e2e e2e/auth-flow.spec.ts e2e/auth-a11y-smoke.spec.ts
+# optional: pnpm verify:phase-4.7
 ```
 
 **Manual checklist**
