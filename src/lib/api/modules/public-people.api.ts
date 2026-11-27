@@ -6,7 +6,6 @@ import {
   decodePublicTopicHeader,
   type ListPublicProblemsQuery,
   type PeopleActivityResponse,
-  type PeopleTopicBoardRow,
   type PersonHeader,
   type PublicProblemsListResponse,
   type PublicTopicHeader,
