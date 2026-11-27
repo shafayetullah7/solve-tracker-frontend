@@ -76,7 +76,7 @@ test.describe("SSR auth gate", () => {
 });
 
 test.describe("SSR auth (track B)", () => {
-  test("logged-in GET /app includes signed-in chrome and no secrets", async ({
+  test("logged-in GET /app contains no personalized bootstrap", async ({
     page,
     context,
   }) => {
@@ -91,12 +91,12 @@ test.describe("SSR auth (track B)", () => {
     expect(response.ok()).toBeTruthy();
     const html = await response.text();
     assertNoSecretsInHtml(html);
-    expect(html).toContain('id="practice-auth-bootstrap"');
-    expect(html).toMatch(/Library/);
+    expect(html).not.toContain('id="practice-auth-bootstrap"');
+    expect(html).not.toContain(user.email);
     expect(html).not.toMatch(/>Sign in</);
   });
 
-  test("two sessions render different profile HTML", async ({ browser }) => {
+  test("two sessions receive profile HTML without either account identity", async ({ browser }) => {
     const userA = uniqueUser();
     const userB = uniqueUser();
 
@@ -121,11 +121,10 @@ test.describe("SSR auth (track B)", () => {
 
     assertNoSecretsInHtml(htmlA);
     assertNoSecretsInHtml(htmlB);
-    expect(htmlA).toContain(userA.email);
+    expect(htmlA).not.toContain(userA.email);
     expect(htmlA).not.toContain(userB.email);
-    expect(htmlB).toContain(userB.email);
+    expect(htmlB).not.toContain(userB.email);
     expect(htmlB).not.toContain(userA.email);
-    expect(htmlA).not.toBe(htmlB);
 
     await ctxA.close();
     await ctxB.close();
