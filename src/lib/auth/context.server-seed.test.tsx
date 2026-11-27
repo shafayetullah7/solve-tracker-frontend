@@ -38,15 +38,15 @@ function clients(): AuthClientsBundle {
   };
 }
 
-describe("AuthProvider server seed", () => {
-  test("reads the auth gate snapshot from request locals", () => {
+describe("AuthProvider session-neutral initialization", () => {
+  test("ignores request-local identity during initialization", () => {
     requestEvent.locals.practiceAuthBootstrap = { kind: "authenticated", user };
     const { getByTestId } = render(() => (
       <AuthProvider clients={clients()}>
         <Status />
       </AuthProvider>
     ));
-    expect(getByTestId("status")).toHaveTextContent("authenticated");
+    expect(getByTestId("status")).toHaveTextContent("checking");
   });
 
   test("falls back to checking without a snapshot", () => {
