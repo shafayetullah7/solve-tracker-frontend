@@ -89,6 +89,12 @@ await check("anonymous GET / includes landing meta description", async () => {
     throw new Error("expected og-image path in SSR HTML");
   }
   assertNoSecretsInHtml(html);
+  if (html.includes(BOOTSTRAP_ID)) throw new Error("marketing must not contain an auth seed");
+});
+
+await check("non-indexable login sends noindex", async () => {
+  const res = await fetch(`${base}/login`, { redirect: "manual" });
+  if (res.headers.get("x-robots-tag") !== "noindex") throw new Error("expected noindex");
 });
 
 await check("HTML still private no-store with Vary Cookie", async () => {
