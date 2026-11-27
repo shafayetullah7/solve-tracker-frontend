@@ -268,9 +268,7 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
               class={[
                 "inline-block text-lg leading-none",
                 advancedOpen() && "rotate-180",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              ]}
             >
               ▾
             </span>
