@@ -29,7 +29,7 @@ export function TopicProgressRow(props: TopicProgressRowProps) {
   };
 
   return (
-    <div class={["min-w-0 flex-1 space-y-2", props.class].filter(Boolean).join(" ")}>
+    <div class={["min-w-0 flex-1 space-y-2", props.class]}>
       <Show
         when={nameHref()}
         fallback={<span class="text-body font-medium text-foreground">{props.row.name}</span>}
