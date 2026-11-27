@@ -144,9 +144,11 @@ export function AuthProvider(
     setStatus("anonymous");
   }
 
-  bundle =
+  // The client bundle belongs to this provider for its entire lifetime.
+  bundle = untrack(() =>
     props.clients ??
-    createAuthClients({ onSessionInvalidated: invalidateLocalSession });
+    createAuthClients({ onSessionInvalidated: invalidateLocalSession }),
+  );
 
   async function runBootstrap(options?: { forceChecking?: boolean }) {
     const generation = ++bootstrapGeneration;
