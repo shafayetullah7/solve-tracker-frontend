@@ -5,15 +5,20 @@ import { fileRoutes } from "filesystem-routing/vite";
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 import solid from "@solidjs/vite-plugin";
+import { validatePublicOrigin } from "./src/lib/site/validate-public-origin";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const loaded = loadEnv(mode, here, "");
   for (const [key, value] of Object.entries(loaded)) {
     if (process.env[key] === undefined) {
       process.env[key] = value;
     }
+  }
+
+  if (command === "build" && !validatePublicOrigin(process.env.VITE_PUBLIC_SITE_URL)) {
+    throw new Error("Set VITE_PUBLIC_SITE_URL to the public HTTPS origin (or local HTTP origin for smoke builds).");
   }
 
   return {
