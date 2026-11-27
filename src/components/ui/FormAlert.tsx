@@ -31,9 +31,7 @@ export function FormAlert(props: FormAlertProps) {
 
   return (
     <p
-      class={[classForVariant(variant(), prominent()), props.class]
-        .filter(Boolean)
-        .join(" ")}
+      class={[classForVariant(variant(), prominent()), props.class]}
       role={roleForVariant(variant())}
     >
       {props.children}
