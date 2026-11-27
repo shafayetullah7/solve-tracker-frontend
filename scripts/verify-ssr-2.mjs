@@ -6,10 +6,6 @@
 const base = process.env.BASE_URL ?? "http://127.0.0.1:3001";
 
 const BOOTSTRAP_ID = 'id="practice-auth-bootstrap"';
-const STALE_SERVER_HINT =
-  "Missing SSR-2 markup — likely a pre-SSR-2 or dev server still on :3001. " +
-  "Stop it (e.g. `fuser -k 3001/tcp`), then `pnpm build && pnpm start`, and rerun verify:ssr-2.";
-
 function assertNoSecretsInHtml(html) {
   const blob = html.toLowerCase();
   if (/eyj[a-z0-9_-]+\.eyj/.test(blob)) {
@@ -47,16 +43,10 @@ await check("server reachable", async () => {
   }
 });
 
-await check("bootstrap script in <head> on /login, no secrets", async () => {
+await check("login HTML is session-neutral", async () => {
   const res = await fetch(`${base}/login`, { redirect: "manual" });
   const html = await res.text();
-  const index = html.indexOf(BOOTSTRAP_ID);
-  if (index === -1) {
-    throw new Error(`expected practice-auth-bootstrap script. ${STALE_SERVER_HINT}`);
-  }
-  if (index > html.indexOf("</head>")) {
-    throw new Error("bootstrap script must be inside <head>, outside the hydrated tree");
-  }
+  if (html.includes(BOOTSTRAP_ID)) throw new Error("unexpected auth bootstrap");
   assertNoSecretsInHtml(html);
 });
 
