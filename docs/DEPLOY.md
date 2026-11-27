@@ -4,7 +4,7 @@ SSR Start mode via `@solidjs/vite-plugin` (not `@solidjs/start`). See [FRONTEND_
 
 ## Prerequisites
 
-- **Node.js ≥ 22.12** (required by `@solidjs/vite-plugin`)
+- **Node.js 26.13.1 (26.x)** (project runtime target; compatibility verification pending)
 - **pnpm** (lockfile: `pnpm-lock.yaml`)
 - After `pnpm build`:
   - `dist/client/` — hashed static assets
@@ -127,7 +127,7 @@ No workflow is committed yet. A minimal job shape:
 # example only — adjust paths and secrets
 steps:
   - uses: actions/setup-node@v4
-    with: { node-version: "22.12" }
+    with: { node-version: "26.13.1" }
   - run: pnpm install --frozen-lockfile
     working-directory: solve-tracker-frontend
   - run: pnpm build
