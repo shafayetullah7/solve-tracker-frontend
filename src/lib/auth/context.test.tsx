@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from "./context";
 import { createMemoryBroadcastHub } from "./broadcast";
 import { createAuthCoordinator } from "./coordinator";
 import { createMemoryLockAdapter } from "./locks";
-import { AUTH_BOOTSTRAP_ELEMENT_ID, bootstrapScriptTag } from "./server-session";
 
 const user = { id: "u1", name: "Test", email: "t@example.test", handle: "test_user" };
 
@@ -239,11 +238,12 @@ describe("AuthProvider", () => {
     expect(getByTestId("status")).toHaveTextContent("anonymous");
   });
 
-  test("seeds from the injected bootstrap script when no prop is given", () => {
-    document.head.insertAdjacentHTML(
-      "beforeend",
-      bootstrapScriptTag({ kind: "authenticated", user }),
-    );
+  test("ignores obsolete injected identity and starts in checking", () => {
+    const script = document.createElement("script");
+    script.id = "practice-auth-bootstrap";
+    script.type = "application/json";
+    script.textContent = JSON.stringify({ kind: "authenticated", user });
+    document.head.append(script);
     try {
       const clients = bundleFromSession(vi.fn(() => new Promise(() => {})));
       const { getByTestId } = render(() => (
@@ -251,9 +251,9 @@ describe("AuthProvider", () => {
           <Probe />
         </AuthProvider>
       ));
-      expect(getByTestId("status")).toHaveTextContent("authenticated");
+      expect(getByTestId("status")).toHaveTextContent("checking");
     } finally {
-      document.getElementById(AUTH_BOOTSTRAP_ELEMENT_ID)?.remove();
+      script.remove();
     }
   });
 
