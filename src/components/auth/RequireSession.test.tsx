@@ -1,5 +1,5 @@
 import { cleanup, render, screen } from "@solidjs/testing-library";
-import { createSignal, flush, onSettled } from "solid-js";
+import { flush, onSettled } from "solid-js";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { AuthContextValue, AuthStatus } from "../../lib/auth/context";
 import { AuthContextOverride } from "../../lib/auth/context";
@@ -30,11 +30,9 @@ function authValue(partial: {
   user?: typeof user;
   retryBootstrap?: () => Promise<void>;
 }): AuthContextValue {
-  const [status] = createSignal(partial.status);
-  const [user] = createSignal(partial.user);
   return {
-    status,
-    user,
+    status: () => partial.status,
+    user: () => partial.user,
     account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],
