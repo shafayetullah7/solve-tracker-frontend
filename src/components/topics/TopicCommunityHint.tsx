@@ -8,10 +8,8 @@ export function TopicCommunityHint(props: {
   practicerCount: number;
   publicListCount: number;
 }) {
-  const visible =
-    props.practicerCount >= 3 || props.publicListCount >= 3;
   return (
-    <Show when={visible}>
+    <Show when={props.practicerCount >= 3 || props.publicListCount >= 3}>
       <p class="text-caption text-muted">
         {discoverCopy("topics.communityHint", {
           topicName: props.topicName,
