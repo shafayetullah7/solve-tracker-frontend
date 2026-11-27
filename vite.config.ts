@@ -5,7 +5,7 @@ import { fileRoutes } from "filesystem-routing/vite";
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
 import solid from "@solidjs/vite-plugin";
-import { validatePublicOrigin } from "./src/lib/site/validate-public-origin";
+import { validatePublicOrigin } from "./src/lib/site/validate-public-origin.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
