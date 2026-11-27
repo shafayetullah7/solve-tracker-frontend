@@ -53,7 +53,7 @@ export function DashboardActivityChart(props: DashboardActivityChartProps) {
                 />
               </div>
               <span
-                class={`truncate text-xs tabular-nums ${dark() ? "text-[#9aa8a3]" : "text-muted"}`}
+                class={["truncate text-xs tabular-nums", dark() ? "text-[#9aa8a3]" : "text-muted"]}
               >
                 {formatWeekLabel(row.weekStart)}
               </span>
@@ -62,11 +62,11 @@ export function DashboardActivityChart(props: DashboardActivityChartProps) {
         </For>
       </ul>
       <p
-        class={`flex flex-wrap items-center gap-x-4 gap-y-1 text-label ${dark() ? "text-[#9aa8a3]" : "text-muted"}`}
+        class={["flex flex-wrap items-center gap-x-4 gap-y-1 text-label", dark() ? "text-[#9aa8a3]" : "text-muted"]}
       >
         <span class="inline-flex items-center gap-1.5">
           <span
-            class={`size-2 rounded-sm ${dark() ? "bg-[#3a4541]" : "bg-surface-muted"}`}
+            class={["size-2 rounded-sm", dark() ? "bg-[#3a4541]" : "bg-surface-muted"]}
             aria-hidden="true"
           />
           Added
