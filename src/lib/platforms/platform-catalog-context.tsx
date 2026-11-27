@@ -82,7 +82,7 @@ export function PlatformCatalogContextOverride(
   props: ParentProps<{ value: PlatformCatalogContextValue }>,
 ) {
   return (
-    <PlatformCatalogContext value={props.value}>
+    <PlatformCatalogContext value={untrack(() => props.value)}>
       {props.children}
     </PlatformCatalogContext>
   );
