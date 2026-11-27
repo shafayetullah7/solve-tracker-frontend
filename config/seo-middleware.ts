@@ -1,6 +1,6 @@
 import type { StartMiddleware } from "@solidjs/vite-plugin";
 
-const PUBLIC_PATHS = ["/", "/login", "/register"] as const;
+const PUBLIC_PATHS = ["/"] as const;
 
 function escapeXml(value: string): string {
   return value
@@ -14,8 +14,7 @@ function escapeXml(value: string): string {
 function buildSitemap(origin: string): string {
   const urls = PUBLIC_PATHS.map((path) => {
     const loc = escapeXml(`${origin}${path}`);
-    const priority = path === "/" ? "1.0" : "0.6";
-    return `  <url><loc>${loc}</loc><changefreq>weekly</changefreq><priority>${priority}</priority></url>`;
+    return `  <url><loc>${loc}</loc></url>`;
   }).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
