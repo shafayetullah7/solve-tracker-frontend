@@ -1,6 +1,6 @@
 API access and generation: [API_CLIENT.md](./API_CLIENT.md). Development requires `API_PROXY_TARGET` in `.env` (see `.env.example`); **`pnpm start` still needs it at runtime** for `/api` proxy and SSR auth probe.
 
-**Deploy:** [docs/DEPLOY.md](./docs/DEPLOY.md) (Node **≥ 22.12**, `pnpm build`, `pnpm start`, `pnpm verify:deploy`).
+**Deploy:** [docs/DEPLOY.md](./docs/DEPLOY.md) (Node **26.13.1 (26.x)**, `pnpm build`, `pnpm start`, `pnpm verify:deploy`).
 
 Authentication implementation reference: [Auth and refresh conventions](./AUTH_CONVENTIONS.md).
 
@@ -82,7 +82,7 @@ See **[docs/DEPLOY.md](./docs/DEPLOY.md)** for production topologies (Node SSR v
 ```bash
 cd solve-tracker-frontend
 cp .env.example .env          # set API_PROXY_TARGET
-pnpm install                  # Node ≥ 22.12
+pnpm install                  # Node 26.13.1 (26.x)
 pnpm build
 pnpm start                    # separate terminal; default :3001
 pnpm verify:deploy            # smoke + SSR-1/2 checks
