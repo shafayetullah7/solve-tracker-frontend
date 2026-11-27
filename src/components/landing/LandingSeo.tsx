@@ -1,4 +1,4 @@
-import { Head, Link, Meta, Script, Title } from "@solidjs/meta";
+import { Link, Meta, Script, Title } from "@solidjs/meta";
 import { Show } from "solid-js";
 import { absoluteSitePath } from "../../lib/site/public-origin";
 import { LANDING_SEO } from "./landing-copy";
@@ -36,7 +36,6 @@ export function LandingSeo() {
       <Show when={canonical()}>
         {(href) => <Link rel="canonical" href={href()} />}
       </Show>
-      <Head>
         <Meta property="og:type" content="website" />
         <Meta property="og:site_name" content={LANDING_SEO.siteName} />
         <Meta property="og:locale" content="en_US" />
@@ -66,7 +65,6 @@ export function LandingSeo() {
             </>
           )}
         </Show>
-      </Head>
       <Script type="application/ld+json">{JSON.stringify(buildLandingJsonLd())}</Script>
     </>
   );
