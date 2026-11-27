@@ -31,11 +31,9 @@ vi.mock("@solidjs/router", async (importOriginal) => {
 const user = { id: "u1", name: "Test", email: "t@example.test", handle: "test_user" };
 
 function authValue(): AuthContextValue {
-  const [status] = createSignal<"authenticated">("authenticated");
-  const [userSignal] = createSignal(user);
   return {
-    status,
-    user: userSignal,
+    status: () => "authenticated",
+    user: () => user,
     account: () => undefined,
     productClient: { request: vi.fn() } as AuthContextValue["productClient"],
     authApi: {} as AuthContextValue["authApi"],
