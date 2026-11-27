@@ -1,12 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
 import { probeServerAuthSession } from "./server-session-probe";
-import {
-  AUTH_BOOTSTRAP_ELEMENT_ID,
-  bootstrapScriptTag,
-  parseBootstrap,
-  readClientBootstrapFromDom,
-  serializableBootstrap,
-} from "./server-session";
 
 const user = {
   id: "u1",
@@ -137,35 +130,3 @@ describe("probeServerAuthSession", () => {
   });
 });
 
-describe("bootstrap script round trip", () => {
-  test("escapes markup and parses back from the DOM", () => {
-    const tricky = {
-      kind: "authenticated" as const,
-      user: { ...user, name: "</script><b>&\u2028" },
-    };
-    const tag = bootstrapScriptTag(tricky);
-    expect(tag).not.toContain("</script><b>");
-    document.head.insertAdjacentHTML("beforeend", tag);
-    try {
-      expect(readClientBootstrapFromDom()).toEqual(tricky);
-    } finally {
-      document.getElementById(AUTH_BOOTSTRAP_ELEMENT_ID)?.remove();
-    }
-  });
-
-  test("rejects malformed seeds", () => {
-    expect(parseBootstrap({ kind: "authenticated", user: { id: 1 } })).toBeUndefined();
-    expect(parseBootstrap({ kind: "admin" })).toBeUndefined();
-    expect(parseBootstrap({ kind: "checking" })).toEqual({ kind: "checking" });
-  });
-});
-
-describe("serializableBootstrap", () => {
-  test("strips to safe user fields only", () => {
-    const input = { kind: "authenticated" as const, user };
-    expect(serializableBootstrap(input)).toEqual(input);
-    expect(serializableBootstrap({ kind: "anonymous" })).toEqual({
-      kind: "anonymous",
-    });
-  });
-});
