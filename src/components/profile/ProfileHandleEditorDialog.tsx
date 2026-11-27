@@ -104,7 +104,7 @@ export function ProfileHandleEditorDialog(props: ProfileHandleEditorDialogProps)
             <input
               class="ui-field"
               autocomplete="off"
-              spellcheck={false}
+              spellcheck="false"
               disabled={pending()}
               {...formFieldControlAttrs({
                 id: FIELD_ID,
