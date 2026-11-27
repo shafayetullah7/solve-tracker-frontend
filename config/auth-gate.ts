@@ -1,18 +1,12 @@
 import type { StartMiddleware } from "@solidjs/vite-plugin";
 import { loginPathWithReturn, safeReturnPath } from "../src/lib/auth/forms.ts";
-import {
-  bootstrapScriptTag,
-  type ServerAuthBootstrap,
-} from "../src/lib/auth/server-session.ts";
+import type { ServerAuthBootstrap } from "../src/lib/auth/server-session.ts";
 import { probeServerAuthSession } from "../src/lib/auth/server-session-probe.ts";
 
 const APP_HOME = "/app";
 const PROFILE_PATH = "/app/profile";
 const LOGIN_PATH = "/login";
 const GUEST_ONLY_PATHS = new Set(["/login", "/register"]);
-const HEAD_CLOSE = "</head>";
-/** Give up on injection rather than buffer an unbounded document head. */
-const MAX_HEAD_BUFFER = 256 * 1024;
 
 function isDocumentRequest(request: Request, url: URL): boolean {
   if (request.method !== "GET" && request.method !== "HEAD") return false;
@@ -70,54 +64,7 @@ function redirectResponse(location: string): Response {
   });
 }
 
-/** Splice `markup` in front of the first `</head>` of a streamed HTML body. */
-export function injectBeforeHeadClose(
-  body: ReadableStream<Uint8Array>,
-  markup: string,
-): ReadableStream<Uint8Array> {
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
-  let pending = "";
-  let injected = false;
-
-  return body.pipeThrough(
-    new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        const text = decoder.decode(chunk, { stream: true });
-        if (injected) {
-          if (text) controller.enqueue(encoder.encode(text));
-          return;
-        }
-        pending += text;
-        const index = pending.indexOf(HEAD_CLOSE);
-        if (index === -1) {
-          if (pending.length > MAX_HEAD_BUFFER) {
-            controller.enqueue(encoder.encode(pending));
-            pending = "";
-            injected = true;
-          }
-          return;
-        }
-        controller.enqueue(
-          encoder.encode(pending.slice(0, index) + markup + pending.slice(index)),
-        );
-        pending = "";
-        injected = true;
-      },
-      flush(controller) {
-        const rest = pending + decoder.decode();
-        if (rest) controller.enqueue(encoder.encode(rest));
-      },
-    }),
-  );
-}
-
-/**
- * Single per-request session probe for document requests: stores the result
- * on `event.locals` (read by `AuthProvider` during SSR), answers auth
- * redirects with a real 302, and seeds the client with a JSON block placed
- * outside the hydrated tree.
- */
+/** Read-only session probe for HTTP redirects; rendering remains session-neutral. */
 export const authGate: StartMiddleware = async (event, next) => {
   const url = new URL(event.request.url);
   if (!isDocumentRequest(event.request, url)) return next();
@@ -137,16 +84,5 @@ export const authGate: StartMiddleware = async (event, next) => {
   const location = authRedirectTarget(url, bootstrap);
   if (location) return redirectResponse(location);
 
-  event.locals ??= {};
-  event.locals.practiceAuthBootstrap = bootstrap;
-  const response = await next();
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!response.body || !contentType.includes("text/html")) return response;
-
-  const headers = new Headers(response.headers);
-  headers.delete("content-length");
-  return new Response(
-    injectBeforeHeadClose(response.body, bootstrapScriptTag(bootstrap)),
-    { status: response.status, statusText: response.statusText, headers },
-  );
+  return next();
 };
