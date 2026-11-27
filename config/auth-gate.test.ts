@@ -44,7 +44,7 @@ describe("authRedirectTarget", () => {
   test("signed-in guest pages go to next or /app", () => {
     expect(authRedirectTarget(url("/login"), authed)).toBe("/app");
     expect(authRedirectTarget(url("/register"), authed)).toBe("/app");
-    expect(authRedirectTarget(url("/"), authed)).toBe("/app");
+    expect(authRedirectTarget(url("/"), authed)).toBeUndefined();
     expect(authRedirectTarget(url("/login?next=%2Fapp%2Fproblems"), authed)).toBe(
       "/app/problems",
     );
@@ -115,6 +115,23 @@ describe("authGate", () => {
     await authGate(pageEvent("/login", { method: "POST" }) as never, next);
     expect(probe).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(6);
+  });
+
+  test("home bypasses auth even with cookies", async () => {
+    const response = htmlResponse("<html><head></head><body>marketing</body></html>");
+    const next = vi.fn().mockResolvedValue(response);
+    const event = pageEvent("/");
+    expect(await authGate(event as never, next)).toBe(response);
+    expect(probe).not.toHaveBeenCalled();
+    expect(event.locals).toEqual({});
+  });
+
+  test("cookie-free protected requests skip backend probe", async () => {
+    const next = vi.fn();
+    const response = await authGate(pageEvent("/app", { headers: { accept: "text/html" } }) as never, next);
+    expect(response.status).toBe(302);
+    expect(probe).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
   });
 
   test("anonymous /app gets a no-store 302 without rendering", async () => {
