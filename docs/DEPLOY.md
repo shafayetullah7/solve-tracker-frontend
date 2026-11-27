@@ -72,6 +72,14 @@ Do not serve only `dist/client` from the current SSR build: a supported client-m
 
 **Shared contract:** the browser calls **same-origin** `/api/...`; Nest sees paths **without** the `/api` prefix; `FRONTEND_ORIGIN` on Nest equals the public browser origin.
 
+## Landing HTML caching (verification gate)
+
+Keep document responses private/no-store for now. Session-neutral rendering is necessary but not sufficient to enable a shared cache. Use standard reverse-proxy HTTP caching rather than a custom in-process HTML cache.
+
+Before enabling it, verify production-built landing HTML across anonymous and authenticated requests, query strings and hosts. Confirm that no identity, Set-Cookie, request-specific hydration data or nonce is present. A per-response CSP nonce must never be reused through a shared cache; retain no-store when nonce-based CSP is used. Do not disable CSP to enable caching.
+
+Once verified, cache only successful GET/HEAD HTML for the canonical host and exact root path without query parameters, initially for at most 60 seconds. Bypass requests with Cookie or Authorization, and responses with Set-Cookie, private/no-store, Vary: *, or nonce-bearing CSP. Respect upstream cache directives; never override them to force caching. Keep all other documents, redirects and APIs out of this cache. Purge on deployment and retain old hashed assets for the lifetime of cached documents. Verify cache hits, expiry, purge, hydration and account isolation before release.
+
 ## Security (SEC-1)
 
 ### TLS and cookies
