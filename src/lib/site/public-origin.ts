@@ -1,37 +1,21 @@
 import { getRequestEvent, isServer } from "@solidjs/web";
+import { validatePublicOrigin } from "./validate-public-origin";
 
-/**
- * Public site origin for canonical and Open Graph URLs.
- * SSR uses the incoming request; the client uses `location` after hydrate.
- * Optional `PUBLIC_SITE_URL` overrides both when the edge host differs from the public URL.
- */
+/** One build-time public origin for both SSR and browser metadata. */
 export function sitePublicOrigin(): string {
-  const fromEnv = readPublicSiteUrlEnv();
-  if (fromEnv) return fromEnv;
+  const configured = validatePublicOrigin(import.meta.env.VITE_PUBLIC_SITE_URL);
+  if (configured) return configured;
+  if (import.meta.env.PROD) return "";
   if (isServer) {
-    const url = getRequestEvent()?.request.url;
-    if (url) return new URL(url).origin;
-    return "";
+    return getRequestEvent()?.request.url
+      ? new URL(getRequestEvent()!.request.url).origin
+      : "";
   }
-  if (typeof window !== "undefined") return window.location.origin;
-  return "";
-}
-
-function readPublicSiteUrlEnv(): string | undefined {
-  const raw =
-    (typeof process !== "undefined" && process.env?.PUBLIC_SITE_URL) ||
-    import.meta.env.VITE_PUBLIC_SITE_URL;
-  if (typeof raw !== "string" || !raw.trim()) return undefined;
-  try {
-    return new URL(raw.trim()).origin;
-  } catch {
-    return undefined;
-  }
+  return typeof window !== "undefined" ? window.location.origin : "";
 }
 
 export function absoluteSitePath(pathname: string): string | undefined {
   const origin = sitePublicOrigin();
   if (!origin) return undefined;
-  const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  return `${origin}${path}`;
+  return origin + (pathname.startsWith("/") ? pathname : "/" + pathname);
 }
