@@ -1,6 +1,6 @@
 import { Title, Meta } from "@solidjs/meta";
 import { useLocation, useNavigate, useParams } from "@solidjs/router";
-import { createEffect, createSignal, Match, onCleanup, Show, Switch } from "solid-js";
+import { createEffect, createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
 import { AppPageContainer } from "../../../../components/app/AppPageContainer";
 import { ComparePage } from "../../../../components/compare/ComparePage";
 import type { CompareFocus } from "../../../../components/compare/compare-section-order";
@@ -127,9 +127,9 @@ export default function PeopleCompareRoute() {
                 value={weeks()}
                 onChange={(e) => setWeeks(Number(e.currentTarget.value))}
               >
-                {WEEK_OPTIONS.map((w) => (
+                <For each={WEEK_OPTIONS}>{(w) => (
                   <option value={w}>{w}</option>
-                ))}
+                )}</For>
               </select>
             </label>
           </div>
