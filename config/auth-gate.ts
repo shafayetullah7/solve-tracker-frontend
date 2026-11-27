@@ -9,7 +9,7 @@ import { probeServerAuthSession } from "../src/lib/auth/server-session-probe.ts"
 const APP_HOME = "/app";
 const PROFILE_PATH = "/app/profile";
 const LOGIN_PATH = "/login";
-const GUEST_ONLY_PATHS = new Set(["/", "/login", "/register"]);
+const GUEST_ONLY_PATHS = new Set(["/login", "/register"]);
 const HEAD_CLOSE = "</head>";
 /** Give up on injection rather than buffer an unbounded document head. */
 const MAX_HEAD_BUFFER = 256 * 1024;
@@ -120,12 +120,14 @@ export function injectBeforeHeadClose(
  */
 export const authGate: StartMiddleware = async (event, next) => {
   const url = new URL(event.request.url);
-  if (!isDocumentRequest(event.request, url)) return next();
+  if (!isDocumentRequest(event.request, url) || url.pathname === "/") return next();
 
-  const bootstrap = await probeServerAuthSession(
-    event.request.headers.get("cookie"),
-    { signal: event.request.signal },
-  );
+  const cookie = event.request.headers.get("cookie");
+  const bootstrap: ServerAuthBootstrap = cookie
+    ? await probeServerAuthSession(cookie, {
+        signal: AbortSignal.any([event.request.signal, AbortSignal.timeout(3000)]),
+      })
+    : { kind: "anonymous" };
 
   const location = authRedirectTarget(url, bootstrap);
   if (location) return redirectResponse(location);
