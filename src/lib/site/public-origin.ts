@@ -7,9 +7,8 @@ export function sitePublicOrigin(): string {
   if (configured) return configured;
   if (import.meta.env.PROD) return "";
   if (isServer) {
-    return getRequestEvent()?.request.url
-      ? new URL(getRequestEvent()!.request.url).origin
-      : "";
+    const request = getRequestEvent()?.request;
+    return request ? new URL(request.url).origin : "";
   }
   return typeof window !== "undefined" ? window.location.origin : "";
 }
