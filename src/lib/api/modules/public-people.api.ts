@@ -18,14 +18,10 @@ async function publicFetch<T>(
   signal?: AbortSignal,
 ): Promise<T | "unavailable"> {
   const url = `/api${path}`;
-  try {
-    const res = await fetch(url, { signal, credentials: "omit" });
-    if (res.status === 404) return "unavailable";
-    if (!res.ok) throw new ApiError("http", `Public request failed (${res.status}).`, res.status);
-    return decode(await res.json());
-  } catch (error) {
-    throw error;
-  }
+  const res = await fetch(url, { signal, credentials: "omit" });
+  if (res.status === 404) return "unavailable";
+  if (!res.ok) throw new ApiError("http", `Public request failed (${res.status}).`, res.status);
+  return decode(await res.json());
 }
 
 export function createPublicPeopleApi() {
