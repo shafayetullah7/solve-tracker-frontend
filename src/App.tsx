@@ -13,8 +13,9 @@ function AppRouterContent(props: ParentProps) {
   const auth = useAuth();
   const location = useLocation();
   const showGuestNav = () =>
-    (auth.status() === "anonymous" || auth.status() === "unavailable") &&
-    !isAuthSurfacePath(location.pathname);
+    location.pathname === "/" ||
+    ((auth.status() === "anonymous" || auth.status() === "unavailable") &&
+      !isAuthSurfacePath(location.pathname));
   /** Full viewport lock is for auth surfaces and `/app` only — guest nav + `h-dvh` clips the landing. */
   const lockViewportHeight = () => !showGuestNav();
   return (
