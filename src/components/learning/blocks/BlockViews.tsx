@@ -1,6 +1,7 @@
 import { For, Show } from "solid-js";
 import type { ContentBlock } from "../../../lib/api/modules/learning-guides.api";
 import { learningAssessmentPath } from "../../../lib/learning/paths";
+import { ProblemBlockPanel } from "./ProblemBlockPanel";
 
 function textBody(payload: Record<string, unknown>): string {
   return typeof payload.body === "string" ? payload.body : "";
@@ -36,9 +37,11 @@ export function BlockList(props: {
       </Show>
       <For each={props.blocks}>
         {(block) => (
-          <section class="rounded-panel border border-line bg-surface p-4">
+          <section class="min-w-0 rounded-panel border border-line bg-surface p-4">
             <Show when={block.type === "text"}>
-              <p class="whitespace-pre-wrap text-body text-ink">{textBody(block.payload)}</p>
+              <p class="break-words whitespace-pre-wrap text-body text-ink">
+                {textBody(block.payload)}
+              </p>
             </Show>
             <Show when={block.type === "code"}>
               {(() => {
@@ -72,6 +75,13 @@ export function BlockList(props: {
                   {(item) => <li>{item.label}</li>}
                 </For>
               </ul>
+            </Show>
+            <Show when={block.type === "problem"}>
+              <ProblemBlockPanel
+                block={block}
+                guideId={props.guideId}
+                returnNodeId={props.returnNodeId}
+              />
             </Show>
             <Show when={block.type === "assessment"}>
               {(() => {

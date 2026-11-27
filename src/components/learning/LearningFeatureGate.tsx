@@ -16,9 +16,9 @@ export function LearningFeatureGate(props: ParentProps) {
             Learning guides
           </h1>
           <p class="text-body text-muted">
-            This preview is disabled. Set{" "}
+            Study guides are not enabled on this deployment. Ask your operator to set{" "}
             <code class="text-sm">VITE_LEARNING_GUIDES_ENABLED=true</code> in the
-            frontend environment to enable the guide library.
+            frontend environment.
           </p>
           <Button type="button" variant="secondary" onClick={() => navigate(appHome())}>
             Back to dashboard

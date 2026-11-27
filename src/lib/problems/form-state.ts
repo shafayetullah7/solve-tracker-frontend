@@ -86,6 +86,35 @@ export function hydrateFormFromProblem(problem: ProblemResponse): {
 const TOPIC_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function queryParam(search: string, key: string): string | undefined {
+  const value = new URLSearchParams(search).get(key);
+  if (value == null) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+export function urlFromSearch(search: string): string | undefined {
+  const raw = queryParam(search, "url");
+  if (!raw || raw.length > 2048) return undefined;
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return undefined;
+    return raw;
+  } catch {
+    return undefined;
+  }
+}
+
+export function titleFromSearch(search: string): string | undefined {
+  const raw = queryParam(search, "title");
+  if (!raw) return undefined;
+  return raw.length > 200 ? raw.slice(0, 200) : raw;
+}
+
+export function nextFromSearch(search: string): string | undefined {
+  return queryParam(search, "next");
+}
+
 export function topicIdFromSearch(search: string): string | undefined {
   const raw = new URLSearchParams(search).get("topicId");
   if (!raw || !TOPIC_ID.test(raw)) return undefined;

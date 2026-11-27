@@ -33,16 +33,44 @@ function fromContent(blocks: readonly ContentBlock[]): DraftBlock[] {
         },
       };
     }
-    const items = Array.isArray(block.payload.items)
-      ? block.payload.items.filter(
-          (item): item is { id: string; label: string } =>
-            typeof item === "object" &&
-            item !== null &&
-            typeof (item as { id?: string }).id === "string" &&
-            typeof (item as { label?: string }).label === "string",
-        )
-      : [{ id: crypto.randomUUID().slice(0, 8), label: "Item" }];
-    return { type: "checklist" as const, payload: { items } };
+    if (block.type === "problem") {
+      return {
+        type: "problem" as const,
+        payload: {
+          url: typeof block.payload.url === "string" ? block.payload.url : "https://",
+          label:
+            typeof block.payload.label === "string" && block.payload.label.trim().length > 0
+              ? block.payload.label
+              : "Practice problem",
+        },
+      };
+    }
+    if (block.type === "assessment") {
+      return {
+        type: "assessment" as const,
+        payload: {
+          assessmentId:
+            typeof block.payload.assessmentId === "string" ? block.payload.assessmentId : "",
+          label:
+            typeof block.payload.label === "string" && block.payload.label.trim().length > 0
+              ? block.payload.label
+              : undefined,
+        },
+      };
+    }
+    if (block.type === "checklist") {
+      const items = Array.isArray(block.payload.items)
+        ? block.payload.items.filter(
+            (item): item is { id: string; label: string } =>
+              typeof item === "object" &&
+              item !== null &&
+              typeof (item as { id?: string }).id === "string" &&
+              typeof (item as { label?: string }).label === "string",
+          )
+        : [{ id: crypto.randomUUID().slice(0, 8), label: "Item" }];
+      return { type: "checklist" as const, payload: { items } };
+    }
+    return { type: "text" as const, payload: { body: "" } };
   });
 }
 
@@ -90,6 +118,14 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
       setBlocks((current) => [
         ...current,
         { type: "link", payload: { url: "https://", label: "Resource" } },
+      ]);
+      setDirty(true);
+      return;
+    }
+    if (type === "problem") {
+      setBlocks((current) => [
+        ...current,
+        { type: "problem", payload: { url: "https://", label: "Practice problem" } },
       ]);
       setDirty(true);
       return;
@@ -222,6 +258,9 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         <Button type="button" variant="secondary" onClick={() => addBlock("link")}>
           Add link
         </Button>
+        <Button type="button" variant="secondary" onClick={() => addBlock("problem")}>
+          Add problem
+        </Button>
       </div>
       <For each={blocks()}>
         {(block, index) => (
@@ -308,6 +347,49 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
                     }
                   />
                 </div>
+              )}
+            </Show>
+            <Show when={block.type === "problem" ? block : false}>
+              {(problemBlock) => (
+                <div class="space-y-2">
+                  <input
+                    class="w-full rounded-control border border-line px-3 py-2 text-sm"
+                    placeholder="Label"
+                    value={problemBlock().payload.label ?? ""}
+                    onInput={(event) =>
+                      setBlocks((current) =>
+                        current.map((row, i) =>
+                          i === index() && row.type === "problem"
+                            ? { ...row, payload: { ...row.payload, label: event.currentTarget.value } }
+                            : row,
+                        ),
+                      )
+                    }
+                  />
+                  <input
+                    class="w-full rounded-control border border-line px-3 py-2 text-sm"
+                    placeholder="https://leetcode.com/problems/..."
+                    value={problemBlock().payload.url}
+                    onInput={(event) =>
+                      setBlocks((current) =>
+                        current.map((row, i) =>
+                          i === index() && row.type === "problem"
+                            ? { ...row, payload: { ...row.payload, url: event.currentTarget.value } }
+                            : row,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+              )}
+            </Show>
+            <Show when={block.type === "assessment" ? block : false}>
+              {(assessmentBlock) => (
+                <p class="text-sm text-muted">
+                  Assessment block linked to{" "}
+                  <span class="font-mono text-ink">{assessmentBlock().payload.assessmentId}</span>. Edit
+                  assessments from the guide workspace; this editor preserves the link on save.
+                </p>
               )}
             </Show>
             <Show when={block.type === "checklist" ? block : false}>

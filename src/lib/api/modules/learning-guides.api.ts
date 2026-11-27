@@ -44,6 +44,8 @@ export type ReplaceNodeContentInput =
   JsonInput<operations["LearningGuidesController_replaceNodeContent"]>;
 export type NodeCompletionInput =
   JsonInput<operations["LearningGuidesController_nodeCompletion"]>;
+export type GuideLifecycleInput =
+  JsonInput<operations["LearningGuidesController_lifecycle"]>;
 export type ContentBlock = NodeContentResponse["blocks"][number];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -443,6 +445,22 @@ export function createLearningGuidesApi(client: ApiClient) {
       return decodeReceipt(
         await client.request({
           path: `/learning/guides/${g}/nodes/${n}/completion`,
+          method: "PATCH",
+          body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async lifecycle(
+      guideIdValue: string,
+      input: GuideLifecycleInput,
+      signal?: AbortSignal,
+    ): Promise<MutationReceipt> {
+      const id = guideId(guideIdValue);
+      return decodeReceipt(
+        await client.request({
+          path: `/learning/guides/${id}/lifecycle`,
           method: "PATCH",
           body: input,
           signal,

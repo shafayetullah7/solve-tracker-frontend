@@ -26,6 +26,10 @@ import { PlatformMark } from "../../../components/platforms/PlatformMark";
 import { paths } from "../../../router";
 import { DiscoverCommunityPanel } from "../../../components/discover/DiscoverCommunityPanel";
 import { isDiscoverFullEnabled } from "../../../lib/discover/flag";
+import {
+  ProblemLearningReferences,
+} from "../../../components/problems/ProblemLearningReferences";
+import type { ProblemLearningReference } from "../../../lib/api/modules/problems.api";
 
 type LoadStatus = "idle" | "loading" | "ready" | "unavailable";
 
@@ -54,6 +58,10 @@ export default function ProblemDetail() {
   const [statusPending, setStatusPending] = createSignal(false);
   const [statusError, setStatusError] = createSignal<string | undefined>();
 
+  const [learningRefs, setLearningRefs] = createSignal<
+    readonly ProblemLearningReference[]
+  >([]);
+
   let deleteDialogRef: HTMLDialogElement | undefined;
 
   async function loadProblem(id = untrack(() => params.id)) {
@@ -61,11 +69,16 @@ export default function ProblemDetail() {
     setLoadStatus("loading");
     setLoadMessage(undefined);
     try {
-      const data = await api.getOne(id);
+      const [data, references] = await Promise.all([
+        api.getOne(id),
+        api.getLearningReferences(id),
+      ]);
       setProblem(data);
+      setLearningRefs(references.items);
       setLoadStatus("ready");
     } catch (error) {
       setProblem(undefined);
+      setLearningRefs([]);
       setLoadStatus("unavailable");
       setLoadMessage(problemFormMessage(error));
     }
@@ -299,6 +312,11 @@ export default function ProblemDetail() {
           }}
         </Match>
       </Switch>
+      <Show when={loadStatus() === "ready" && learningRefs().length > 0}>
+        <div class="mt-8">
+          <ProblemLearningReferences items={learningRefs()} />
+        </div>
+      </Show>
 
       <dialog
         ref={deleteDialogRef}

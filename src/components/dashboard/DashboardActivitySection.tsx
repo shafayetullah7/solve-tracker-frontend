@@ -1,5 +1,6 @@
 import { createMemo, For, Match, Show, Switch } from "solid-js";
 import type { ProgressActivityResponse } from "../../lib/api/modules/progress.api";
+import { DASHBOARD_ACTIVITY_SUBTITLE } from "../../lib/dashboard/activity-contract-copy";
 import { formatWeekRangeLabel } from "../../lib/dashboard/format-dashboard-dates";
 import { problemNewPath } from "../../lib/problems/paths";
 import { paths } from "../../router";
@@ -57,7 +58,7 @@ export function DashboardActivitySection(props: DashboardActivitySectionProps) {
           <h2 id="dashboard-activity" class="text-section font-semibold text-white">
             Activity
           </h2>
-          <p class="mt-1 text-label text-[#9aa8a3]">12-week window (UTC)</p>
+          <p class="mt-1 text-label text-[#9aa8a3]">{DASHBOARD_ACTIVITY_SUBTITLE}</p>
         </div>
         <Show when={props.status === "ready" && props.data}>
           {(data) => <DashboardStreakBadge streak={data().streak} dark />}

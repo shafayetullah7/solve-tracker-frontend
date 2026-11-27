@@ -1,6 +1,8 @@
 import { Title } from "@solidjs/meta";
 import { createEffect, createMemo, createSignal, Match, onCleanup, Show, Switch } from "solid-js";
 import { DashboardActivitySection } from "../../components/dashboard/DashboardActivitySection";
+import { DashboardContinueLearningSection } from "../../components/dashboard/DashboardContinueLearningSection";
+import { LearningWelcomeBanner } from "../../components/dashboard/LearningWelcomeBanner";
 import { DashboardPageHeader } from "../../components/dashboard/DashboardPageHeader";
 import { DashboardPlatformGrid } from "../../components/dashboard/DashboardPlatformGrid";
 import { DashboardQueueGrid } from "../../components/dashboard/DashboardQueueGrid";
@@ -19,19 +21,23 @@ import {
   type TopicProgress,
 } from "../../lib/api/modules/progress.api";
 import { createProblemsApi } from "../../lib/api/modules/problems.api";
+import { createLearningGuidesApi } from "../../lib/api/modules/learning-guides.api";
+import {
+  loadDashboardContinueLearning,
+  type DashboardContinueGuide,
+} from "../../lib/dashboard/load-dashboard-continue-learning";
 import {
   loadDashboardPreviews,
   type DashboardPreviews,
 } from "../../lib/dashboard/load-dashboard-previews";
+import { isLearningGuidesEnabled } from "../../lib/learning/flag";
 import { problemListMessage, progressMessage } from "../../lib/problems/messages";
 import { DiscoverPeopleLikeYouCard } from "../../components/dashboard/DiscoverPeopleLikeYouCard";
 import { DiscoverBenchmarkCard } from "../../components/dashboard/DiscoverBenchmarkCard";
 import { DiscoverLaunchBanner } from "../../components/dashboard/DiscoverLaunchBanner";
 import { isDiscoverFullEnabled } from "../../lib/discover/flag";
 
-type LoadStatus = "idle" | "loading" | "ready" | "error";
-type PreviewsStatus = "idle" | "loading" | "ready" | "error";
-type ActivityStatus = "idle" | "loading" | "ready" | "error";
+type DomainStatus = "idle" | "loading" | "ready" | "error";
 
 const ACTIVITY_WEEKS = 12;
 
@@ -44,29 +50,36 @@ export default function DashboardPage() {
   const auth = useAuth();
   const progressApi = createProgressApi(auth.productClient);
   const problemsApi = createProblemsApi(auth.productClient);
+  const learningGuidesApi = createLearningGuidesApi(auth.productClient);
 
-  const [loadStatus, setLoadStatus] = createSignal<LoadStatus>("idle");
+  const [summaryStatus, setSummaryStatus] = createSignal<DomainStatus>("idle");
   const [overall, setOverall] = createSignal<ProgressCounts | undefined>();
   const [topics, setTopics] = createSignal<TopicProgress[]>([]);
   const [platforms, setPlatforms] = createSignal<PlatformProgress[]>([]);
-  const [errorMessage, setErrorMessage] = createSignal<string | undefined>();
+  const [summaryError, setSummaryError] = createSignal<string | undefined>();
 
-  const [previewsStatus, setPreviewsStatus] = createSignal<PreviewsStatus>("idle");
+  const [previewsStatus, setPreviewsStatus] = createSignal<DomainStatus>("idle");
   const [previews, setPreviews] = createSignal<DashboardPreviews | undefined>();
   const [previewsError, setPreviewsError] = createSignal<string | undefined>();
 
-  const [activityStatus, setActivityStatus] = createSignal<ActivityStatus>("idle");
+  const [activityStatus, setActivityStatus] = createSignal<DomainStatus>("idle");
   const [activity, setActivity] = createSignal<ProgressActivityResponse | undefined>();
   const [activityError, setActivityError] = createSignal<string | undefined>();
 
+  const [learningStatus, setLearningStatus] = createSignal<DomainStatus>("idle");
+  const [learningItems, setLearningItems] = createSignal<DashboardContinueGuide[]>([]);
+  const [learningError, setLearningError] = createSignal<string | undefined>();
+
   let previewsAbort: AbortController | undefined;
   let activityAbort: AbortController | undefined;
+  let learningAbort: AbortController | undefined;
 
   const isRefreshing = createMemo(
     () =>
-      loadStatus() === "loading" ||
+      summaryStatus() === "loading" ||
       previewsStatus() === "loading" ||
-      activityStatus() === "loading",
+      activityStatus() === "loading" ||
+      learningStatus() === "loading",
   );
 
   async function loadPreviews() {
@@ -109,124 +122,163 @@ export default function DashboardPage() {
     }
   }
 
-  async function loadProgress() {
-    setLoadStatus("loading");
-    setErrorMessage(undefined);
-    setPreviewsStatus("idle");
-    setPreviews(undefined);
-    setPreviewsError(undefined);
-    setActivityStatus("idle");
-    setActivity(undefined);
-    setActivityError(undefined);
+  async function loadContinueLearning() {
+    if (!isLearningGuidesEnabled()) return;
+
+    learningAbort?.abort();
+    const controller = new AbortController();
+    learningAbort = controller;
+    const { signal } = controller;
+
+    setLearningStatus("loading");
+    setLearningError(undefined);
+    try {
+      const data = await loadDashboardContinueLearning(learningGuidesApi, signal);
+      if (signal.aborted) return;
+      setLearningItems(data);
+      setLearningStatus("ready");
+    } catch (error) {
+      if (signal.aborted) return;
+      setLearningStatus("error");
+      setLearningError(problemListMessage(error));
+    }
+  }
+
+  async function loadSummaries() {
+    setSummaryStatus("loading");
+    setSummaryError(undefined);
     try {
       const data = await progressApi.getSummaries();
       setOverall(data.overall);
       setTopics(data.topics);
       setPlatforms(data.platforms);
-      setLoadStatus("ready");
-      void loadPreviews();
-      void loadActivity();
+      setSummaryStatus("ready");
     } catch (error) {
       setOverall(undefined);
       setTopics([]);
       setPlatforms([]);
-      setPreviewsStatus("idle");
-      setPreviews(undefined);
-      setActivityStatus("idle");
-      setActivity(undefined);
-      setLoadStatus("error");
-      setErrorMessage(progressMessage(error));
+      setSummaryStatus("error");
+      setSummaryError(progressMessage(error));
     }
+  }
+
+  function refreshDashboard() {
+    void loadSummaries();
+    void loadPreviews();
+    void loadActivity();
+    void loadContinueLearning();
   }
 
   createEffect(
     () => auth.status(),
     (status) => {
       if (status !== "authenticated") return;
-      void loadProgress();
+      refreshDashboard();
     },
   );
 
   onCleanup(() => {
     previewsAbort?.abort();
     activityAbort?.abort();
+    learningAbort?.abort();
   });
+
+  const week = () => latestWeekCounts(activity());
 
   return (
     <AppPageContainer>
       <Title>Dashboard — Practice</Title>
 
-      <Switch>
-        <Match when={loadStatus() === "idle" || loadStatus() === "loading"}>
-          <DashboardPageHeader />
+      <Show
+        when={auth.status() === "authenticated"}
+        fallback={
           <div class="mt-8">
             <LoadingPlaceholder variant="block" />
           </div>
-        </Match>
-        <Match when={loadStatus() === "error"}>
-          <DashboardPageHeader />
-          <div class="mt-8 space-y-4">
-            <p class="text-muted" role="status">
-              {errorMessage()}
-            </p>
-            <Button variant="secondary" onClick={() => void loadProgress()}>
-              Try again
-            </Button>
-          </div>
-        </Match>
-        <Match when={loadStatus() === "ready" && overall()}>
-          {(counts) => {
-            const week = () => latestWeekCounts(activity());
-            return (
-              <div class="space-y-6">
-                <DashboardPageHeader platforms={platforms()} />
-                <DashboardToolbar
-                  total={counts().total}
-                  unsolvedCount={counts().unsolved}
-                  untaggedCount={
-                    previewsStatus() === "ready" ? previews()?.untaggedTotal : undefined
-                  }
-                  onRefresh={() => void loadProgress()}
-                  refreshing={isRefreshing()}
-                />
-                <DashboardStatsStrip
-                  counts={counts()}
-                  platformCount={platforms().length}
-                  weekSolved={activityStatus() === "ready" ? week().solved : undefined}
-                  weekAdded={activityStatus() === "ready" ? week().added : undefined}
-                />
-                <Show when={isDiscoverFullEnabled()}>
-                  <DiscoverLaunchBanner />
-                  <DiscoverBenchmarkCard />
-                </Show>
-                <DashboardQueueGrid
-                  status={previewsStatus()}
-                  focus={previews()?.focus ?? []}
-                  recentAdded={previews()?.recentAdded ?? []}
-                  recentSolved={previews()?.recentSolved ?? []}
-                  errorMessage={previewsError()}
-                  onRetry={() => void loadPreviews()}
-                />
-                <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
-                  <div class="space-y-6">
-                    <DashboardTopicProgressList topics={topics()} />
-                    <Show when={isDiscoverFullEnabled()}>
-                      <DiscoverPeopleLikeYouCard />
-                    </Show>
-                    <DashboardPlatformGrid platforms={platforms()} />
-                  </div>
-                  <DashboardActivitySection
-                    status={activityStatus()}
-                    data={activity()}
-                    errorMessage={activityError()}
-                    onRetry={() => void loadActivity()}
+        }
+      >
+        <div class="space-y-6">
+          <DashboardPageHeader
+            platforms={summaryStatus() === "ready" ? platforms() : undefined}
+          />
+
+          <LearningWelcomeBanner authStatus={() => auth.status()} />
+
+          <Show when={isLearningGuidesEnabled()}>
+            <DashboardContinueLearningSection
+              status={learningStatus()}
+              items={learningItems()}
+              errorMessage={learningError()}
+              onRetry={() => void loadContinueLearning()}
+            />
+          </Show>
+
+          <Switch>
+            <Match when={summaryStatus() === "ready" && overall()}>
+              {(counts) => (
+                <>
+                  <DashboardToolbar
+                    total={counts().total}
+                    unsolvedCount={counts().unsolved}
+                    untaggedCount={
+                      previewsStatus() === "ready" ? previews()?.untaggedTotal : undefined
+                    }
+                    onRefresh={refreshDashboard}
+                    refreshing={isRefreshing()}
                   />
-                </div>
+                  <DashboardStatsStrip
+                    counts={counts()}
+                    platformCount={platforms().length}
+                    weekSolved={activityStatus() === "ready" ? week().solved : undefined}
+                    weekAdded={activityStatus() === "ready" ? week().added : undefined}
+                  />
+                </>
+              )}
+            </Match>
+            <Match when={summaryStatus() === "loading" || summaryStatus() === "idle"}>
+              <LoadingPlaceholder variant="block" />
+            </Match>
+            <Match when={summaryStatus() === "error"}>
+              <div class="space-y-4" role="status">
+                <p class="text-muted">{summaryError()}</p>
+                <Button variant="secondary" onClick={() => void loadSummaries()}>
+                  Try again
+                </Button>
               </div>
-            );
-          }}
-        </Match>
-      </Switch>
+            </Match>
+          </Switch>
+
+          <Show when={isDiscoverFullEnabled()}>
+            <DiscoverLaunchBanner />
+            <DiscoverBenchmarkCard />
+          </Show>
+
+          <DashboardQueueGrid
+            status={previewsStatus()}
+            focus={previews()?.focus ?? []}
+            recentAdded={previews()?.recentAdded ?? []}
+            recentSolved={previews()?.recentSolved ?? []}
+            errorMessage={previewsError()}
+            onRetry={() => void loadPreviews()}
+          />
+
+          <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
+            <div class="space-y-6">
+              <DashboardTopicProgressList topics={topics()} />
+              <Show when={isDiscoverFullEnabled()}>
+                <DiscoverPeopleLikeYouCard />
+              </Show>
+              <DashboardPlatformGrid platforms={platforms()} />
+            </div>
+            <DashboardActivitySection
+              status={activityStatus()}
+              data={activity()}
+              errorMessage={activityError()}
+              onRetry={() => void loadActivity()}
+            />
+          </div>
+        </div>
+      </Show>
     </AppPageContainer>
   );
 }

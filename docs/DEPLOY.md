@@ -22,6 +22,7 @@ Copy [.env.example](../.env.example) to `.env` in `solve-tracker-frontend/`:
 | `VITE_PUBLIC_SITE_URL` | Yes for build | Single canonical public origin for metadata, sitemap and robots. HTTPS for deployment; loopback HTTP for local smoke builds. Rebuild when it changes. |
 | `PORT` | No | Listen port for `node dist/server/node.js`. `pnpm start` sets **3001** by default. |
 | `BASE_URL` | No | Only for smoke/verify scripts (default `http://127.0.0.1:3001`). |
+| `VITE_LEARNING_GUIDES_ENABLED` | No (default off) | **Build-time.** When `true`, shows learning nav, library, overview continue-learning, and related routes in the UI. Requires backend learning migrations applied (`LearningModule` APIs). Not a runtime toggle — change `.env` (or CI build args) and **rebuild** `pnpm build`. Use `false` for production until beta ([LEARNING_6_PHASE_SIGNOFF.md](../../solve-tracker-backend/docs/learning/LEARNING_6_PHASE_SIGNOFF.md)). |
 
 Backend in development must set **`FRONTEND_ORIGIN=http://localhost:3001`** so browser auth writes succeed. Production: see [solve-tracker-backend/PRODUCTION.md](../../solve-tracker-backend/PRODUCTION.md).
 

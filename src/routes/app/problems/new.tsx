@@ -12,10 +12,14 @@ import { focusFirstInvalid } from "../../../lib/forms/focus-first-invalid";
 import { validateProblemDraft } from "../../../lib/forms/validate-problem";
 import {
   buildCreateInput,
+  nextFromSearch,
+  titleFromSearch,
   topicIdFromSearch,
   toggleTopicId,
+  urlFromSearch,
 } from "../../../lib/problems/form-state";
 import { problemDetailPath } from "../../../lib/problems/paths";
+import { safeReturnPath } from "../../../lib/auth/forms";
 import { paths } from "../../../router";
 
 const FORM_ID = "problem-create";
@@ -66,6 +70,16 @@ export default function ProblemNew() {
     },
   );
 
+  createEffect(
+    () => location.search,
+    (search) => {
+      const prefilledUrl = urlFromSearch(search);
+      if (prefilledUrl) setUrl(prefilledUrl);
+      const prefilledTitle = titleFromSearch(search);
+      if (prefilledTitle) setTitle(prefilledTitle);
+    },
+  );
+
   async function onSubmit(event: Event) {
     event.preventDefault();
     if (form.pending()) return;
@@ -98,7 +112,8 @@ export default function ProblemNew() {
           alreadySolved: alreadySolved(),
         }),
       );
-      navigate(problemDetailPath(created.id));
+      const returnTo = safeReturnPath(nextFromSearch(location.search));
+      navigate(returnTo ?? problemDetailPath(created.id));
     } catch (error) {
       form.applyApiError(error);
       focusFirstInvalid(formEl);
@@ -108,6 +123,11 @@ export default function ProblemNew() {
   }
 
   const preselectTopic = createMemo(() => topicIdFromSearch(location.search));
+  const studyReturn = createMemo(() => {
+    const next = safeReturnPath(nextFromSearch(location.search));
+    if (!next?.includes("/app/learning/") || !next.includes("/study/")) return undefined;
+    return next;
+  });
 
   return (
     <>
@@ -173,6 +193,11 @@ export default function ProblemNew() {
       <Show when={preselectTopic()}>
         <p class="mt-4 text-sm text-muted">
           Started from a topic filter — the matching topic is pre-selected when available.
+        </p>
+      </Show>
+      <Show when={studyReturn()}>
+        <p class="mt-4 text-sm text-muted">
+          You&apos;ll return to your guide step after saving.
         </p>
       </Show>
     </>

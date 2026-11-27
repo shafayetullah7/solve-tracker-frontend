@@ -78,25 +78,34 @@ describe("AppShell", () => {
     expect(view.getByText("Outlet content")).toBeInTheDocument();
   });
 
-  test("marks Library as current on /app/problems", () => {
+  test("marks Problems as current on /app/problems", () => {
     setPathname("/app/problems");
     renderShell();
-    const library = screen.getByRole("link", { name: "Library" });
-    expect(library).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Dashboard" })).not.toHaveAttribute(
+    const problems = screen.getByRole("link", { name: "Problems" });
+    expect(problems).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Overview" })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
-  test("highlights Library and marks Add problem current on /app/problems/new", () => {
+  test("highlights Problems and marks Add problem current on /app/problems/new", () => {
     setPathname("/app/problems/new");
     renderShell();
-    const library = screen.getByRole("link", { name: "Library" });
-    expect(library).not.toHaveAttribute("aria-current");
-    expect(library.className).toContain("bg-brand-soft");
-    const add = screen.getByRole("link", { name: /Add problem/i });
+    const problems = screen.getByRole("link", { name: "Problems" });
+    expect(problems).not.toHaveAttribute("aria-current");
+    expect(problems.className).toContain("bg-brand-soft");
+    const add = screen.getAllByRole("link", { name: /^Add problem$/i })[0]!;
     expect(add).toHaveAttribute("aria-current", "page");
     expect(add).toHaveAttribute("data-active");
+  });
+
+  test("exposes Create menu with problem and topic entries", () => {
+    renderShell();
+    expect(screen.getAllByText("Create").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("menuitem", { name: "Add problem" }).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getAllByRole("menuitem", { name: "New topic" }).length).toBeGreaterThan(0);
   });
 
   test("traps Tab focus inside open drawer", async () => {

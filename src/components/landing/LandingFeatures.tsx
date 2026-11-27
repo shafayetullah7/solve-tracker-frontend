@@ -7,7 +7,7 @@ export function LandingFeatures() {
   return (
     <section class="space-y-8" aria-labelledby="landing-features-heading">
       <LandingSectionHeader id="landing-features-heading" title={LANDING_FEATURES.title} />
-      <div class="grid gap-5 md:grid-cols-3 md:gap-6">
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
         <For each={[...LANDING_FEATURES.items]}>
           {(item) => (
             <div class="h-full border-t-2 border-brand pt-1">

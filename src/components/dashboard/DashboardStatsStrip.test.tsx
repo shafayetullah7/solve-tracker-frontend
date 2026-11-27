@@ -10,7 +10,7 @@ describe("DashboardStatsStrip", () => {
       <DashboardStatsStrip counts={{ total: 10, solved: 4, unsolved: 6 }} platformCount={2} />
     ));
     expect(view.getByRole("progressbar", { name: /40% of problems solved/ })).toBeInTheDocument();
-    expect(view.getByRole("region", { name: "Library totals" })).toBeInTheDocument();
+    expect(view.getByRole("region", { name: "Problem library totals" })).toBeInTheDocument();
     expect(view.getByText("40%")).toBeInTheDocument();
   });
 

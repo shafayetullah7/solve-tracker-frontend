@@ -1,5 +1,6 @@
 import { Show } from "solid-js";
 import type { ProgressCounts } from "../../lib/api/modules/progress.api";
+import { DASHBOARD_STATS_STRIP_LABEL } from "../../lib/dashboard/activity-contract-copy";
 import { overallPercentComplete } from "../../lib/problems/progress-display";
 import { problemNewPath } from "../../lib/problems/paths";
 import { paths } from "../../router";
@@ -28,7 +29,7 @@ export function DashboardStatsStrip(props: DashboardStatsStripProps) {
 
   return (
     <section
-      aria-label="Library totals"
+      aria-label={DASHBOARD_STATS_STRIP_LABEL}
       class="rounded-panel border border-line bg-surface shadow-panel"
     >
       <div class="grid grid-cols-2 divide-x divide-y divide-line sm:grid-cols-4 sm:divide-y-0">

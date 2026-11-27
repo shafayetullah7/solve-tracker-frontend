@@ -228,6 +228,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/problems/{problemId}/learning-references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ProblemsController_listLearningReferences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/problems/{problemId}": {
         parameters: {
             query?: never;
@@ -2153,6 +2169,49 @@ export interface operations {
                         createdAt: string;
                         /** Format: date-time */
                         updatedAt: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProblemsController_listLearningReferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            guideId: string;
+                            guideTitle: string;
+                            /** Format: uuid */
+                            nodeId: string;
+                            nodeTitle: string;
+                        }[];
                     };
                 };
             };
@@ -5115,6 +5174,14 @@ export interface operations {
                             contentRevision: string;
                             requirementRevision: string;
                             completed: boolean;
+                            problemBlocks?: {
+                                /** Format: uuid */
+                                blockId: string;
+                                /** @enum {string} */
+                                problemResolution: "unresolved" | "linked_unsolved" | "solved";
+                                /** Format: uuid */
+                                problemId?: string;
+                            }[];
                         }[];
                         progress: {
                             completedRequired: number;
@@ -5541,11 +5608,15 @@ export interface operations {
                             id: string;
                             position: number;
                             /** @enum {string} */
-                            type: "text" | "code" | "checklist" | "link" | "assessment";
+                            type: "text" | "code" | "checklist" | "link" | "assessment" | "problem";
                             payload: {
                                 [key: string]: unknown;
                             };
                             schemaVersion: number;
+                            /** @enum {string} */
+                            problemResolution?: "unresolved" | "linked_unsolved" | "solved";
+                            /** Format: uuid */
+                            problemId?: string;
                         }[];
                     };
                 };
@@ -5616,6 +5687,13 @@ export interface operations {
                         payload: {
                             /** Format: uuid */
                             assessmentId: string;
+                            label?: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "problem";
+                        payload: {
+                            url: string;
                             label?: string;
                         };
                     })[];

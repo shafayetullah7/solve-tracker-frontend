@@ -1,5 +1,6 @@
 import { cleanup, render } from "@solidjs/testing-library";
 import { afterEach, describe, expect, test } from "vitest";
+import { DASHBOARD_ACTIVITY_SUBTITLE } from "../../lib/dashboard/activity-contract-copy";
 import { DashboardActivitySection } from "./DashboardActivitySection";
 
 afterEach(cleanup);
@@ -28,6 +29,7 @@ describe("DashboardActivitySection", () => {
       <DashboardActivitySection status="ready" data={emptyActivity} />
     ));
     expect(view.getByRole("heading", { name: "Activity" })).toBeInTheDocument();
+    expect(view.getByText(DASHBOARD_ACTIVITY_SUBTITLE)).toBeInTheDocument();
     expect(view.getByText(/No activity in this window yet/)).toBeInTheDocument();
     expect(view.queryByLabelText(/Last \d+ weeks/)).not.toBeInTheDocument();
   });

@@ -1,23 +1,11 @@
 import { useLocation, useNavigate } from "@solidjs/router";
-import type { JSX } from "@solidjs/web";
-import { createSignal, For, Show, type ParentProps } from "solid-js";
-import type { IconProps } from "../../icons/icon-props";
-import {
-  IconClose,
-  IconDashboard,
-  IconLibrary,
-  IconLogOut,
-  IconPlus,
-  IconDiscover,
-  IconTopics,
-  IconUser,
-} from "../../icons";
+import { createSignal, For, Show } from "solid-js";
+import { IconClose, IconLogOut, IconPlus } from "../../icons";
 import { isDiscoverFullEnabled } from "../../lib/discover/flag";
 import { isLearningGuidesEnabled } from "../../lib/learning/flag";
-import { learningLibraryPath } from "../../lib/learning/paths";
-import { discoverForYouPath } from "../../lib/discover/paths";
 import { discoverCopy } from "../../lib/discover/copy";
-import { resolveSidebarActive, type SidebarSectionKey } from "../../lib/app/nav-active";
+import { resolveSidebarActive } from "../../lib/app/nav-active";
+import { buildNavItems } from "../../lib/app/app-sidebar-nav";
 import { formatHandleLabel } from "../../lib/auth/user-handle";
 import { useAuth } from "../../lib/auth/context";
 import { problemNewPath } from "../../lib/problems/paths";
@@ -25,6 +13,7 @@ import { paths } from "../../router";
 import { PracticeBrandLink } from "../brand/PracticeBrandLink";
 import { appHome } from "../../lib/app/product-routes";
 import { Button } from "../ui/Button";
+import { CreateMenu } from "./CreateMenu";
 
 export type AppSidebarProps = {
   variant: "rail" | "drawer";
@@ -32,47 +21,14 @@ export type AppSidebarProps = {
   onClose?: () => void;
 };
 
-type NavItem = {
-  key: SidebarSectionKey;
-  label: string;
-  href: string;
-  icon: (props: IconProps) => JSX.Element;
-};
-
-const BASE_NAV_ITEMS: NavItem[] = [
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    href: paths.app(),
-    icon: IconDashboard,
-  },
-  {
-    key: "library",
-    label: "Library",
-    href: paths.app.problems(),
-    icon: IconLibrary,
-  },
-  {
-    key: "topics",
-    label: "Topics",
-    href: paths.app.topics(),
-    icon: IconTopics,
-  },
-  {
-    key: "profile",
-    label: "Profile",
-    href: paths.app.profile(),
-    icon: IconUser,
-  },
-];
-
-type SidebarNavLinkProps = ParentProps<{
+type SidebarNavLinkProps = {
   href: string;
   label: string;
   active: boolean;
   current?: boolean;
+  icon: ReturnType<typeof buildNavItems>[number]["icon"];
   onNavigate?: () => void;
-}>;
+};
 
 function SidebarNavLink(props: SidebarNavLinkProps) {
   return (
@@ -85,7 +41,7 @@ function SidebarNavLink(props: SidebarNavLinkProps) {
       aria-current={props.current ? "page" : undefined}
       onClick={() => props.onNavigate?.()}
     >
-      {props.children}
+      {props.icon({ class: "h-5 w-5 shrink-0" })}
       <span>{props.label}</span>
     </a>
   );
@@ -97,28 +53,14 @@ export function AppSidebar(props: AppSidebarProps) {
   const auth = useAuth();
   const [logoutPending, setLogoutPending] = createSignal(false);
 
-  const navItems = (): NavItem[] => {
-    const items = [...BASE_NAV_ITEMS];
-    if (isLearningGuidesEnabled()) {
-      const topicsIdx = items.findIndex((i) => i.key === "topics");
-      items.splice(topicsIdx + 1, 0, {
-        key: "learning",
-        label: "Guides",
-        href: learningLibraryPath(),
-        icon: IconTopics,
-      });
-    }
-    if (isDiscoverFullEnabled()) {
-      const profileIdx = items.findIndex((i) => i.key === "profile");
-      items.splice(profileIdx, 0, {
-        key: "discover",
-        label: discoverCopy("nav.discover"),
-        href: discoverForYouPath(),
-        icon: IconDiscover,
-      });
-    }
-    return items;
-  };
+  const navItems = () =>
+    buildNavItems(
+      {
+        learningEnabled: isLearningGuidesEnabled(),
+        discoverFullEnabled: isDiscoverFullEnabled(),
+      },
+      discoverCopy("nav.discover"),
+    );
 
   const active = () => resolveSidebarActive(location.pathname);
 
@@ -171,15 +113,14 @@ export function AppSidebar(props: AppSidebarProps) {
             <SidebarNavLink
               href={item.href}
               label={item.label}
+              icon={item.icon}
               active={active().section === item.key}
               current={
                 active().section === item.key &&
                 !(item.key === "library" && active().addProblem)
               }
               onNavigate={onNavigate}
-            >
-              {item.icon({ class: "h-5 w-5 shrink-0" })}
-            </SidebarNavLink>
+            />
           )}
         </For>
       </nav>
@@ -195,9 +136,13 @@ export function AppSidebar(props: AppSidebarProps) {
             </div>
           )}
         </Show>
+        <CreateMenu
+          learningEnabled={isLearningGuidesEnabled()}
+          onNavigate={onNavigate}
+        />
         <a
           class="ui-button inline-flex w-full items-center justify-center gap-2"
-          data-variant="primary"
+          data-variant="secondary"
           data-active={active().addProblem ? "" : undefined}
           href={problemNewPath()}
           aria-current={active().addProblem ? "page" : undefined}

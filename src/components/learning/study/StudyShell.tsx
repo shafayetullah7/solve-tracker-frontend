@@ -6,6 +6,7 @@ import {
   learningStudyPath,
 } from "../../../lib/learning/paths";
 import { completionMode } from "../../../lib/learning/completion-modes";
+import { hasOpenProblems } from "../../../lib/learning/problem-resolution";
 import { ancestors, studyNeighbors } from "../../../lib/learning/tree-nav";
 import { BlockList } from "../blocks/BlockViews";
 import { GuideOutline } from "../outline/GuideOutline";
@@ -26,9 +27,23 @@ export type StudyShellProps = {
   onAddChild: () => void;
 };
 
+function gatedBannerText(
+  node: Pick<StudyShellProps["node"], "completed" | "problemBlocks">,
+): string {
+  if (node.completed) {
+    return "Required assessments passed and linked problems solved — this step is complete.";
+  }
+  const openProblems = hasOpenProblems(node);
+  if (openProblems) {
+    return "Pass required assessments and solve all linked problems on this step to complete it.";
+  }
+  return "Pass the required assessments on this step to complete it.";
+}
+
 export function StudyShell(props: StudyShellProps) {
   const neighbors = () => studyNeighbors(props.nodes, props.node.id);
   const trail = () => ancestors(props.nodes, props.node.id);
+  const gatedMessage = () => gatedBannerText(props.node);
 
   return (
     <div class="grid gap-8 lg:grid-cols-[minmax(12rem,18rem)_1fr]">
@@ -92,9 +107,7 @@ export function StudyShell(props: StudyShellProps) {
         </header>
         <Show when={props.node.completionMode === completionMode.Gated}>
           <p class="rounded-panel border border-line bg-surface-muted px-4 py-3 text-sm text-ink">
-            {props.node.completed
-              ? "Required assessment passed — this step is complete."
-              : "Pass the required assessment on this step to complete it."}
+            {gatedMessage()}
           </p>
         </Show>
         <Show when={props.node.completionMode === completionMode.Manual}>

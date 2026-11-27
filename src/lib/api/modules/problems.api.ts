@@ -19,6 +19,9 @@ export type ProblemResponse =
   operations["ProblemsController_create"]["responses"][201]["content"]["application/json"];
 export type ProblemListResponse =
   operations["ProblemsController_list"]["responses"][200]["content"]["application/json"];
+export type ProblemLearningReferencesResponse =
+  operations["ProblemsController_listLearningReferences"]["responses"][200]["content"]["application/json"];
+export type ProblemLearningReference = ProblemLearningReferencesResponse["items"][number];
 export type ProblemTopicSummary = ProblemResponse["topics"][number];
 export type ProblemStatus = ProblemResponse["status"];
 
@@ -99,6 +102,29 @@ function decodeProblem(value: unknown): ProblemResponse {
   };
 }
 
+function decodeLearningReference(value: unknown): ProblemLearningReference {
+  if (
+    !isRecord(value) ||
+    typeof value.guideId !== "string" ||
+    typeof value.guideTitle !== "string" ||
+    typeof value.nodeId !== "string" ||
+    typeof value.nodeTitle !== "string"
+  )
+    throw new ApiError("contract", "Invalid problem learning reference.");
+  return {
+    guideId: value.guideId,
+    guideTitle: value.guideTitle,
+    nodeId: value.nodeId,
+    nodeTitle: value.nodeTitle,
+  };
+}
+
+function decodeLearningReferences(value: unknown): ProblemLearningReferencesResponse {
+  if (!isRecord(value) || !Array.isArray(value.items))
+    throw new ApiError("contract", "Invalid problem learning references.");
+  return { items: value.items.map(decodeLearningReference) };
+}
+
 function decodeProblemList(value: unknown): ProblemListResponse {
   if (!isRecord(value) || !Array.isArray(value.items) || !isRecord(value.meta))
     throw new ApiError("contract", "Invalid problem list response.");
@@ -156,6 +182,19 @@ export function createProblemsApi(client: ApiClient) {
       return decodeProblem(
         await client.request({
           path: `/problems/${id}`,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async getLearningReferences(
+      problemIdValue: string,
+      signal?: AbortSignal,
+    ): Promise<ProblemLearningReferencesResponse> {
+      const id = problemId(problemIdValue);
+      return decodeLearningReferences(
+        await client.request({
+          path: `/problems/${id}/learning-references`,
           signal,
           recoverAuth: true,
         }),

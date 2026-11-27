@@ -17,6 +17,20 @@ export function problemNewPath(topicId?: string): string {
   return `${PROBLEMS_ROOT}/new?${new URLSearchParams({ topicId }).toString()}`;
 }
 
+export function problemNewFromStudy(options: {
+  url: string;
+  title?: string;
+  next: string;
+}): string {
+  const params = new URLSearchParams({
+    url: options.url,
+    next: options.next,
+  });
+  const title = options.title?.trim();
+  if (title) params.set("title", title);
+  return `${PROBLEMS_ROOT}/new?${params.toString()}`;
+}
+
 export function problemsBrowseHref(query: ListProblemsQuery): string {
   const qs = serializeBrowseSearch(query);
   return qs ? `${PROBLEMS_ROOT}?${qs}` : PROBLEMS_ROOT;

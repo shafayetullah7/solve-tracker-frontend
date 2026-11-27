@@ -31,6 +31,50 @@ describe("typed learning guides API", () => {
     });
   });
 
+  test("list forwards search and status query", async () => {
+    const request = vi.fn().mockResolvedValue({
+      items: [],
+      meta: { page: 1, pageSize: 25, total: 0 },
+    });
+    await createLearningGuidesApi({ request }).list({
+      page: 1,
+      pageSize: 25,
+      status: "archived",
+      search: "algo",
+    });
+    expect(request).toHaveBeenCalledWith({
+      path: "/learning/guides",
+      query: {
+        page: 1,
+        pageSize: 25,
+        status: "archived",
+        search: "algo",
+      },
+      signal: undefined,
+      recoverAuth: true,
+    });
+  });
+
+  test("lifecycle patches guide", async () => {
+    const request = vi.fn().mockResolvedValue({ resourceId: guide.id, replayed: false });
+    await createLearningGuidesApi({ request }).lifecycle(guide.id, {
+      action: "archive",
+      expectedMetadataRevision: "1",
+      operationId: "33333333-3333-4333-8333-333333333333",
+    });
+    expect(request).toHaveBeenCalledWith({
+      path: `/learning/guides/${guide.id}/lifecycle`,
+      method: "PATCH",
+      body: {
+        action: "archive",
+        expectedMetadataRevision: "1",
+        operationId: "33333333-3333-4333-8333-333333333333",
+      },
+      signal: undefined,
+      recoverAuth: true,
+    });
+  });
+
   test("decodes tree response", async () => {
     const request = vi.fn().mockResolvedValue({
       structureRevision: "2",

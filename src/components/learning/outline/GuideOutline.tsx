@@ -4,6 +4,7 @@ import {
   learningEditPath,
   learningStudyPath,
 } from "../../../lib/learning/paths";
+import { hasOpenProblems } from "../../../lib/learning/problem-resolution";
 
 export type GuideOutlineProps = {
   guideId: string;
@@ -21,15 +22,23 @@ function childNodes(nodes: readonly NodeResponse[], parentId: string | null) {
 }
 
 function nodeTitle(node: NodeResponse) {
+  const openPractice = hasOpenProblems(node);
   return (
-    <Show when={node.completed} fallback={node.title}>
-      <span>
-        {node.title}
-        <span class="ml-1 text-brand" aria-label="completed">
-          ✓
+    <span>
+      <Show when={node.completed} fallback={node.title}>
+        <span>
+          {node.title}
+          <span class="ml-1 text-brand" aria-label="completed">
+            ✓
+          </span>
         </span>
-      </span>
-    </Show>
+      </Show>
+      <Show when={!node.completed && openPractice}>
+        <span class="ml-1 text-xs text-muted" title="Practice problems on this step">
+          · Practice
+        </span>
+      </Show>
+    </span>
   );
 }
 

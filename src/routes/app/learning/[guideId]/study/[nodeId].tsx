@@ -75,6 +75,27 @@ export default function LearningStudyPage() {
     },
   );
 
+  let focusRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+  createEffect(
+    () => status(),
+    (loadStatus) => {
+      if (loadStatus !== "ready") return;
+      const onFocus = () => {
+        if (focusRefreshTimer) clearTimeout(focusRefreshTimer);
+        focusRefreshTimer = setTimeout(() => {
+          const controller = new AbortController();
+          void loadWorkspace(controller.signal).catch(() => undefined);
+        }, 300);
+      };
+      window.addEventListener("focus", onFocus);
+      onCleanup(() => {
+        window.removeEventListener("focus", onFocus);
+        if (focusRefreshTimer) clearTimeout(focusRefreshTimer);
+      });
+    },
+  );
+
   async function toggleComplete() {
     const guideId = params.guideId;
     const nodeId = params.nodeId;
