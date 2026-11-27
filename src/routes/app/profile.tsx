@@ -391,6 +391,20 @@ export default function ProfilePage() {
     }
   }
 
+  async function copyProfileLink() {
+    const h = about().handle || auth.user()?.handle;
+    if (!h) return;
+    const usePublic =
+      publicWeb() && practiceVisibility() !== "private";
+    const url = usePublic
+      ? absolutePublicPeopleProfileUrl(h)
+      : absolutePeopleProfileUrl(h);
+    const copied = await copyTextToClipboard(url);
+    setCopyLinkStatus(
+      copied ? discoverCopy("toast.linkCopied") : url,
+    );
+  }
+
   async function onLogout() {
     if (logoutPending()) return;
     setLogoutPending(true);
@@ -444,19 +458,7 @@ export default function ProfilePage() {
                 const h = about().handle || auth.user()?.handle;
                 if (h) navigate(peopleProfilePath(h));
               }}
-              onCopyLink={async () => {
-                const h = about().handle || auth.user()?.handle;
-                if (!h) return;
-                const usePublic =
-                  publicWeb() && practiceVisibility() !== "private";
-                const url = usePublic
-                  ? absolutePublicPeopleProfileUrl(h)
-                  : absolutePeopleProfileUrl(h);
-                const copied = await copyTextToClipboard(url);
-                setCopyLinkStatus(
-                  copied ? discoverCopy("toast.linkCopied") : url,
-                );
-              }}
+              onCopyLink={copyProfileLink}
             />
           </Show>
           <Show when={entryRemoveError()}>
