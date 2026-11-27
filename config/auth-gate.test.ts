@@ -6,7 +6,7 @@ vi.mock("../src/lib/auth/server-session-probe.ts", () => ({
   probeServerAuthSession: probe,
 }));
 
-import { authGate, authRedirectTarget, injectBeforeHeadClose } from "./auth-gate";
+import { authGate, authRedirectTarget } from "./auth-gate";
 
 const user = { id: "u1", name: "Ada", email: "ada@example.test", handle: "ada_writer" };
 
@@ -24,16 +24,6 @@ function htmlResponse(body: string | ReadableStream<Uint8Array>) {
   return new Response(body, {
     status: 200,
     headers: { "content-type": "text/html; charset=utf-8", "content-length": "1" },
-  });
-}
-
-function streamOf(chunks: string[]): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder();
-  return new ReadableStream({
-    start(controller) {
-      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
-      controller.close();
-    },
   });
 }
 
@@ -76,27 +66,6 @@ describe("authRedirectTarget", () => {
       expect(authRedirectTarget(url("/app"), { kind })).toBeUndefined();
       expect(authRedirectTarget(url("/login"), { kind })).toBeUndefined();
     }
-  });
-});
-
-describe("injectBeforeHeadClose", () => {
-  test("injects before </head> even when the tag spans chunks", async () => {
-    const out = await new Response(
-      injectBeforeHeadClose(
-        streamOf(["<html><head><title>x</title></he", "ad><body>ok</body></html>"]),
-        "<script>seed</script>",
-      ),
-    ).text();
-    expect(out).toBe(
-      "<html><head><title>x</title><script>seed</script></head><body>ok</body></html>",
-    );
-  });
-
-  test("passes the body through unchanged when there is no </head>", async () => {
-    const out = await new Response(
-      injectBeforeHeadClose(streamOf(["<p>", "fragment</p>"]), "<script></script>"),
-    ).text();
-    expect(out).toBe("<p>fragment</p>");
   });
 });
 
@@ -157,29 +126,14 @@ describe("authGate", () => {
     expect(probe).toHaveBeenCalledWith("practice_access=t", expect.any(Object));
   });
 
-  test("stores the snapshot on locals and injects an escaped seed", async () => {
-    const tricky = { ...user, name: "</script><script>alert(1)</script>" };
-    probe.mockResolvedValue({ kind: "authenticated", user: tricky });
+  test("authenticated document passes through without injecting session data", async () => {
+    probe.mockResolvedValue({ kind: "authenticated", user });
     const event = pageEvent("/app");
-    const next = vi
-      .fn()
-      .mockResolvedValue(htmlResponse("<html><head></head><body></body></html>"));
-    const response = await authGate(event as never, next);
-
-    expect(event.locals.practiceAuthBootstrap).toEqual({
-      kind: "authenticated",
-      user: tricky,
-    });
-    expect(response.headers.get("content-length")).toBeNull();
-    const html = await response.text();
-    expect(html).toContain('<script id="practice-auth-bootstrap" type="application/json">');
-    expect(html).not.toContain("</script><script>alert");
-    expect(html).toContain("\\u003c/script\\u003e");
-    const json = html.slice(
-      html.indexOf('json">') + 'json">'.length,
-      html.indexOf("</script></head>"),
-    );
-    expect(JSON.parse(json)).toEqual({ kind: "authenticated", user: tricky });
+    const response = htmlResponse("<html><head></head><body>shell</body></html>");
+    const next = vi.fn().mockResolvedValue(response);
+    expect(await authGate(event as never, next)).toBe(response);
+    expect(event.locals).toEqual({});
+    expect(await response.text()).not.toContain(user.email);
   });
 
   test("treats a */* accept header as a document request", async () => {
