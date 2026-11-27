@@ -1,3 +1,4 @@
+import { createMemo, For } from "solid-js";
 import { discoverCopy } from "../../lib/discover/copy";
 import type { CompareResponse } from "../../lib/api/modules/discover.api";
 
@@ -8,7 +9,7 @@ export function CompareSummaryTable(props: {
   them: Side;
   themLabel: string;
 }) {
-  const rows = [
+  const rows = createMemo(() => [
     { label: "Solved", me: props.me.solved, them: props.them.solved },
     { label: "Total", me: props.me.total, them: props.them.total },
     {
@@ -22,7 +23,7 @@ export function CompareSummaryTable(props: {
       them: props.them.activeWeeks,
     },
     { label: "Streak (days)", me: props.me.streakDays, them: props.them.streakDays },
-  ];
+  ]);
 
   return (
     <section aria-labelledby="compare-summary">
@@ -45,7 +46,7 @@ export function CompareSummaryTable(props: {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            <For each={rows()}>{(row) => (
               <tr class="border-t border-line">
                 <th class="px-3 py-2 font-normal text-muted" scope="row">
                   {row.label}
@@ -53,7 +54,7 @@ export function CompareSummaryTable(props: {
                 <td class="px-3 py-2 tabular-nums font-medium text-brand">{row.me}</td>
                 <td class="px-3 py-2 tabular-nums">{row.them}</td>
               </tr>
-            ))}
+            )}</For>
           </tbody>
         </table>
       </div>
