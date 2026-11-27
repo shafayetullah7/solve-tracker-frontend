@@ -65,9 +65,16 @@ export type ProfilePracticeVisibilityPanelProps = {
 export function ProfilePracticeVisibilityPanel(
   props: ProfilePracticeVisibilityPanelProps,
 ) {
-  const [visibility, setVisibility] = createSignal(props.practiceVisibility);
-  const [goal, setGoal] = createSignal<PracticeGoal>(props.practiceGoal);
-  const [publicWeb, setPublicWeb] = createSignal(props.publicWeb);
+  // Undefined means no local edit; null remains a valid practice goal.
+  const [visibilityDraft, setVisibility] = createSignal<PracticeVisibility>();
+  const [goalDraft, setGoal] = createSignal<PracticeGoal>();
+  const [publicWebDraft, setPublicWeb] = createSignal<boolean>();
+  const visibility = () => visibilityDraft() ?? props.practiceVisibility;
+  const goal = () => {
+    const draft = goalDraft();
+    return draft === undefined ? props.practiceGoal : draft;
+  };
+  const publicWeb = () => publicWebDraft() ?? props.publicWeb;
   const [pending, setPending] = createSignal(false);
   const [banner, setBanner] = createSignal<string | undefined>();
   const [fieldErrors, setFieldErrors] = createSignal<
@@ -84,18 +91,19 @@ export function ProfilePracticeVisibilityPanel(
 
   const previewDisabled = createMemo(() => {
     if (isDiscoverOff()) return true;
-    if (visibility() === "private") return true;
+    if (visibility() === "private" || props.practiceVisibility === "private") return true;
     return !isDiscoverSharingEnabled();
   });
 
   const previewTitle = createMemo(() => {
-    if (visibility() === "private")
+    if (visibility() === "private" || props.practiceVisibility === "private")
       return discoverCopy("visibility.viewAsOthersDisabledPrivate");
     if (isDiscoverOff()) return discoverCopy("visibility.previewLaunchHint");
     return undefined;
   });
 
   async function persistSave() {
+    if (pending() || !dirty()) return;
     setPending(true);
     setBanner(undefined);
     setFieldErrors({});
@@ -103,8 +111,11 @@ export function ProfilePracticeVisibilityPanel(
       await props.onSave({
         practiceVisibility: visibility(),
         practiceGoal: goal(),
-        publicWeb: publicWeb(),
+        publicWeb: visibility() !== "private" && publicWeb(),
       });
+      setVisibility(undefined);
+      setGoal(undefined);
+      setPublicWeb(undefined);
     } catch (error) {
       const applied = applyProfileApiError(error);
       setBanner(applied.banner);
@@ -136,7 +147,7 @@ export function ProfilePracticeVisibilityPanel(
       titleId="profile-visibility-heading"
       toolbarHidden
     >
-      <fieldset class="space-y-4">
+      <fieldset class="space-y-4" disabled={pending()}>
         <legend class="sr-only">{discoverCopy("visibility.panelTitle")}</legend>
         <For each={VISIBILITY_OPTIONS}>
           {(option) => (
@@ -168,7 +179,7 @@ export function ProfilePracticeVisibilityPanel(
             type="checkbox"
             class="mt-1"
             checked={publicWeb()}
-            disabled={visibility() === "private"}
+            disabled={pending() || visibility() === "private"}
             onChange={(e) => setPublicWeb(e.currentTarget.checked)}
           />
           <span class="min-w-0">
@@ -189,6 +200,7 @@ export function ProfilePracticeVisibilityPanel(
         <select
           id="practice-goal"
           class="w-full max-w-md rounded-control border border-line bg-surface px-3 py-2 text-sm"
+          disabled={pending()}
           value={goal() ?? ""}
           onChange={(event) => {
             const v = event.currentTarget.value;
