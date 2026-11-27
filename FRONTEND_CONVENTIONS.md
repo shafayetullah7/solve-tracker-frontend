@@ -1,5 +1,7 @@
 # Frontend conventions
 
+**Rendering policy:** Read [RENDERING_CONVENTIONS.md](./RENDERING_CONVENTIONS.md) before route, SEO, caching, authentication-rendering or deployment changes. Static-first, CSR for private/share-only pages, and request-time SSR only with explicit justification. [Rendering audit](./docs/RENDERING_AUDIT.md) records the migration baseline. Existing SSR deployment and auth instructions describe current behavior until the migration is implemented and verified.
+
 This document defines the UI scheme and implementation patterns for this repository. Examples target the installed packages below, verified on 2026-11-10. They are not React, Next.js, Solid 1.x, or a separate SolidStart 2 application. Follow the [product requirements](../solve-tracker-backend/REQUIREMENTS.md) when building features. Guest marketing copy for `/` lives in [`src/components/landing/`](src/components/landing/) (`LandingPage`); authenticated product UI lives under `/app`.
 
 ## 1. Actual framework and version boundary
