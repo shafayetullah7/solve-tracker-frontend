@@ -38,7 +38,7 @@ export function ProfileEditorDialog(props: ProfileEditorDialogProps) {
       ref={dialogRef}
       aria-labelledby={props.titleId}
       aria-busy={props.closeBlocked ? "true" : undefined}
-      class={`ui-dialog ${sizeClass()} w-full rounded-panel border border-line bg-surface p-6 shadow-panel backdrop:bg-ink/40`}
+      class={["ui-dialog", sizeClass(), "w-full rounded-panel border border-line bg-surface p-6 shadow-panel backdrop:bg-ink/40"]}
       onCancel={(event) => {
         event.preventDefault();
         if (props.closeBlocked) return;
