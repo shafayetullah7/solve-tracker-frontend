@@ -18,8 +18,8 @@ export type TopicShareControlProps = {
 
 export function TopicShareControl(props: TopicShareControlProps) {
   const [open, setOpen] = createSignal(false);
-  const [isPublic, setIsPublic] = createSignal(props.isPublic);
-  const [description, setDescription] = createSignal(props.description);
+  const [isPublic, setIsPublic] = createSignal(false);
+  const [description, setDescription] = createSignal("");
   const [pending, setPending] = createSignal(false);
   const [error, setError] = createSignal<string | undefined>();
 
@@ -56,10 +56,20 @@ export function TopicShareControl(props: TopicShareControlProps) {
           variant="secondary"
           aria-expanded={open()}
           aria-haspopup="dialog"
-          onClick={() => setOpen((v) => !v)}
+          disabled={pending()}
+          onClick={() => {
+            if (open()) {
+              setOpen(false);
+              return;
+            }
+            setIsPublic(props.isPublic);
+            setDescription(props.description);
+            setError(undefined);
+            setOpen(true);
+          }}
         >
-          {isPublic() ? "🌐" : "🔒"}{" "}
-          {isPublic() ? discoverCopy("topics.sharePublic") : discoverCopy("topics.sharePrivate")}
+          {props.isPublic ? "🌐" : "🔒"}{" "}
+          {props.isPublic ? discoverCopy("topics.sharePublic") : discoverCopy("topics.sharePrivate")}
         </Button>
         <Show when={open()}>
           <div
@@ -96,7 +106,7 @@ export function TopicShareControl(props: TopicShareControlProps) {
               })}
             </p>
             <div class="mt-3 flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              <Button type="button" variant="secondary" disabled={pending()} onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button
