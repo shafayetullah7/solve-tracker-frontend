@@ -19,6 +19,7 @@ Copy [.env.example](../.env.example) to `.env` in `solve-tracker-frontend/`:
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `API_PROXY_TARGET` | Yes for `dev`, `serve`, `start` | Backend **origin only** (e.g. `http://localhost:3000`). Used by Start middleware (`/api` → Nest) and SSR session probe (direct `GET /auth/session`). **Not** a `VITE_*` variable — set at **runtime** for Node (containers, systemd, etc.). |
+| `VITE_PUBLIC_SITE_URL` | Yes for build | Single canonical public origin for metadata, sitemap and robots. HTTPS for deployment; loopback HTTP for local smoke builds. Rebuild when it changes. |
 | `PORT` | No | Listen port for `node dist/server/node.js`. `pnpm start` sets **3001** by default. |
 | `BASE_URL` | No | Only for smoke/verify scripts (default `http://127.0.0.1:3001`). |
 
@@ -136,6 +137,7 @@ steps:
     working-directory: solve-tracker-frontend
     env:
       API_PROXY_TARGET: http://127.0.0.1:3000
+      VITE_PUBLIC_SITE_URL: http://127.0.0.1:3001
   - run: pnpm start &
     working-directory: solve-tracker-frontend
   - run: sleep 2 && pnpm verify:deploy
