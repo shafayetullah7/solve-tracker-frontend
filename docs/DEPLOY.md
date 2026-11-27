@@ -55,7 +55,7 @@ API_PROXY_TARGET=https://api.example.test PORT=3001 node dist/server/node.js
 The Node process:
 
 - Serves `dist/client` assets
-- Streams the auth-aware shell (SSR) after a per-request auth probe in the `authGate` middleware (SSR-2), answering protected/guest mismatches with `302`s; page data loads in the browser
+- Streams a session-neutral shell; the auth gate probes eligible cookie-bearing documents only for HTTP redirects. Browser bootstrap resolves identity and page data.
 - Proxies browser `/api/*` to `API_PROXY_TARGET` (same rewrite as dev)
 
 ### Option B — Edge split
@@ -68,7 +68,7 @@ Terminate TLS at the edge and route:
 | Static assets | `dist/client` (immutable hashed files) |
 | Document HTML | **Either** Node SSR (`dist/server/node.js`) **or** a deliberate static/SPA fallback |
 
-If you **only** serve `dist/client` without the Node handler, you lose SSR-2 logged-in first paint and server-side auth redirects unless you accept hydrate-only auth. Same-origin `/api` on the **browser origin** is still mandatory.
+Do not serve only `dist/client` from the current SSR build: a supported client-mode build and SEO-preserving delivery must first be verified. Same-origin `/api` remains mandatory.
 
 **Shared contract:** the browser calls **same-origin** `/api/...`; Nest sees paths **without** the `/api` prefix; `FRONTEND_ORIGIN` on Nest equals the public browser origin.
 
@@ -115,10 +115,10 @@ Full auth browser checks (not part of `verify:deploy`): backend on :3000, `pnpm 
 | Symptom | Likely cause |
 | --- | --- |
 | `EADDRINUSE` on 3001 | Another `pnpm dev` or `pnpm start` still bound. Stop it (`fuser -k 3001/tcp`), rebuild, restart. |
-| `verify:ssr-2` missing `practice-auth-bootstrap` | Stale server binary — restart after `pnpm build`. |
+| `verify:ssr-2` detects `practice-auth-bootstrap` | Stale server binary — restart after `pnpm build`. |
 | API/login failures with SSR up | Missing/wrong `API_PROXY_TARGET` or `FRONTEND_ORIGIN` on backend. |
 | `API_PROXY_TARGET must be an explicit` on `pnpm dev` | Add `API_PROXY_TARGET=http://localhost:3000` to `.env` (copy from `.env.example`). Restart dev after creating `.env`. Dev also hydrates `.env` in SSR middleware if the Vite process did not. |
-| SSR auth `unavailable` in HTML | Backend unreachable from Node (probe uses `API_PROXY_TARGET` directly). HTML may still stream; no server redirects are issued and the browser resolves auth. |
+| Browser auth unavailable | Backend unreachable from Node (probe uses `API_PROXY_TARGET` directly). HTML may still stream; no server redirects are issued and the browser resolves auth. |
 | Pages stuck on skeletons / login form does a native `GET /login?` | Hydration broke (console: "Hydration key miss" / "unclaimed server-rendered"). The server tree must match what the client entry hydrates — do not reintroduce `serverRenderSetup` wrappers around `<App />`. |
 | `/app` redirect loop | Edge or CDN cached a `302`. Redirects from `authGate` are `private, no-store` with `Vary: Cookie`; the edge must honour them. |
 
