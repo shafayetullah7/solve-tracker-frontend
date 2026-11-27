@@ -30,7 +30,7 @@ export function PracticeBrandLink(props: PracticeBrandLinkProps) {
   return (
     <a
       href={props.href}
-      class={[linkClass[size()], props.class].filter(Boolean).join(" ")}
+      class={[linkClass[size()], props.class]}
       aria-label={showWordmark() ? undefined : "Practice home"}
     >
       <PracticeMark class={markClass[size()]} />
