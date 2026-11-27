@@ -5,7 +5,6 @@ import { discoverCopy } from "../../lib/discover/copy";
 import { problemsBrowseHref } from "../../lib/problems/paths";
 import { trackDiscoverEvent } from "../../lib/discover/track";
 import { Button } from "../ui/Button";
-import { FormAlert } from "../ui/FormAlert";
 
 export type PeopleCopyTopicButtonProps = {
   client: ApiClient;
