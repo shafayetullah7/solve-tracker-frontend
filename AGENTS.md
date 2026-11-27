@@ -1,5 +1,7 @@
 # Frontend project conventions
 
+**Rendering policy:** Read [RENDERING_CONVENTIONS.md](./RENDERING_CONVENTIONS.md) before route, SEO, caching, authentication-rendering or deployment changes. Static-first, CSR for private/share-only pages, and request-time SSR only with explicit justification. [Rendering audit](./docs/RENDERING_AUDIT.md) records the migration baseline. Existing SSR deployment and auth instructions describe current behavior until the migration is implemented and verified.
+
 Read [FRONTEND_CONVENTIONS.md](./FRONTEND_CONVENTIONS.md) before frontend work.
 It documents the installed Solid 2 RC / Vite Start-mode architecture, Tailwind
 4.3.5 UI scheme, conditional rendering, data props, JSX slots, and component props.
