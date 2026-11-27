@@ -1,18 +1,36 @@
 import { For, Show } from "solid-js";
 import type { NodeResponse } from "../../../lib/api/modules/learning-guides.api";
-import { learningStudyPath } from "../../../lib/learning/paths";
+import {
+  learningEditPath,
+  learningStudyPath,
+} from "../../../lib/learning/paths";
 
 export type GuideOutlineProps = {
   guideId: string;
   nodes: readonly NodeResponse[];
   currentNodeId?: string;
+  onSelect?: (nodeId: string) => void;
+  showActions?: boolean;
 };
 
 function childNodes(nodes: readonly NodeResponse[], parentId: string | null) {
   return nodes
-  .filter((node) => node.parentId === parentId)
-  .slice()
-  .sort((a, b) => a.position - b.position);
+    .filter((node) => node.parentId === parentId)
+    .slice()
+    .sort((a, b) => a.position - b.position);
+}
+
+function nodeTitle(node: NodeResponse) {
+  return (
+    <Show when={node.completed} fallback={node.title}>
+      <span>
+        {node.title}
+        <span class="ml-1 text-brand" aria-label="completed">
+          ✓
+        </span>
+      </span>
+    </Show>
+  );
 }
 
 function OutlineLevel(props: {
@@ -21,6 +39,8 @@ function OutlineLevel(props: {
   parentId: string | null;
   depth: number;
   currentNodeId?: string;
+  onSelect?: (nodeId: string) => void;
+  showActions?: boolean;
 }) {
   const items = () => childNodes(props.nodes, props.parentId);
   return (
@@ -33,29 +53,61 @@ function OutlineLevel(props: {
         <For each={items()}>
           {(node) => (
             <li>
-              <a
-                href={learningStudyPath(props.guideId, node.id)}
-                class={[
-                  "block rounded-control px-2 py-1.5 text-label text-ink hover:bg-surface-muted",
-                  props.currentNodeId === node.id && "bg-brand-soft text-brand",
-                ]}
-                aria-current={props.currentNodeId === node.id ? "page" : undefined}
+              <Show
+                when={props.onSelect}
+                fallback={
+                  <a
+                    href={learningStudyPath(props.guideId, node.id)}
+                    class={[
+                      "block rounded-control px-2 py-1.5 text-label text-ink hover:bg-surface-muted",
+                      props.currentNodeId === node.id && "bg-brand-soft text-brand",
+                    ]}
+                    aria-current={props.currentNodeId === node.id ? "page" : undefined}
+                  >
+                    {nodeTitle(node)}
+                  </a>
+                }
               >
-                <Show when={node.completed} fallback={node.title}>
-                  <span>
-                    {node.title}
-                    <span class="ml-1 text-brand" aria-label="completed">
-                      ✓
-                    </span>
-                  </span>
-                </Show>
-              </a>
+                <div
+                  class={[
+                    "flex flex-wrap items-center gap-2 rounded-control px-2 py-1.5",
+                    props.currentNodeId === node.id && "bg-brand-soft",
+                  ]}
+                >
+                  <button
+                    type="button"
+                    class={[
+                      "min-h-11 flex-1 text-left text-label text-ink hover:text-brand",
+                      props.currentNodeId === node.id && "font-medium text-brand",
+                    ]}
+                    onClick={() => props.onSelect!(node.id)}
+                  >
+                    {nodeTitle(node)}
+                  </button>
+                  <Show when={props.showActions}>
+                    <a
+                      class="text-xs font-medium text-brand hover:underline"
+                      href={learningStudyPath(props.guideId, node.id)}
+                    >
+                      Study
+                    </a>
+                    <a
+                      class="text-xs font-medium text-brand hover:underline"
+                      href={learningEditPath(props.guideId, node.id)}
+                    >
+                      Content
+                    </a>
+                  </Show>
+                </div>
+              </Show>
               <OutlineLevel
                 guideId={props.guideId}
                 nodes={props.nodes}
                 parentId={node.id}
                 depth={props.depth + 1}
                 currentNodeId={props.currentNodeId}
+                onSelect={props.onSelect}
+                showActions={props.showActions}
               />
             </li>
           )}
@@ -79,6 +131,8 @@ export function GuideOutline(props: GuideOutlineProps) {
         parentId={null}
         depth={0}
         currentNodeId={props.currentNodeId}
+        onSelect={props.onSelect}
+        showActions={props.showActions}
       />
     </Show>
   );

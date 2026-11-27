@@ -5,6 +5,7 @@ import {
   learningGuidePath,
   learningStudyPath,
 } from "../../../lib/learning/paths";
+import { completionMode } from "../../../lib/learning/completion-modes";
 import { ancestors, studyNeighbors } from "../../../lib/learning/tree-nav";
 import { BlockList } from "../blocks/BlockViews";
 import { GuideOutline } from "../outline/GuideOutline";
@@ -89,7 +90,7 @@ export function StudyShell(props: StudyShellProps) {
             Edit content
           </a>
         </header>
-        <Show when={props.node.completionMode === "manual"}>
+        <Show when={props.node.completionMode === completionMode.Manual}>
           <div>
             <Button
               type="button"
@@ -134,7 +135,6 @@ export function StudyShell(props: StudyShellProps) {
         </div>
         <section class="rounded-panel border border-line bg-surface p-4">
           <h2 class="text-label font-semibold text-ink">Add child step</h2>
-          <p class="mt-1 text-sm text-muted">Reorder and move steps via API in 3A; UI controls deferred.</p>
           <div class="mt-3 flex flex-wrap gap-2">
             <input
               class="min-h-11 min-w-[12rem] flex-1 rounded-control border border-line bg-surface px-3 text-base text-ink"

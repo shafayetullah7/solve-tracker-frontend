@@ -279,6 +279,18 @@ Phased plan: [docs/FORM_VALIDATION_PHASED_PLAN.md](docs/FORM_VALIDATION_PHASED_P
 
 **Media and avatars:** All permanent images use the backend **`media`** model and [`MEDIA_CONVENTIONS.md`](../solve-tracker-backend/MEDIA_CONVENTIONS.md). **Upload** (`POST /media`) creates `usage_count = 0`; **link** on save (profile avatar, gallery commit) bumps slots in one server transaction. Gallery lists only `usage_count > 0`. Profile photo UI ([`ProfileAvatarEditorDialog`](src/components/profile/ProfileAvatarEditorDialog.tsx), [`ProfileAvatarUploadField`](src/components/profile/ProfileAvatarUploadField.tsx)): upload in modal, commit `mediaId` on save; abandoning the modal must not increase server usage. Do not store long-lived blobs in page state once APIs exist—use returned `avatarUrl` from profile/media APIs. Client file rules: [`profile-avatar-upload.ts`](src/lib/profile/profile-avatar-upload.ts).
 
+## 8.1 Learning domain value mirrors
+
+PostgreSQL enums live in the backend schema; the SPA does not import them. For learning features, mirror backend value objects under [`src/lib/learning/`](src/lib/learning/):
+
+| Backend value object | Frontend module |
+| --- | --- |
+| `learningNodeCompletionMode` | [`completion-modes.ts`](src/lib/learning/completion-modes.ts) |
+| `learningBlockType` | [`block-types.ts`](src/lib/learning/block-types.ts) |
+| `learningImportSourceKind` (writable formats) | [`import-formats.ts`](src/lib/learning/import-formats.ts) |
+
+Use `completionMode.Manual`, `blockType.Text`, and similar exports in components and routes instead of string literals. Keep keys and string values aligned with the backend `*.enum.ts` files when enums change.
+
 ## 9. Accessibility and interaction
 
 - Use visible labels, logical headings, native buttons/links, and focus states. Connect help/errors using `aria-describedby` and invalid fields using `aria-invalid`.

@@ -11,7 +11,7 @@ import {
   createLearningGuidesApi,
   type GuideResponse,
 } from "../../../lib/api/modules/learning-guides.api";
-import { learningGuidePath, learningNewGuidePath } from "../../../lib/learning/paths";
+import { learningGuidePath, learningImportPath, learningNewGuidePath } from "../../../lib/learning/paths";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 
@@ -58,6 +58,13 @@ export default function LearningLibraryPage() {
               Private study paths. Build a tree, then open steps to study.
             </p>
           </div>
+          <a
+            class="ui-button inline-flex items-center"
+            data-variant="secondary"
+            href={learningImportPath()}
+          >
+            Import guide
+          </a>
           <a class="ui-button inline-flex items-center" data-variant="primary" href={learningNewGuidePath()}>
             New guide
           </a>

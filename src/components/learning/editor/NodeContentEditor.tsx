@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import type { ContentBlock, ReplaceNodeContentInput } from "../../../lib/api/modules/learning-guides.api";
 import { learningStudyPath } from "../../../lib/learning/paths";
 import { Button } from "../../ui/Button";
@@ -24,6 +24,15 @@ function fromContent(blocks: readonly ContentBlock[]): DraftBlock[] {
         },
       };
     }
+    if (block.type === "link") {
+      return {
+        type: "link" as const,
+        payload: {
+          url: typeof block.payload.url === "string" ? block.payload.url : "https://",
+          label: typeof block.payload.label === "string" ? block.payload.label : "Resource",
+        },
+      };
+    }
     const items = Array.isArray(block.payload.items)
       ? block.payload.items.filter(
           (item): item is { id: string; label: string } =>
@@ -44,20 +53,45 @@ export type NodeContentEditorProps = {
   contentRevision: string;
   initialBlocks: readonly ContentBlock[];
   savePending: boolean;
+  saveState: "idle" | "saving" | "saved" | "error";
   error?: string;
   onSave: (blocks: DraftBlock[], expectedContentRevision: string) => void;
+  onAutosave: (blocks: DraftBlock[], expectedContentRevision: string) => void;
 };
 
 export function NodeContentEditor(props: NodeContentEditorProps) {
   const [blocks, setBlocks] = createSignal<DraftBlock[]>(fromContent(props.initialBlocks));
+  const [dirty, setDirty] = createSignal(false);
+
+  createEffect(
+    () => [blocks(), props.contentRevision, dirty()] as const,
+    () => {
+      if (!dirty()) return;
+      const timer = setTimeout(() => {
+        props.onAutosave(blocks(), props.contentRevision);
+        setDirty(false);
+      }, 1500);
+      onCleanup(() => clearTimeout(timer));
+    },
+  );
 
   function addBlock(type: DraftBlock["type"]) {
     if (type === "text") {
       setBlocks((current) => [...current, { type: "text", payload: { body: "" } }]);
+      setDirty(true);
       return;
     }
     if (type === "code") {
       setBlocks((current) => [...current, { type: "code", payload: { body: "" } }]);
+      setDirty(true);
+      return;
+    }
+    if (type === "link") {
+      setBlocks((current) => [
+        ...current,
+        { type: "link", payload: { url: "https://", label: "Resource" } },
+      ]);
+      setDirty(true);
       return;
     }
     setBlocks((current) => [
@@ -67,10 +101,12 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         payload: { items: [{ id: crypto.randomUUID().slice(0, 8), label: "Item" }] },
       },
     ]);
+    setDirty(true);
   }
 
   function removeAt(index: number) {
     setBlocks((current) => current.filter((_, i) => i !== index));
+    setDirty(true);
   }
 
   function move(index: number, delta: number) {
@@ -83,6 +119,7 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
       next.splice(target, 0, row);
       return next;
     });
+    setDirty(true);
   }
 
   function updateText(index: number, body: string) {
@@ -91,6 +128,7 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         i === index && block.type === "text" ? { ...block, payload: { body } } : block,
       ),
     );
+    setDirty(true);
   }
 
   function updateCode(index: number, field: "language" | "body", value: string) {
@@ -103,6 +141,7 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         return { ...block, payload: { ...block.payload, body: value } };
       }),
     );
+    setDirty(true);
   }
 
   function updateChecklistLabel(blockIndex: number, itemIndex: number, label: string) {
@@ -119,6 +158,7 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         };
       }),
     );
+    setDirty(true);
   }
 
   function addChecklistItem(blockIndex: number) {
@@ -136,7 +176,15 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         };
       }),
     );
+    setDirty(true);
   }
+
+  const saveLabel = () => {
+    if (props.savePending || props.saveState === "saving") return "Saving…";
+    if (props.saveState === "saved") return "Saved";
+    if (props.saveState === "error") return "Save failed";
+    return "Save now";
+  };
 
   return (
     <div class="space-y-6">
@@ -152,9 +200,12 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
           data-variant="secondary"
           href={learningStudyPath(props.guideId, props.nodeId)}
         >
-          Back to study
+          Preview study
         </a>
       </header>
+      <p class="text-sm text-muted" aria-live="polite">
+        Autosave: {props.saveState === "saving" ? "Saving…" : props.saveState === "saved" ? "All changes saved" : props.saveState === "error" ? "Save error" : "Edits save automatically"}
+      </p>
       <Show when={props.error}>
         {(message) => <FormAlert variant="error">{message()}</FormAlert>}
       </Show>
@@ -167,6 +218,9 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         </Button>
         <Button type="button" variant="secondary" onClick={() => addBlock("checklist")}>
           Add checklist
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => addBlock("link")}>
+          Add link
         </Button>
       </div>
       <For each={blocks()}>
@@ -222,6 +276,40 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
                 </>
               )}
             </Show>
+            <Show when={block.type === "link" ? block : false}>
+              {(linkBlock) => (
+                <div class="space-y-2">
+                  <input
+                    class="w-full rounded-control border border-line px-3 py-2 text-sm"
+                    placeholder="Label"
+                    value={linkBlock().payload.label}
+                    onInput={(event) =>
+                      setBlocks((current) =>
+                        current.map((row, i) =>
+                          i === index() && row.type === "link"
+                            ? { ...row, payload: { ...row.payload, label: event.currentTarget.value } }
+                            : row,
+                        ),
+                      )
+                    }
+                  />
+                  <input
+                    class="w-full rounded-control border border-line px-3 py-2 text-sm"
+                    placeholder="https://example.com"
+                    value={linkBlock().payload.url}
+                    onInput={(event) =>
+                      setBlocks((current) =>
+                        current.map((row, i) =>
+                          i === index() && row.type === "link"
+                            ? { ...row, payload: { ...row.payload, url: event.currentTarget.value } }
+                            : row,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+              )}
+            </Show>
             <Show when={block.type === "checklist" ? block : false}>
               {(listBlock) => (
                 <>
@@ -250,7 +338,7 @@ export function NodeContentEditor(props: NodeContentEditorProps) {
         disabled={props.savePending}
         onClick={() => props.onSave(blocks(), props.contentRevision)}
       >
-        {props.savePending ? "Saving…" : "Save content"}
+        {saveLabel()}
       </Button>
     </div>
   );

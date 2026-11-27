@@ -14,7 +14,13 @@ import {
   type GuideResponse,
   type TreeResponse,
 } from "../../../../lib/api/modules/learning-guides.api";
-import { learningLibraryPath, learningStudyPath } from "../../../../lib/learning/paths";
+import { completionMode } from "../../../../lib/learning/completion-modes";
+import {
+  learningLibraryPath,
+  learningStructurePath,
+  learningStudyPath,
+} from "../../../../lib/learning/paths";
+import { createLearningPortabilityApi } from "../../../../lib/api/modules/learning-portability.api";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 
@@ -23,6 +29,7 @@ export default function LearningGuideOverviewPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const api = createLearningGuidesApi(auth.productClient);
+  const portability = createLearningPortabilityApi(auth.productClient);
 
   const [status, setStatus] = createSignal<LoadStatus>("idle");
   const [guide, setGuide] = createSignal<GuideResponse | undefined>();
@@ -72,7 +79,7 @@ export default function LearningGuideOverviewPage() {
         parentId: null,
         beforeNodeId: null,
         required: true,
-        completionMode: "structural",
+        completionMode: completionMode.Structural,
         expectedStructureRevision: currentTree.structureRevision,
         operationId: crypto.randomUUID(),
       });
@@ -86,6 +93,22 @@ export default function LearningGuideOverviewPage() {
   }
 
   const firstStep = () => tree()?.nodes[0];
+
+  async function downloadExport(format: "json" | "markdown") {
+    const id = params.guideId;
+    if (!id) return;
+    const body = await portability.exportGuide(id, format);
+    const blob = new Blob(
+      [format === "json" ? JSON.stringify(body, null, 2) : String(body)],
+      { type: format === "json" ? "application/json" : "text/markdown" },
+    );
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = format === "json" ? "guide.json" : "guide.md";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <LearningFeatureGate>
@@ -133,17 +156,40 @@ export default function LearningGuideOverviewPage() {
                             </p>
                           </Show>
                         </header>
-                        <Show when={firstStep()}>
-                          {(step) => (
-                            <a
-                              class="ui-button inline-flex"
-                              data-variant="primary"
-                              href={learningStudyPath(row.id, step().id)}
-                            >
-                              Start studying
-                            </a>
-                          )}
-                        </Show>
+                        <div class="flex flex-wrap gap-2">
+                          <Show when={firstStep()}>
+                            {(step) => (
+                              <a
+                                class="ui-button inline-flex"
+                                data-variant="primary"
+                                href={learningStudyPath(row.id, step().id)}
+                              >
+                                Start studying
+                              </a>
+                            )}
+                          </Show>
+                          <a
+                            class="ui-button inline-flex"
+                            data-variant="secondary"
+                            href={learningStructurePath(row.id)}
+                          >
+                            Edit structure
+                          </a>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => void downloadExport("json")}
+                          >
+                            Export JSON
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => void downloadExport("markdown")}
+                          >
+                            Export Markdown
+                          </Button>
+                        </div>
                         <Panel title="Add root step">
                           <div class="flex flex-wrap gap-2">
                             <input

@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { completionMode } from "../../learning/completion-modes";
 import { createLearningGuidesApi } from "./learning-guides.api";
 import { ApiError } from "../errors";
 
@@ -40,7 +41,7 @@ describe("typed learning guides API", () => {
           title: "Intro",
           position: 0,
           required: true,
-          completionMode: "structural",
+          completionMode: completionMode.Structural,
           contentRevision: "1",
           requirementRevision: "1",
           completed: false,
@@ -82,6 +83,44 @@ describe("typed learning guides API", () => {
       signal: undefined,
       recoverAuth: true,
     });
+  });
+
+  test("moveNode calls placement endpoint", async () => {
+    const request = vi.fn().mockResolvedValue({ resourceId: guide.id, replayed: false });
+    await createLearningGuidesApi({ request }).moveNode(guide.id, "22222222-2222-4222-8222-222222222222", {
+      parentId: null,
+      beforeNodeId: null,
+      expectedStructureRevision: "1",
+      operationId: "33333333-3333-4333-8333-333333333333",
+    });
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: "/learning/guides/11111111-1111-4111-8111-111111111111/nodes/22222222-2222-4222-8222-222222222222/placement",
+        method: "PATCH",
+      }),
+    );
+  });
+
+  test("deleteNode sends revision headers", async () => {
+    const request = vi.fn().mockResolvedValue(undefined);
+    await createLearningGuidesApi({ request }).deleteNode(
+      guide.id,
+      "22222222-2222-4222-8222-222222222222",
+      {
+        expectedStructureRevision: "4",
+        operationId: "33333333-3333-4333-8333-333333333333",
+      },
+    );
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "DELETE",
+        headers: {
+          "X-Expected-Revision": "4",
+          "X-Operation-Id": "33333333-3333-4333-8333-333333333333",
+        },
+        response: "empty",
+      }),
+    );
   });
 
   test("rejects invalid guide ids", async () => {

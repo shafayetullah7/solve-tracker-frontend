@@ -15,6 +15,7 @@ import {
   type NodeResponse,
   type TreeResponse,
 } from "../../../../../lib/api/modules/learning-guides.api";
+import { completionMode } from "../../../../../lib/learning/completion-modes";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 
@@ -109,7 +110,7 @@ export default function LearningStudyPage() {
         parentId: currentNode.id,
         beforeNodeId: null,
         required: true,
-        completionMode: "structural",
+        completionMode: completionMode.Structural,
         expectedStructureRevision: currentTree.structureRevision,
         operationId: crypto.randomUUID(),
       });

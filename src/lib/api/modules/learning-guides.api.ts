@@ -18,7 +18,14 @@ export type CreateNodeInput =
   JsonInput<operations["LearningGuidesController_createNode"]>;
 export type PatchNodeInput =
   JsonInput<operations["LearningGuidesController_patchNode"]>;
+export type MoveNodeInput =
+  JsonInput<operations["LearningGuidesController_moveNode"]>;
 export type ResumeInput = JsonInput<operations["LearningGuidesController_resume"]>;
+export type RecoveryQuery = NonNullable<
+  operations["LearningGuidesController_recoverable"]["parameters"]["query"]
+>;
+export type RecoveryResponse =
+  operations["LearningGuidesController_recoverable"]["responses"][200]["content"]["application/json"];
 
 export type GuideResponse =
   operations["LearningGuidesController_get"]["responses"][200]["content"]["application/json"];
@@ -164,6 +171,18 @@ function decodeEnrollment(value: unknown): EnrollmentResponse {
   };
 }
 
+function decodeRecovery(value: unknown): RecoveryResponse {
+  if (
+    !isRecord(value) ||
+    !Array.isArray(value.items) ||
+    typeof value.page !== "number" ||
+    typeof value.pageSize !== "number" ||
+    typeof value.hasMore !== "boolean"
+  )
+    throw new ApiError("contract", "Invalid recovery response.");
+  return value as RecoveryResponse;
+}
+
 function decodeReceipt(value: unknown): MutationReceipt {
   if (
     !isRecord(value) ||
@@ -252,6 +271,95 @@ export function createLearningGuidesApi(client: ApiClient) {
           path: `/learning/guides/${g}/nodes/${n}`,
           method: "PATCH",
           body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async moveNode(
+      guideIdValue: string,
+      nodeIdValue: string,
+      input: MoveNodeInput,
+      signal?: AbortSignal,
+    ): Promise<MutationReceipt> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      return decodeReceipt(
+        await client.request({
+          path: `/learning/guides/${g}/nodes/${n}/placement`,
+          method: "PATCH",
+          body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async deleteNode(
+      guideIdValue: string,
+      nodeIdValue: string,
+      input: { expectedStructureRevision: string; operationId: string },
+      signal?: AbortSignal,
+    ): Promise<void> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      await client.request({
+        path: `/learning/guides/${g}/nodes/${n}`,
+        method: "DELETE",
+        response: "empty",
+        headers: {
+          "X-Expected-Revision": input.expectedStructureRevision,
+          "X-Operation-Id": input.operationId,
+        },
+        signal,
+        recoverAuth: true,
+      });
+    },
+    async copyNode(
+      guideIdValue: string,
+      nodeIdValue: string,
+      input: MoveNodeInput,
+      signal?: AbortSignal,
+    ): Promise<MutationReceipt> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      return decodeReceipt(
+        await client.request({
+          path: `/learning/guides/${g}/nodes/${n}/copy`,
+          method: "POST",
+          body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async restoreNode(
+      guideIdValue: string,
+      nodeIdValue: string,
+      input: MoveNodeInput,
+      signal?: AbortSignal,
+    ): Promise<MutationReceipt> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      return decodeReceipt(
+        await client.request({
+          path: `/learning/guides/${g}/nodes/${n}/restore`,
+          method: "POST",
+          body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async recoverable(
+      guideIdValue: string,
+      query: RecoveryQuery = {},
+      signal?: AbortSignal,
+    ): Promise<RecoveryResponse> {
+      const g = guideId(guideIdValue);
+      return decodeRecovery(
+        await client.request({
+          path: `/learning/guides/${g}/recovery`,
+          query,
           signal,
           recoverAuth: true,
         }),

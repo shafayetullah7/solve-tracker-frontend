@@ -32,6 +32,8 @@ export default function LearningNodeEditPage() {
   const [content, setContent] = createSignal<NodeContentResponse | undefined>();
   const [error, setError] = createSignal<string | undefined>();
   const [savePending, setSavePending] = createSignal(false);
+  const [saveState, setSaveState] = createSignal<"idle" | "saving" | "saved" | "error">("idle");
+  let saveQueue: Promise<void> = Promise.resolve();
 
   async function loadWorkspace(signal: AbortSignal) {
     const guideId = params.guideId;
@@ -66,25 +68,30 @@ export default function LearningNodeEditPage() {
     },
   );
 
-  async function saveContent(
+  async function persistContent(
     blocks: Parameters<typeof api.replaceNodeContent>[2]["blocks"],
     expectedContentRevision: string,
+    navigateAfter: boolean,
   ) {
     const guideId = params.guideId;
     const nodeId = params.nodeId;
-    if (savePending()) return;
-    setSavePending(true);
+    const revision = content()?.contentRevision ?? expectedContentRevision;
+    setSaveState("saving");
+  setSavePending(true);
     setError(undefined);
     try {
       await api.replaceNodeContent(guideId, nodeId, {
         blocks,
-        expectedContentRevision,
+        expectedContentRevision: revision,
         operationId: crypto.randomUUID(),
       });
-      navigate(learningStudyPath(guideId, nodeId));
+      await loadWorkspace(new AbortController().signal);
+      setSaveState("saved");
+      if (navigateAfter) navigate(learningStudyPath(guideId, nodeId));
     } catch (cause: unknown) {
+      setSaveState("error");
       if (cause instanceof ApiError && cause.kind === "http" && cause.status === 409) {
-        setError("Content was updated elsewhere. Reload and try again.");
+        setError("Content was updated elsewhere. Reloaded latest revision.");
         await loadWorkspace(new AbortController().signal);
       } else {
         setError(cause instanceof Error ? cause.message : "Could not save content.");
@@ -92,6 +99,17 @@ export default function LearningNodeEditPage() {
     } finally {
       setSavePending(false);
     }
+  }
+
+  function enqueueSave(
+    blocks: Parameters<typeof api.replaceNodeContent>[2]["blocks"],
+    expectedContentRevision: string,
+    navigateAfter: boolean,
+  ) {
+    saveQueue = saveQueue
+      .then(() => persistContent(blocks, expectedContentRevision, navigateAfter))
+      .catch(() => undefined);
+    return saveQueue;
   }
 
   return (
@@ -120,8 +138,14 @@ export default function LearningNodeEditPage() {
                       contentRevision={row().contentRevision}
                       initialBlocks={row().blocks}
                       savePending={savePending()}
+                      saveState={saveState()}
                       error={error()}
-                      onSave={(blocks, revision) => void saveContent(blocks, revision)}
+                      onAutosave={(blocks, revision) => {
+                        void enqueueSave(blocks, revision, false);
+                      }}
+                      onSave={(blocks, revision) => {
+                        void enqueueSave(blocks, revision, true);
+                      }}
                     />
                   )}
                 </Show>

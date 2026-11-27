@@ -107,9 +107,21 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/app/learning/:guideId/structure";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/structure"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/structure")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/app/learning/:guideId/study/:nodeId";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/learning/import";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/import"), Extract<"default", keyof typeof import("./src/routes/app/learning/import")>>>;
       $$route?: undefined;
     },
     {
@@ -418,10 +430,26 @@ declare module "virtual:file-routes" {
           children?: undefined;
         },
         {
+          path: "/learning/import";
+          id: "/learning/import";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/import"), Extract<"default", keyof typeof import("./src/routes/app/learning/import")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
           path: "/learning/:guideId/";
           id: "/learning/:guideId/";
           page: true;
           $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/index"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/index")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/learning/:guideId/structure";
+          id: "/learning/:guideId/structure";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/structure"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/structure")>>>;
           $$route?: undefined;
           children?: undefined;
         },

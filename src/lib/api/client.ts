@@ -7,6 +7,7 @@ export interface ApiRequest {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   query?: Record<string, QueryValue | readonly QueryValue[]>;
   body?: unknown;
+  headers?: Record<string, string>;
   signal?: AbortSignal;
   response?: "json" | "text" | "empty";
   recoverAuth?: boolean;
@@ -72,7 +73,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     }, timeoutMs);
     try {
       const method = input.method ?? "GET";
-      const headers: Record<string, string> = {};
+      const headers: Record<string, string> = { ...(input.headers ?? {}) };
       if (method !== "GET") headers["X-Requested-With"] = "practice";
       if (body !== undefined) headers["Content-Type"] = "application/json";
       const response = await (options.fetch ?? globalThis.fetch)(url, {

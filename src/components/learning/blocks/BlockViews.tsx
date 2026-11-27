@@ -50,6 +50,17 @@ export function BlockList(props: { blocks: readonly ContentBlock[] }) {
                 );
               })()}
             </Show>
+            <Show when={block.type === "link"}>
+              {(() => {
+                const url = typeof block.payload.url === "string" ? block.payload.url : "";
+                const label = typeof block.payload.label === "string" ? block.payload.label : url;
+                return (
+                  <a class="text-brand hover:underline" href={url} rel="noopener noreferrer" target="_blank">
+                    {label}
+                  </a>
+                );
+              })()}
+            </Show>
             <Show when={block.type === "checklist"}>
               <ul class="list-disc space-y-2 pl-5 text-body text-ink">
                 <For each={checklistItems(block.payload)}>

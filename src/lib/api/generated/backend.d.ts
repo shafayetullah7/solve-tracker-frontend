@@ -1012,6 +1012,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learning/guides/{guideId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LearningGuidesController_exportGuide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/copies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LearningGuidesController_copyGuide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learning/guides/{guideId}/nodes": {
         parameters: {
             query?: never;
@@ -1138,6 +1170,38 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["LearningGuidesController_lifecycle"];
+        trace?: never;
+    };
+    "/learning/imports/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LearningPortabilityController_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/imports/{importId}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LearningPortabilityController_commit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -4899,6 +4963,85 @@ export interface operations {
             };
         };
     };
+    LearningGuidesController_exportGuide: {
+        parameters: {
+            query?: {
+                format?: "json" | "markdown";
+            };
+            header?: never;
+            path: {
+                guideId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    LearningGuidesController_copyGuide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        resourceId: string;
+                        replayed: boolean;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
     LearningGuidesController_createNode: {
         parameters: {
             query?: never;
@@ -5222,7 +5365,7 @@ export interface operations {
                             id: string;
                             position: number;
                             /** @enum {string} */
-                            type: "text" | "code" | "checklist";
+                            type: "text" | "code" | "checklist" | "link";
                             payload: {
                                 [key: string]: unknown;
                             };
@@ -5283,6 +5426,13 @@ export interface operations {
                                 id: string;
                                 label: string;
                             }[];
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "link";
+                        payload: {
+                            url: string;
+                            label: string;
                         };
                     })[];
                 };
@@ -5378,6 +5528,105 @@ export interface operations {
                     /** @enum {string} */
                     action: "archive" | "unarchive" | "restore";
                     expectedMetadataRevision: string;
+                    /** Format: uuid */
+                    operationId: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        resourceId: string;
+                        replayed: boolean;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    LearningPortabilityController_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    format: "markdown" | "json";
+                    content: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        importId: string;
+                        guidePreview: {
+                            title: string;
+                            nodeCount: number;
+                            nodes: {
+                                localKey: string;
+                                parentLocalKey: string | null;
+                                title: string;
+                            }[];
+                        };
+                        warnings: string[];
+                        expiresAt: string;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    LearningPortabilityController_commit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                importId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
                     /** Format: uuid */
                     operationId: string;
                 };
