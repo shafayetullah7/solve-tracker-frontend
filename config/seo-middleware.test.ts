@@ -14,7 +14,8 @@ describe("seoDocuments", () => {
     const body = await response.text();
     const origin = new URL(request.url).origin;
     expect(body).toContain(`<loc>${origin}/</loc>`);
-    expect(body).toContain(`<loc>${origin}/login</loc>`);
+    expect(body).not.toContain(`<loc>${origin}/login</loc>`);
+    expect(body).not.toContain(`<loc>${origin}/register</loc>`);
     expect(body).not.toContain("/app/");
     if (prevSite === undefined) delete process.env.PUBLIC_SITE_URL;
     else process.env.PUBLIC_SITE_URL = prevSite;
