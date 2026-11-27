@@ -43,12 +43,45 @@ describe("typed learning guides API", () => {
           completionMode: "structural",
           contentRevision: "1",
           requirementRevision: "1",
+          completed: false,
         },
       ],
+      progress: {
+        completedRequired: 0,
+        totalRequired: 1,
+        percent: 0,
+      },
     });
     const tree = await createLearningGuidesApi({ request }).tree(guide.id);
     expect(tree.nodes).toHaveLength(1);
     expect(tree.structureRevision).toBe("2");
+    expect(tree.progress.totalRequired).toBe(1);
+    expect(tree.nodes[0]?.completed).toBe(false);
+  });
+
+  test("loads node content", async () => {
+    const request = vi.fn().mockResolvedValue({
+      contentRevision: "3",
+      blocks: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          position: 0,
+          type: "text",
+          payload: { body: "Hello" },
+          schemaVersion: 1,
+        },
+      ],
+    });
+    const content = await createLearningGuidesApi({ request }).nodeContent(
+      guide.id,
+      "22222222-2222-4222-8222-222222222222",
+    );
+    expect(content.blocks[0]?.payload).toEqual({ body: "Hello" });
+    expect(request).toHaveBeenCalledWith({
+      path: "/learning/guides/11111111-1111-4111-8111-111111111111/nodes/22222222-2222-4222-8222-222222222222/content",
+      signal: undefined,
+      recoverAuth: true,
+    });
   });
 
   test("rejects invalid guide ids", async () => {

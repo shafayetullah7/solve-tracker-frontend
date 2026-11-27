@@ -41,7 +41,14 @@ function OutlineLevel(props: {
                 ]}
                 aria-current={props.currentNodeId === node.id ? "page" : undefined}
               >
-                {node.title}
+                <Show when={node.completed} fallback={node.title}>
+                  <span>
+                    {node.title}
+                    <span class="ml-1 text-brand" aria-label="completed">
+                      ✓
+                    </span>
+                  </span>
+                </Show>
               </a>
               <OutlineLevel
                 guideId={props.guideId}

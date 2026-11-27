@@ -20,3 +20,8 @@ export function learningStudyPath(guideId: string, nodeId: string): string {
   if (!GUIDE_ID.test(nodeId)) throw new Error("Invalid node id.");
   return `${learningGuidePath(guideId)}/study/${nodeId}`;
 }
+
+export function learningEditPath(guideId: string, nodeId: string): string {
+  if (!GUIDE_ID.test(nodeId)) throw new Error("Invalid node id.");
+  return `${learningGuidePath(guideId)}/edit/${nodeId}`;
+}

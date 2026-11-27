@@ -1,7 +1,12 @@
 import { For, Show } from "solid-js";
-import type { NodeResponse } from "../../../lib/api/modules/learning-guides.api";
-import { learningGuidePath, learningStudyPath } from "../../../lib/learning/paths";
+import type { ContentBlock, NodeResponse } from "../../../lib/api/modules/learning-guides.api";
+import {
+  learningEditPath,
+  learningGuidePath,
+  learningStudyPath,
+} from "../../../lib/learning/paths";
 import { ancestors, studyNeighbors } from "../../../lib/learning/tree-nav";
+import { BlockList } from "../blocks/BlockViews";
 import { GuideOutline } from "../outline/GuideOutline";
 import { Button } from "../../ui/Button";
 
@@ -10,6 +15,10 @@ export type StudyShellProps = {
   guideTitle: string;
   node: NodeResponse;
   nodes: readonly NodeResponse[];
+  blocks: readonly ContentBlock[];
+  contentLoading: boolean;
+  completePending: boolean;
+  onToggleComplete: () => void;
   addChildPending: boolean;
   addChildTitle: string;
   onAddChildTitle: (value: string) => void;
@@ -65,12 +74,40 @@ export function StudyShell(props: StudyShellProps) {
             <li class="text-ink">{props.node.title}</li>
           </ol>
         </nav>
-        <header>
-          <h1 class="text-page font-semibold tracking-tight text-ink">{props.node.title}</h1>
-          <p class="mt-2 text-body text-muted">
-            Step metadata only in this slice. Content blocks arrive in a later phase.
-          </p>
+        <header class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 class="text-page font-semibold tracking-tight text-ink">{props.node.title}</h1>
+            <Show when={props.node.completed}>
+              <p class="mt-1 text-sm font-medium text-brand">Completed</p>
+            </Show>
+          </div>
+          <a
+            class="ui-button inline-flex shrink-0 items-center"
+            data-variant="secondary"
+            href={learningEditPath(props.guideId, props.node.id)}
+          >
+            Edit content
+          </a>
         </header>
+        <Show when={props.node.completionMode === "manual"}>
+          <div>
+            <Button
+              type="button"
+              variant={props.node.completed ? "secondary" : "primary"}
+              disabled={props.completePending}
+              onClick={() => props.onToggleComplete()}
+            >
+              {props.completePending
+                ? "Saving…"
+                : props.node.completed
+                  ? "Mark incomplete"
+                  : "Mark complete"}
+            </Button>
+          </div>
+        </Show>
+        <Show when={props.contentLoading} fallback={<BlockList blocks={props.blocks} />}>
+          <p class="text-body text-muted">Loading content…</p>
+        </Show>
         <div class="flex flex-wrap gap-2">
           <Show when={neighbors().previous}>
             {(prev) => (
@@ -97,6 +134,7 @@ export function StudyShell(props: StudyShellProps) {
         </div>
         <section class="rounded-panel border border-line bg-surface p-4">
           <h2 class="text-label font-semibold text-ink">Add child step</h2>
+          <p class="mt-1 text-sm text-muted">Reorder and move steps via API in 3A; UI controls deferred.</p>
           <div class="mt-3 flex flex-wrap gap-2">
             <input
               class="min-h-11 min-w-[12rem] flex-1 rounded-control border border-line bg-surface px-3 text-base text-ink"

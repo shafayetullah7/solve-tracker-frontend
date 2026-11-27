@@ -31,6 +31,13 @@ export type EnrollmentResponse =
   operations["LearningGuidesController_enrollment"]["responses"][200]["content"]["application/json"];
 export type MutationReceipt =
   operations["LearningGuidesController_create"]["responses"][201]["content"]["application/json"];
+export type NodeContentResponse =
+  operations["LearningGuidesController_nodeContent"]["responses"][200]["content"]["application/json"];
+export type ReplaceNodeContentInput =
+  JsonInput<operations["LearningGuidesController_replaceNodeContent"]>;
+export type NodeCompletionInput =
+  JsonInput<operations["LearningGuidesController_nodeCompletion"]>;
+export type ContentBlock = NodeContentResponse["blocks"][number];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -85,7 +92,8 @@ function decodeNode(value: unknown): NodeResponse {
     typeof value.required !== "boolean" ||
     typeof value.completionMode !== "string" ||
     typeof value.contentRevision !== "string" ||
-    typeof value.requirementRevision !== "string"
+    typeof value.requirementRevision !== "string" ||
+    typeof value.completed !== "boolean"
   )
     throw new ApiError("contract", "Invalid node response.");
   return {
@@ -97,6 +105,7 @@ function decodeNode(value: unknown): NodeResponse {
     completionMode: value.completionMode as NodeResponse["completionMode"],
     contentRevision: value.contentRevision,
     requirementRevision: value.requirementRevision,
+    completed: value.completed,
   };
 }
 
@@ -104,12 +113,21 @@ function decodeTree(value: unknown): TreeResponse {
   if (
     !isRecord(value) ||
     typeof value.structureRevision !== "string" ||
-    !Array.isArray(value.nodes)
+    !Array.isArray(value.nodes) ||
+    !isRecord(value.progress) ||
+    typeof value.progress.completedRequired !== "number" ||
+    typeof value.progress.totalRequired !== "number" ||
+    (value.progress.percent !== null && typeof value.progress.percent !== "number")
   )
     throw new ApiError("contract", "Invalid tree response.");
   return {
     structureRevision: value.structureRevision,
     nodes: value.nodes.map(decodeNode),
+    progress: {
+      completedRequired: value.progress.completedRequired,
+      totalRequired: value.progress.totalRequired,
+      percent: value.progress.percent,
+    },
   };
 }
 
@@ -261,6 +279,62 @@ export function createLearningGuidesApi(client: ApiClient) {
       return decodeReceipt(
         await client.request({
           path: `/learning/guides/${id}/enrollment/resume`,
+          method: "PATCH",
+          body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async nodeContent(
+      guideIdValue: string,
+      nodeIdValue: string,
+      signal?: AbortSignal,
+    ): Promise<NodeContentResponse> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      const value = await client.request({
+        path: `/learning/guides/${g}/nodes/${n}/content`,
+        signal,
+        recoverAuth: true,
+      });
+      if (
+        !isRecord(value) ||
+        typeof value.contentRevision !== "string" ||
+        !Array.isArray(value.blocks)
+      )
+        throw new ApiError("contract", "Invalid node content response.");
+      return value as NodeContentResponse;
+    },
+    async replaceNodeContent(
+      guideIdValue: string,
+      nodeIdValue: string,
+      input: ReplaceNodeContentInput,
+      signal?: AbortSignal,
+    ): Promise<MutationReceipt> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      return decodeReceipt(
+        await client.request({
+          path: `/learning/guides/${g}/nodes/${n}/content`,
+          method: "PUT",
+          body: input,
+          signal,
+          recoverAuth: true,
+        }),
+      );
+    },
+    async setNodeCompletion(
+      guideIdValue: string,
+      nodeIdValue: string,
+      input: NodeCompletionInput,
+      signal?: AbortSignal,
+    ): Promise<MutationReceipt> {
+      const g = guideId(guideIdValue);
+      const n = nodeId(nodeIdValue);
+      return decodeReceipt(
+        await client.request({
+          path: `/learning/guides/${g}/nodes/${n}/completion`,
           method: "PATCH",
           body: input,
           signal,

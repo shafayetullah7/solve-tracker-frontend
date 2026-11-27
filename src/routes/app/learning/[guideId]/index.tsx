@@ -122,6 +122,16 @@ export default function LearningGuideOverviewPage() {
                           <Show when={row.description}>
                             <p class="mt-2 text-body text-muted">{row.description}</p>
                           </Show>
+                          <Show when={nodes.progress.totalRequired > 0}>
+                            <p class="mt-2 text-sm text-muted">
+                              Progress: {nodes.progress.completedRequired} / {nodes.progress.totalRequired}
+                              required steps
+                              <Show when={nodes.progress.percent !== null}>
+                                {" "}
+                                ({nodes.progress.percent}%)
+                              </Show>
+                            </p>
+                          </Show>
                         </header>
                         <Show when={firstStep()}>
                           {(step) => (

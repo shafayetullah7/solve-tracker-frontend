@@ -1092,6 +1092,38 @@ export interface paths {
         patch: operations["LearningGuidesController_moveNode"];
         trace?: never;
     };
+    "/learning/guides/{guideId}/nodes/{nodeId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LearningGuidesController_nodeContent"];
+        put: operations["LearningGuidesController_replaceNodeContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learning/guides/{guideId}/nodes/{nodeId}/completion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["LearningGuidesController_nodeCompletion"];
+        trace?: never;
+    };
     "/learning/guides/{guideId}/lifecycle": {
         parameters: {
             query?: never;
@@ -4842,7 +4874,13 @@ export interface operations {
                             completionMode: "structural" | "manual" | "gated";
                             contentRevision: string;
                             requirementRevision: string;
+                            completed: boolean;
                         }[];
+                        progress: {
+                            completedRequired: number;
+                            totalRequired: number;
+                            percent: number | null;
+                        };
                     };
                 };
             };
@@ -5129,6 +5167,171 @@ export interface operations {
                     expectedStructureRevision: string;
                     /** Format: uuid */
                     operationId: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        resourceId: string;
+                        replayed: boolean;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    LearningGuidesController_nodeContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                nodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        contentRevision: string;
+                        blocks: {
+                            /** Format: uuid */
+                            id: string;
+                            position: number;
+                            /** @enum {string} */
+                            type: "text" | "code" | "checklist";
+                            payload: {
+                                [key: string]: unknown;
+                            };
+                            schemaVersion: number;
+                        }[];
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    LearningGuidesController_replaceNodeContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                nodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedContentRevision: string;
+                    /** Format: uuid */
+                    operationId: string;
+                    blocks: ({
+                        /** @enum {string} */
+                        type: "text";
+                        payload: {
+                            body: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "code";
+                        payload: {
+                            language?: string;
+                            body: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "checklist";
+                        payload: {
+                            items: {
+                                id: string;
+                                label: string;
+                            }[];
+                        };
+                    })[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        resourceId: string;
+                        replayed: boolean;
+                    };
+                };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    LearningGuidesController_nodeCompletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                guideId: string;
+                nodeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    operationId: string;
+                    complete: boolean;
                 };
             };
         };

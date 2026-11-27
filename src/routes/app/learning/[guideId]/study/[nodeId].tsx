@@ -9,7 +9,9 @@ import { LoadingPlaceholder } from "../../../../../components/ui/LoadingPlacehol
 import { useAuth } from "../../../../../lib/auth/context";
 import {
   createLearningGuidesApi,
+  type ContentBlock,
   type GuideResponse,
+  type NodeContentResponse,
   type NodeResponse,
   type TreeResponse,
 } from "../../../../../lib/api/modules/learning-guides.api";
@@ -28,19 +30,26 @@ export default function LearningStudyPage() {
   const [error, setError] = createSignal<string | undefined>();
   const [addChildTitle, setAddChildTitle] = createSignal("");
   const [addChildPending, setAddChildPending] = createSignal(false);
+  const [content, setContent] = createSignal<NodeContentResponse | undefined>();
+  const [contentLoading, setContentLoading] = createSignal(true);
+  const [completePending, setCompletePending] = createSignal(false);
 
   async function loadWorkspace(signal: AbortSignal) {
     const guideId = params.guideId;
     const nodeId = params.nodeId;
-    const [guideRow, treeRow] = await Promise.all([
+    setContentLoading(true);
+    const [guideRow, treeRow, contentRow] = await Promise.all([
       api.get(guideId, signal),
       api.tree(guideId, signal),
+      api.nodeContent(guideId, nodeId, signal),
     ]);
     const current = treeRow.nodes.find((item) => item.id === nodeId);
     if (!current) throw new Error("Step was not found in this guide.");
     setGuide(guideRow);
     setTree(treeRow);
     setNode(current);
+    setContent(contentRow);
+    setContentLoading(false);
     await api.resume(guideId, {
       nodeId,
       expectedStructureRevision: treeRow.structureRevision,
@@ -64,6 +73,26 @@ export default function LearningStudyPage() {
       onCleanup(() => controller.abort());
     },
   );
+
+  async function toggleComplete() {
+    const guideId = params.guideId;
+    const nodeId = params.nodeId;
+    const current = node();
+    if (!current || completePending()) return;
+    setCompletePending(true);
+    setError(undefined);
+    try {
+      await api.setNodeCompletion(guideId, nodeId, {
+        complete: !current.completed,
+        operationId: crypto.randomUUID(),
+      });
+      await loadWorkspace(new AbortController().signal);
+    } catch (cause: unknown) {
+      setError(cause instanceof Error ? cause.message : "Could not update completion.");
+    } finally {
+      setCompletePending(false);
+    }
+  }
 
   async function addChild() {
     const currentTree = tree();
@@ -120,6 +149,10 @@ export default function LearningStudyPage() {
                             guideTitle={row.title}
                             node={current}
                             nodes={nodes.nodes}
+                            blocks={(content()?.blocks ?? []) as ContentBlock[]}
+                            contentLoading={contentLoading()}
+                            completePending={completePending()}
+                            onToggleComplete={() => void toggleComplete()}
                             addChildPending={addChildPending()}
                             addChildTitle={addChildTitle()}
                             onAddChildTitle={setAddChildTitle}
