@@ -1,9 +1,10 @@
 import { createEffect, createSignal, Show } from "solid-js";
-import { isLearningGuidesEnabled } from "../../lib/learning/flag";
 import {
+  LEARNING_BETA_FEEDBACK_LABEL,
   WELCOME_BANNER_BODY,
   WELCOME_BANNER_STORAGE_KEY,
   WELCOME_BANNER_TITLE,
+  learningBetaFeedbackHref,
 } from "../../lib/learning/learning-product-copy";
 import { learningImportPath, learningNewGuidePath } from "../../lib/learning/paths";
 import { paths } from "../../router";
@@ -24,7 +25,7 @@ export function LearningWelcomeBanner(props: LearningWelcomeBannerProps) {
   createEffect(
     () => props.authStatus(),
     (status) => {
-      if (!isLearningGuidesEnabled() || status !== "authenticated") {
+      if (status !== "authenticated") {
         setVisible(false);
         return;
       }
@@ -64,6 +65,18 @@ export function LearningWelcomeBanner(props: LearningWelcomeBannerProps) {
           <a class="ui-button inline-flex min-h-11" data-variant="secondary" href={paths.app.problems()}>
             Browse problems
           </a>
+          <Show when={learningBetaFeedbackHref()}>
+            {(href) => (
+              <a
+                class="ui-button inline-flex min-h-11"
+                data-variant="ghost"
+                href={href()}
+                rel="noopener noreferrer"
+              >
+                {LEARNING_BETA_FEEDBACK_LABEL}
+              </a>
+            )}
+          </Show>
           <Button type="button" variant="ghost" class="min-h-11" onClick={() => dismiss()}>
             Dismiss
           </Button>

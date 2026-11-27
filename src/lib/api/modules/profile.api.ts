@@ -15,6 +15,8 @@ export type CreateEducationInput =
 export type UpdateEducationInput =
   JsonInput<operations["ProfileController_updateEducation"]>;
 
+export type DeleteAccountInput = JsonInput<operations["ProfileController_eraseAccount"]>;
+
 export type ProfileResponse =
   operations["ProfileController_get"]["responses"][200]["content"]["application/json"];
 
@@ -225,6 +227,19 @@ export function createProfileApi(client: ApiClient) {
         response: "empty",
         signal,
         recoverAuth: true,
+      });
+    },
+    async deleteAccount(
+      input: DeleteAccountInput,
+      signal?: AbortSignal,
+    ): Promise<void> {
+      await client.request({
+        path: "/users/me",
+        method: "DELETE",
+        body: input,
+        response: "empty",
+        signal,
+        recoverAuth: false,
       });
     },
   };

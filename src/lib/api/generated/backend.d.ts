@@ -484,6 +484,22 @@ export interface paths {
         patch: operations["ProfileController_updateEducation"];
         trace?: never;
     };
+    "/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ProfileController_eraseAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/public/people/{handle}": {
         parameters: {
             query?: never;
@@ -3134,6 +3150,46 @@ export interface operations {
                         endYear?: string;
                     };
                 };
+            };
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        statusCode: number;
+                        code: string;
+                        message: string;
+                        details?: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ProfileController_eraseAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 8–128 Unicode code points; spaces are preserved. */
+                    password: string;
+                    /** @enum {string} */
+                    confirmation: "DELETE";
+                };
+            };
+        };
+        responses: {
+            /** @description Account permanently deleted; all sessions revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             "4XX": {
                 headers: {

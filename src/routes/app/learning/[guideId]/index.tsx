@@ -21,6 +21,7 @@ import {
   learningStudyPath,
 } from "../../../../lib/learning/paths";
 import { createLearningPortabilityApi } from "../../../../lib/api/modules/learning-portability.api";
+import { GUIDE_EXPORT_SCOPE_HINT } from "../../../../lib/learning/learning-product-copy";
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 
@@ -190,6 +191,7 @@ export default function LearningGuideOverviewPage() {
                             Export Markdown
                           </Button>
                         </div>
+                        <p class="text-sm text-muted">{GUIDE_EXPORT_SCOPE_HINT}</p>
                         <Panel title="Add root step">
                           <div class="flex flex-wrap gap-2">
                             <input

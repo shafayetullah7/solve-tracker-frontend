@@ -11,6 +11,7 @@ import {
   type PracticeVisibility,
 } from "../../components/profile/ProfilePracticeVisibilityPanel";
 import { ProfileAccountPanel } from "../../components/profile/ProfileAccountPanel";
+import { ProfileDeleteAccountDialog } from "../../components/profile/ProfileDeleteAccountDialog";
 import { ProfileEducationSection } from "../../components/profile/ProfileEducationSection";
 import { ProfileEntryEditorDialog } from "../../components/profile/ProfileEntryEditorDialog";
 import { ProfilePageHeader } from "../../components/profile/ProfilePageHeader";
@@ -126,6 +127,7 @@ export default function ProfilePage() {
   const [editorTarget, setEditorTarget] = createSignal<ProfileEditorTarget | null>(null);
   const [passwordOpen, setPasswordOpen] = createSignal(false);
   const [setPasswordDialogOpen, setSetPasswordDialogOpen] = createSignal(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = createSignal(false);
   const [unlinkPending, setUnlinkPending] = createSignal(false);
   const [accountActionError, setAccountActionError] = createSignal<
     string | undefined
@@ -377,6 +379,18 @@ export default function ProfilePage() {
     await auth.reloadSession();
   }
 
+  async function persistDeleteAccount(input: {
+    password: string;
+    confirmation: string;
+  }) {
+    await profileApi().deleteAccount({
+      password: input.password,
+      confirmation: input.confirmation as "DELETE",
+    });
+    auth.clearSession();
+    navigate(paths.login());
+  }
+
   async function unlinkGoogle() {
     if (unlinkPending()) return;
     setUnlinkPending(true);
@@ -502,6 +516,9 @@ export default function ProfilePage() {
             onChangePassword={
               auth.account()?.hasPassword ? () => setPasswordOpen(true) : undefined
             }
+            onDeleteAccount={
+              auth.account()?.hasPassword ? () => setDeleteAccountOpen(true) : undefined
+            }
           />
         </div>
       </Show>
@@ -565,6 +582,11 @@ export default function ProfilePage() {
         open={setPasswordDialogOpen()}
         onClose={() => setSetPasswordDialogOpen(false)}
         onSave={persistSetPassword}
+      />
+      <ProfileDeleteAccountDialog
+        open={deleteAccountOpen()}
+        onClose={() => setDeleteAccountOpen(false)}
+        onDelete={persistDeleteAccount}
       />
     </AppPageContainer>
   );

@@ -1,11 +1,7 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { LearningWelcomeBanner } from "./LearningWelcomeBanner";
 import { WELCOME_BANNER_STORAGE_KEY, WELCOME_BANNER_TITLE } from "../../lib/learning/learning-product-copy";
-
-vi.mock("../../lib/learning/flag", () => ({
-  isLearningGuidesEnabled: () => true,
-}));
 
 afterEach(cleanup);
 

@@ -30,7 +30,6 @@ import {
   loadDashboardPreviews,
   type DashboardPreviews,
 } from "../../lib/dashboard/load-dashboard-previews";
-import { isLearningGuidesEnabled } from "../../lib/learning/flag";
 import { problemListMessage, progressMessage } from "../../lib/problems/messages";
 import { DiscoverPeopleLikeYouCard } from "../../components/dashboard/DiscoverPeopleLikeYouCard";
 import { DiscoverBenchmarkCard } from "../../components/dashboard/DiscoverBenchmarkCard";
@@ -123,8 +122,6 @@ export default function DashboardPage() {
   }
 
   async function loadContinueLearning() {
-    if (!isLearningGuidesEnabled()) return;
-
     learningAbort?.abort();
     const controller = new AbortController();
     learningAbort = controller;
@@ -204,14 +201,12 @@ export default function DashboardPage() {
 
           <LearningWelcomeBanner authStatus={() => auth.status()} />
 
-          <Show when={isLearningGuidesEnabled()}>
-            <DashboardContinueLearningSection
-              status={learningStatus()}
-              items={learningItems()}
-              errorMessage={learningError()}
-              onRetry={() => void loadContinueLearning()}
-            />
-          </Show>
+          <DashboardContinueLearningSection
+            status={learningStatus()}
+            items={learningItems()}
+            errorMessage={learningError()}
+            onRetry={() => void loadContinueLearning()}
+          />
 
           <Switch>
             <Match when={summaryStatus() === "ready" && overall()}>

@@ -9,6 +9,7 @@ export type ProfileAccountPanelProps = {
   onLogout: () => void;
   onRetryLogout: () => void;
   onChangePassword?: () => void;
+  onDeleteAccount?: () => void;
 };
 
 export function ProfileAccountPanel(props: ProfileAccountPanelProps) {
@@ -48,6 +49,22 @@ export function ProfileAccountPanel(props: ProfileAccountPanelProps) {
         <Button class="mt-2" variant="secondary" onClick={() => props.onRetryLogout()}>
           Retry sign-out
         </Button>
+      </Show>
+      <Show when={props.onDeleteAccount}>
+        <div class="mt-6 border-t border-line pt-5">
+          <h3 class="text-label font-medium text-ink">Danger zone</h3>
+          <p class="mt-2 text-sm text-muted">
+            Permanently delete your account and all associated data. Exports do not include
+            attempts or progress — download guides first if you need a copy.
+          </p>
+          <Button
+            class="mt-4"
+            variant="danger"
+            onClick={() => props.onDeleteAccount?.()}
+          >
+            Delete account
+          </Button>
+        </div>
       </Show>
     </ProfileSectionShell>
   );

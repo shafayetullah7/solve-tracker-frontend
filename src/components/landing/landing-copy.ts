@@ -86,6 +86,7 @@ export const LANDING_PRIVACY = {
     "Your guides, library, and topics are visible only to your account.",
     "You choose when to mark a coding problem solved — no automatic judging.",
     "Guide step progress does not inflate solve streaks or weekly solve charts.",
+    "Learning guides are in beta: private to your account, separate metrics, and JSON/Markdown exports omit attempts and progress.",
     "Sign-in uses a secure session on the same origin; credentials stay off the page.",
     "Optional Google sign-in uses Google as an identity provider for name and email only; Google tokens are not stored in your browser.",
   ],

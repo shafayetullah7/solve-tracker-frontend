@@ -18,3 +18,13 @@ pnpm --dir ../solve-tracker-backend api:check && pnpm api:check && node scripts/
 ```
 
 Do not add new `verify:*` entries to `package.json`; add or extend scripts here and document them in this file.
+
+Browser automation (Playwright) is **not** used. Learning regression is Vitest plus backend integration scripts; optional `E2E_LIVE=1` runs `verify-ssr-2.mjs` (see `solve-tracker-backend/scripts/verify-learning-7e.mjs`).
+
+Learning beta build-time flag audit (Phase 7H):
+
+```bash
+node scripts/verify-learning-beta-flag-build.mjs
+```
+
+Asserts learning is always on in the client bundle; wired from `solve-tracker-backend` via `BETA_FLAG_BUILD=1 node scripts/verify-learning-7h.mjs`.

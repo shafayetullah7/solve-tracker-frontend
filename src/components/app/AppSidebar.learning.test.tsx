@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@solidjs/testing-library";
 import { flush } from "solid-js";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import type { AuthContextValue } from "../../lib/auth/context";
 import { AuthContextOverride } from "../../lib/auth/context";
 import { AppSidebar } from "./AppSidebar";
@@ -22,12 +22,6 @@ vi.mock("@solidjs/router", async (importOriginal) => {
     }),
   };
 });
-
-const learningEnabled = vi.hoisted(() => vi.fn(() => false));
-
-vi.mock("../../lib/learning/flag", () => ({
-  isLearningGuidesEnabled: () => learningEnabled(),
-}));
 
 vi.mock("../../lib/discover/flag", () => ({
   isDiscoverFullEnabled: () => false,
@@ -58,30 +52,15 @@ function authValue(): AuthContextValue {
 
 afterEach(cleanup);
 
-beforeEach(() => {
-  learningEnabled.mockReturnValue(false);
-});
-
-describe("AppSidebar learning flag", () => {
-  test("hides My guides when flag off", () => {
-    render(() => (
-      <AuthContextOverride value={authValue()}>
-        <AppSidebar variant="rail" />
-      </AuthContextOverride>
-    ));
-    expect(screen.queryByRole("link", { name: "My guides" })).toBeNull();
-    expect(screen.queryByRole("menuitem", { name: "New guide" })).toBeNull();
-  });
-
-  test("shows My guides and guide create items when flag on", async () => {
-    learningEnabled.mockReturnValue(true);
+describe("AppSidebar learning nav", () => {
+  test("shows Study guides and guide create items", async () => {
     render(() => (
       <AuthContextOverride value={authValue()}>
         <AppSidebar variant="rail" />
       </AuthContextOverride>
     ));
     await flush();
-    expect(screen.getByRole("link", { name: "My guides" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Study guides" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "New guide" })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: "Import guide" })).toBeInTheDocument();
   });

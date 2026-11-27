@@ -15,14 +15,14 @@ describe("buildNavItems", () => {
     ]);
   });
 
-  test("inserts My guides after Overview when learning enabled", () => {
+  test("inserts Study guides after Overview when learning enabled", () => {
     const items = buildNavItems(
       { learningEnabled: true, discoverFullEnabled: false },
       "Discover",
     );
     expect(items.map((item) => item.label)).toEqual([
       SIDEBAR_LABELS.overview,
-      SIDEBAR_LABELS.myGuides,
+      SIDEBAR_LABELS.studyGuides,
       SIDEBAR_LABELS.problems,
       SIDEBAR_LABELS.topics,
       SIDEBAR_LABELS.profile,

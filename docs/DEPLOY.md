@@ -22,7 +22,16 @@ Copy [.env.example](../.env.example) to `.env` in `solve-tracker-frontend/`:
 | `VITE_PUBLIC_SITE_URL` | Yes for build | Single canonical public origin for metadata, sitemap and robots. HTTPS for deployment; loopback HTTP for local smoke builds. Rebuild when it changes. |
 | `PORT` | No | Listen port for `node dist/server/node.js`. `pnpm start` sets **3001** by default. |
 | `BASE_URL` | No | Only for smoke/verify scripts (default `http://127.0.0.1:3001`). |
-| `VITE_LEARNING_GUIDES_ENABLED` | No (default off) | **Build-time.** When `true`, shows learning nav, library, overview continue-learning, and related routes in the UI. Requires backend learning migrations applied (`LearningModule` APIs). Not a runtime toggle — change `.env` (or CI build args) and **rebuild** `pnpm build`. Use `false` for production until beta ([LEARNING_6_PHASE_SIGNOFF.md](../../solve-tracker-backend/docs/learning/LEARNING_6_PHASE_SIGNOFF.md)). |
+| `VITE_BETA_FEEDBACK_URL` | No | **Build-time.** Optional `https://` or `mailto:` link on the learning welcome banner ([LEARNING_BETA_FEEDBACK.md](../../solve-tracker-backend/docs/learning/LEARNING_BETA_FEEDBACK.md)). |
+
+**Learning guides UI** is always included in the frontend build. Hide learning at the product level only by deploying a **pre-learning** frontend commit (not supported on current `feature/learning-guides`). Backend APIs require learning migrations ([PRODUCTION.md](../../solve-tracker-backend/PRODUCTION.md)).
+
+### Learning beta cohort
+
+1. **Staging:** migrate backend + deploy current frontend; follow [LEARNING_BETA_RUNBOOK.md](../../solve-tracker-backend/docs/learning/LEARNING_BETA_RUNBOOK.md).
+2. **Production widen:** ship backend + frontend together; cohort is operational (invite list), not a build flag.
+3. **Rollback:** redeploy prior **backend** image if APIs regress; frontend rollback only helps if an older build predates learning routes.
+4. **Verify:** `node scripts/verify-learning-beta-flag-build.mjs` or `BETA_FLAG_BUILD=1 node ../solve-tracker-backend/scripts/verify-learning-7h.mjs`.
 
 Backend in development must set **`FRONTEND_ORIGIN=http://localhost:3001`** so browser auth writes succeed. Production: see [solve-tracker-backend/PRODUCTION.md](../../solve-tracker-backend/PRODUCTION.md).
 

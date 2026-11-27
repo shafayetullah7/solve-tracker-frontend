@@ -4,7 +4,10 @@ import { GuideLibraryWorkspace } from "../../../components/learning/guides/Guide
 import { LearningFeatureGate } from "../../../components/learning/LearningFeatureGate";
 import { useAuth } from "../../../lib/auth/context";
 import { createLearningGuidesApi } from "../../../lib/api/modules/learning-guides.api";
-import { LIBRARY_PAGE_SUBTITLE } from "../../../lib/learning/learning-product-copy";
+import {
+  LEARNING_LIBRARY_PAGE_TITLE,
+  LIBRARY_PAGE_SUBTITLE,
+} from "../../../lib/learning/learning-product-copy";
 import { learningImportPath, learningNewGuidePath } from "../../../lib/learning/paths";
 
 export default function LearningLibraryPage() {
@@ -13,12 +16,14 @@ export default function LearningLibraryPage() {
 
   return (
     <LearningFeatureGate>
-      <Title>My guides</Title>
+      <Title>{LEARNING_LIBRARY_PAGE_TITLE}</Title>
       <Meta name="robots" content="noindex" />
       <AppPageContainer>
         <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="text-page font-semibold tracking-tight text-ink">My guides</h1>
+            <h1 class="text-page font-semibold tracking-tight text-ink">
+              {LEARNING_LIBRARY_PAGE_TITLE}
+            </h1>
             <p class="mt-1 text-body text-muted">{LIBRARY_PAGE_SUBTITLE}</p>
           </div>
           <a

@@ -9,13 +9,14 @@ import {
   IconUser,
 } from "../../icons";
 import { discoverForYouPath } from "../discover/paths";
+import { LEARNING_LIBRARY_NAV_LABEL } from "../learning/learning-product-copy";
 import { learningLibraryPath } from "../learning/paths";
 import { paths } from "../../router";
 import type { SidebarSectionKey } from "./nav-active";
 
 export const SIDEBAR_LABELS = {
   overview: "Overview",
-  myGuides: "My guides",
+  studyGuides: LEARNING_LIBRARY_NAV_LABEL,
   problems: "Problems",
   topics: "Topics",
   profile: "Profile",
@@ -48,7 +49,7 @@ export function buildNavItems(
   if (flags.learningEnabled) {
     items.push({
       key: "learning",
-      label: SIDEBAR_LABELS.myGuides,
+      label: SIDEBAR_LABELS.studyGuides,
       href: learningLibraryPath(),
       icon: IconGuides,
     });
