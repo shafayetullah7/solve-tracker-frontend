@@ -44,11 +44,11 @@ describe("ProfilePracticeVisibilityPanel", () => {
         onSave={onSave}
       />
     ));
-    fireEvent.change(screen.getByLabelText("Practice goal"), { target: { value: "interview" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Practicing for (optional)" }), { target: { value: "interview" } });
     setVisibility("summary");
     await flush();
     expect(screen.getByLabelText(/Practice summary/)).toBeChecked();
-    expect(screen.getByLabelText("Practice goal")).toHaveValue("interview");
+    expect(screen.getByRole("combobox", { name: "Practicing for (optional)" })).toHaveValue("interview");
   });
 
   test("keeps unsaved visibility after a failed save", async () => {
