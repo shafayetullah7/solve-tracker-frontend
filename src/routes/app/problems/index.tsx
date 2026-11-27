@@ -48,7 +48,6 @@ import {
 import { problemNewPath, problemsBrowseHref } from "../../../lib/problems/paths";
 import { DiscoverIdeasPanel } from "../../../components/discover/DiscoverIdeasPanel";
 import { isDiscoverFullEnabled } from "../../../lib/discover/flag";
-import { encodeTopicKey } from "../../../lib/discover/topic-key";
 
 type ListStatus = "idle" | "loading" | "ready" | "unavailable";
 
