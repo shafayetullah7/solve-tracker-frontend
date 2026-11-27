@@ -1,5 +1,7 @@
 # Frontend production deploy
 
+**Rendering policy:** Read [RENDERING_CONVENTIONS.md](../RENDERING_CONVENTIONS.md) before route, SEO, caching, authentication-rendering or deployment changes. Static-first, CSR for private/share-only pages, and request-time SSR only with explicit justification. [Rendering audit](./RENDERING_AUDIT.md) records the migration baseline. Existing SSR deployment and auth instructions describe current behavior until the migration is implemented and verified.
+
 SSR Start mode via `@solidjs/vite-plugin` (not `@solidjs/start`). See [FRONTEND_CONVENTIONS.md](../FRONTEND_CONVENTIONS.md), [AUTH_CONVENTIONS.md](../AUTH_CONVENTIONS.md), and [API_CLIENT.md](../API_CLIENT.md) for architecture detail.
 
 ## Prerequisites
