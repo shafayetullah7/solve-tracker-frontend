@@ -456,30 +456,39 @@ export default function TopicsIndex() {
                 rowFooter={
                   isDiscoverFullEnabled()
                     ? (topic) => {
-                        const hint = topicHints().get(topic.id);
-                        const stats = shareStatsByTopic().get(topic.id);
-                        const statsLine =
-                          topic.isPublic && stats && stats.views + stats.copies > 0 ? (
-                            <p class="text-caption text-muted">
-                              {discoverCopy("topics.shareStatsRow", {
-                                views: stats.views,
-                                copies: stats.copies,
-                              })}
-                            </p>
-                          ) : null;
-                        if (!hint && !statsLine) return <></>;
+                        const hint = createMemo(() => topicHints().get(topic.id));
+                        const stats = createMemo(() => shareStatsByTopic().get(topic.id));
+                        const visibleStats = createMemo(() => {
+                          const value = stats();
+                          return topic.isPublic && value && value.views + value.copies > 0
+                            ? value
+                            : undefined;
+                        });
                         return (
-                          <div class="space-y-1">
-                            {statsLine}
-                            <Show when={hint}>
-                              <TopicCommunityHint
-                                topicName={hint!.topicName}
-                                topicKey={hint!.topicKey}
-                                practicerCount={hint!.practicerCount}
-                                publicListCount={hint!.publicListCount}
-                              />
-                            </Show>
-                          </div>
+                          <Show when={hint() || visibleStats()}>
+                            <div class="space-y-1">
+                              <Show when={visibleStats()}>
+                                {(value) => (
+                                  <p class="text-caption text-muted">
+                                    {discoverCopy("topics.shareStatsRow", {
+                                      views: value().views,
+                                      copies: value().copies,
+                                    })}
+                                  </p>
+                                )}
+                              </Show>
+                              <Show when={hint()}>
+                                {(value) => (
+                                  <TopicCommunityHint
+                                    topicName={value().topicName}
+                                    topicKey={value().topicKey}
+                                    practicerCount={value().practicerCount}
+                                    publicListCount={value().publicListCount}
+                                  />
+                                )}
+                              </Show>
+                            </div>
+                          </Show>
                         );
                       }
                     : undefined
