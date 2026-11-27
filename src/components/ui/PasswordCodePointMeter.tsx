@@ -35,7 +35,7 @@ export function PasswordCodePointMeter(props: PasswordCodePointMeterProps) {
             label={`Password length progress toward minimum of ${min()} characters`}
           />
         </Show>
-        <p class={`text-sm ${meetsMin() ? "text-brand" : "text-muted"}`}>
+        <p class={["text-sm", meetsMin() ? "text-brand" : "text-muted"]}>
           {count()} / {min()} minimum (max {max()})
           <Show when={meetsMin()}>
             <span class="sr-only"> — minimum length met</span>
