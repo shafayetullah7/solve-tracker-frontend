@@ -126,6 +126,17 @@ describe("authGate", () => {
     expect(event.locals).toEqual({});
   });
 
+  test("non-redirecting documents bypass session probes even with cookies", async () => {
+    for (const path of ["/u/ada", "/u/ada/topics/example", "/forgot-password", "/reset-password", "/missing-page"]) {
+      const response = htmlResponse("<html><head></head><body>page</body></html>");
+      const next = vi.fn().mockResolvedValue(response);
+      const event = pageEvent(path);
+      expect(await authGate(event as never, next)).toBe(response);
+      expect(event.locals).toEqual({});
+    }
+    expect(probe).not.toHaveBeenCalled();
+  });
+
   test("cookie-free protected requests skip backend probe", async () => {
     const next = vi.fn();
     const response = await authGate(pageEvent("/app", { headers: { accept: "text/html" } }) as never, next);
