@@ -60,7 +60,7 @@ export function useAuth(): AuthContextValue {
 export function AuthContextOverride(
   props: ParentProps<{ value: AuthContextValue }>,
 ) {
-  return <AuthContext value={props.value}>{props.children}</AuthContext>;
+  return <AuthContext value={untrack(() => props.value)}>{props.children}</AuthContext>;
 }
 
 function authStatusFromSeed(
