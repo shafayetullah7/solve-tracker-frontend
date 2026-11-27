@@ -138,14 +138,14 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
     },
   );
 
-  function pushToolbarToUrl() {
-    const query = buildListQueryFromToolbar(toolbarFields());
+  function pushToolbarToUrl(fields = toolbarFields()) {
+    const query = buildListQueryFromToolbar(fields);
     props.onApply(query);
   }
 
-  function applyIfChanged() {
-    if (!toolbarDiffersFromSearch(toolbarFields(), props.searchKey)) return;
-    pushToolbarToUrl();
+  function applyIfChanged(fields = toolbarFields()) {
+    if (!toolbarDiffersFromSearch(fields, props.searchKey)) return;
+    pushToolbarToUrl(fields);
   }
 
   createEffect(
@@ -167,15 +167,27 @@ export function ProblemBrowseToolbar(props: ProblemBrowseToolbarProps) {
   );
 
   function onTopicToggle(topicId: string, checked: boolean) {
-    if (checked) setUntagged(false);
-    setSelectedTopicIds((current) => toggleTopicId(current, topicId, checked));
-    queueMicrotask(() => applyIfChanged());
+    const fields = toolbarFields();
+    const next = {
+      ...fields,
+      untagged: checked ? false : fields.untagged,
+      selectedTopicIds: toggleTopicId(fields.selectedTopicIds, topicId, checked),
+    };
+    setUntagged(next.untagged);
+    setSelectedTopicIds(next.selectedTopicIds);
+    applyIfChanged(next);
   }
 
   function onUntaggedChange(checked: boolean) {
-    setUntagged(checked);
-    if (checked) setSelectedTopicIds(new Set<string>());
-    queueMicrotask(() => applyIfChanged());
+    const fields = toolbarFields();
+    const next = {
+      ...fields,
+      untagged: checked,
+      selectedTopicIds: checked ? new Set<string>() : fields.selectedTopicIds,
+    };
+    setUntagged(next.untagged);
+    setSelectedTopicIds(next.selectedTopicIds);
+    applyIfChanged(next);
   }
 
   function onSearchSubmit(event: Event) {
