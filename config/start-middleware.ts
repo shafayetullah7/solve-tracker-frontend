@@ -78,6 +78,9 @@ const securityHeaders: StartMiddleware = async (event, next) => {
     return response;
   }
   const headers = new Headers(response.headers);
+  if (new URL(event.request.url).pathname !== "/") {
+    headers.set("X-Robots-Tag", "noindex");
+  }
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
