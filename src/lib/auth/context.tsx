@@ -1,4 +1,3 @@
-import { getRequestEvent, isServer } from "@solidjs/web";
 import type { ParentProps } from "solid-js";
 import {
   createContext,
@@ -17,10 +16,7 @@ import type {
 import { createAuthClients } from "./clients";
 import type { AuthCoordinator } from "./coordinator";
 import { createAuthCrossTab, createTabId, type AuthCrossTab } from "./cross-tab";
-import {
-  readClientBootstrapFromDom,
-  type ServerAuthBootstrap,
-} from "./server-session";
+import type { ServerAuthBootstrap } from "./server-session";
 import {
   resolveBootstrapSession,
   type AuthUser,
@@ -73,15 +69,6 @@ function authStatusFromSeed(
   return seed?.kind ?? "checking";
 }
 
-/**
- * Same seed on both sides of hydration: the auth gate middleware stores it on
- * the request event for SSR and injects it as JSON for the browser.
- */
-function resolveBootstrapSeed(): ServerAuthBootstrap | undefined {
-  if (isServer) return getRequestEvent()?.locals?.practiceAuthBootstrap;
-  return readClientBootstrapFromDom();
-}
-
 function userFromSeed(
   seed: ServerAuthBootstrap | undefined,
 ): AuthUser | undefined {
@@ -118,12 +105,12 @@ function applyBootstrapResult(
 export function AuthProvider(
   props: ParentProps<{
     clients?: AuthClientsBundle;
-    /** Test override; the app seeds from the request event / DOM. */
+    /** Test override; production starts with a session-neutral shell. */
     initialBootstrap?: ServerAuthBootstrap;
   }>,
 ) {
   const { hadSeed, seed } = untrack(() => {
-    const resolved = props.initialBootstrap ?? resolveBootstrapSeed();
+    const resolved = props.initialBootstrap;
     return {
       hadSeed: resolved !== undefined,
       seed: resolved,
