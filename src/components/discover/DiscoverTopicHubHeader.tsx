@@ -1,6 +1,6 @@
 import { Show } from "solid-js";
 import type { DiscoverTopicHubResponse } from "../../lib/api/modules/discover.api";
-import { problemNewPath, problemsBrowseHref } from "../../lib/problems/paths";
+import { problemsBrowseHref } from "../../lib/problems/paths";
 import { appTopics } from "../../lib/app/product-routes";
 import { Button } from "../ui/Button";
 
