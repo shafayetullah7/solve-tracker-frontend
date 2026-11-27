@@ -21,8 +21,12 @@ Rendering conventions remain binding (RENDERING_CONVENTIONS.md). Custom auth HTM
 
 Also review remaining reactive edge cases in topic sharing and rapid filter navigation with focused regression tests. Do not assume passing existing tests proves all interactions. Build timings are not runtime performance measurements.
 
-## Resume learning implementation
+## Learning 3A slice (delivered on feature/learning-guides)
 
-Return to Phase 3A, learning guides foundation. Next backend milestone: consistent owner-scoped tree retrieval and HTTP integration of transactional node creation; then node editing, moving/reordering, subtree lifecycle and copy, integration tests and generated OpenAPI contracts. Verify the existing generated migration against a disposable PostgreSQL database before relying on it. Keep LearningModule registration and release gated on integration readiness. Then implement frontend library, guide creation, hierarchy editor and basic study workspace.
+Backend: `LearningModule` registered in `AppModule`; migration `drizzle/20261127050210_mighty_skullbuster` verified on disposable `*_test` Postgres; `pnpm test:learning:integration` covers owner tree CRUD, resume, archive guard, subtree delete/recovery listing, cross-owner isolation, and OpenAPI paths.
 
-Continue on feature/learning-guides in both repositories. No main changes or production migration. Apply rendering conventions to new learning routes as they are built; revisit deferred optimization before release, or earlier if measured regressions or security issues demand it.
+Frontend: set `VITE_LEARNING_GUIDES_ENABLED=true` for `/app/learning` (library, create, guide overview, outline, metadata-only study navigation with resume). Types via `learning-guides.api.ts` and generated OpenAPI. No block editor or assessments (3B+).
+
+Next: 3B content blocks and progress; browser E2E for learning flows; remaining rendering P0 backlog before release.
+
+Continue on `feature/learning-guides` in both repositories. No `main` changes or production migration.

@@ -95,6 +95,30 @@ declare module "virtual:file-routes" {
       $$route?: undefined;
     },
     {
+      path: "/app/learning/:guideId/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/index"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/learning/:guideId/study/:nodeId";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/learning/";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/index"), Extract<"default", keyof typeof import("./src/routes/app/learning/index")>>>;
+      $$route?: undefined;
+    },
+    {
+      path: "/app/learning/new";
+      page: true;
+      $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/new"), Extract<"default", keyof typeof import("./src/routes/app/learning/new")>>>;
+      $$route?: undefined;
+    },
+    {
       path: "/app/problems";
       page: true;
       $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/problems"), Extract<"default", keyof typeof import("./src/routes/app/problems")>>>;
@@ -347,6 +371,14 @@ declare module "virtual:file-routes" {
           ];
         },
         {
+          path: "/learning/";
+          id: "/learning/";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/index"), Extract<"default", keyof typeof import("./src/routes/app/learning/index")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
           path: "/u/:handle";
           id: "/u/:handle";
           page: true;
@@ -370,6 +402,30 @@ declare module "virtual:file-routes" {
               children?: undefined;
             }
           ];
+        },
+        {
+          path: "/learning/new";
+          id: "/learning/new";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/new"), Extract<"default", keyof typeof import("./src/routes/app/learning/new")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/learning/:guideId/";
+          id: "/learning/:guideId/";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/index"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/index")>>>;
+          $$route?: undefined;
+          children?: undefined;
+        },
+        {
+          path: "/learning/:guideId/study/:nodeId";
+          id: "/learning/:guideId/study/:nodeId";
+          page: true;
+          $component: FileRouteLazyRef<Pick<typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]"), Extract<"default", keyof typeof import("./src/routes/app/learning/[guideId]/study/[nodeId]")>>>;
+          $$route?: undefined;
+          children?: undefined;
         }
       ];
     },

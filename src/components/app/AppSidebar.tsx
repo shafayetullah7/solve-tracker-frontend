@@ -13,6 +13,8 @@ import {
   IconUser,
 } from "../../icons";
 import { isDiscoverFullEnabled } from "../../lib/discover/flag";
+import { isLearningGuidesEnabled } from "../../lib/learning/flag";
+import { learningLibraryPath } from "../../lib/learning/paths";
 import { discoverForYouPath } from "../../lib/discover/paths";
 import { discoverCopy } from "../../lib/discover/copy";
 import { resolveSidebarActive, type SidebarSectionKey } from "../../lib/app/nav-active";
@@ -97,6 +99,15 @@ export function AppSidebar(props: AppSidebarProps) {
 
   const navItems = (): NavItem[] => {
     const items = [...BASE_NAV_ITEMS];
+    if (isLearningGuidesEnabled()) {
+      const topicsIdx = items.findIndex((i) => i.key === "topics");
+      items.splice(topicsIdx + 1, 0, {
+        key: "learning",
+        label: "Guides",
+        href: learningLibraryPath(),
+        icon: IconTopics,
+      });
+    }
     if (isDiscoverFullEnabled()) {
       const profileIdx = items.findIndex((i) => i.key === "profile");
       items.splice(profileIdx, 0, {

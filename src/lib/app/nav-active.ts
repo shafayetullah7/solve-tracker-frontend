@@ -2,6 +2,7 @@ export type SidebarSectionKey =
   | "dashboard"
   | "library"
   | "topics"
+  | "learning"
   | "profile"
   | "discover";
 
@@ -28,6 +29,10 @@ export function resolveSidebarActive(pathname: string): SidebarActiveState {
 
   if (path === "/app/topics" || path.startsWith("/app/topics/")) {
     return { section: "topics", addProblem: false };
+  }
+
+  if (path === "/app/learning" || path.startsWith("/app/learning/")) {
+    return { section: "learning", addProblem: false };
   }
 
   if (path === "/app/problems/new") {

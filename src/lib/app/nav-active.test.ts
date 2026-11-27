@@ -41,6 +41,17 @@ describe("resolveSidebarActive", () => {
     });
   });
 
+  test("learning guides", () => {
+    expect(resolveSidebarActive("/app/learning")).toEqual({
+      section: "learning",
+      addProblem: false,
+    });
+    expect(resolveSidebarActive("/app/learning/550e8400-e29b-41d4-a716-446655440000")).toEqual({
+      section: "learning",
+      addProblem: false,
+    });
+  });
+
   test("library list and nested routes", () => {
     expect(resolveSidebarActive("/app/problems")).toEqual({
       section: "library",
